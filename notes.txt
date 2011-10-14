@@ -1,3 +1,5 @@
-I can change your file!!!
-Yeah!!!
-I'm tying. That's me
+	printf("Hello world!");
+	printf("Goodbye world!");
+	}
+In dedication to Dannis Ritchie 1973-2011;
+}
