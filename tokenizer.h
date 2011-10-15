@@ -20,3 +20,7 @@ typedef struct __ConsCell{
   struct __Value *car;
   struct __Value *cdr;
 } ConsCell;
+
+typedef struct __LinkedList{
+  struct __Value *head;
+} List;
