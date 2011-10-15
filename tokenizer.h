@@ -13,7 +13,7 @@ typedef struct __Value{
     char open;
     char close;
     struct __ConsCell *cons;
-  } payload;
+  };
 } Value;
 
 typedef struct __ConsCell{
@@ -35,12 +35,11 @@ int insertCell(List *list, Value *value);
 int deleteCell(List *list, Value *value);
 
 // This function reverses the linked list.
-int reverse(List *list);
+List *reverse(List *list);
 
-// This function frees the linked list and its cons cells.
+// This function frees cons cells of the linked list.
 void cleanup(List* list);
 
 // This function prints the linked list.
 void print(List* list);
 
-// This function tokenizes a line of scheme code.
