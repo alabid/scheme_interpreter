@@ -22,5 +22,5 @@ typedef struct __ConsCell{
 } ConsCell;
 
 typedef struct __LinkedList{
-  struct __Value *head;
+  struct __ConsCell *head;
 } List;
