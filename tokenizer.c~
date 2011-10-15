@@ -1,6 +1,5 @@
 
 #include <stdlib.h>
-# include <stdio.h>
 #include "tokenizer.h"
 
 int insertCell(List *list, Value *value){
@@ -36,7 +35,7 @@ int reverse(List *list){
 void print(List* list){
   Value *curValue = list->head;
   while(curValue){
-    switch (curValue->cons->car->type){
+    switch curValue->cons->car->type{
       case booleanType:
 	if(curValue->cons->car->boolValue){
 	  printf("True:boolean\n");
