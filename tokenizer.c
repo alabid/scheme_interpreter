@@ -1,7 +1,12 @@
 
 #include <stdlib.h>
-# include <stdio.h>
+#include <stdio.h>
 #include "tokenizer.h"
+
+// This function initializes a linked list. It will assign head as NULL.
+void initialize(List *list){
+  list->head = NULL;
+}
 
 int insertCell(List *list, Value *value){
   Value *newValue = (Value *)malloc(sizeof(Value));
@@ -13,6 +18,8 @@ int insertCell(List *list, Value *value){
   list->head = newValue;
   return 1;
 }
+
+
 
 int reverse(List *list){
   List *newList = (List *)malloc(sizeof(List));
@@ -70,3 +77,91 @@ void print(List* list){
   }
 }
 
+// This function deletes a cons cell from the linked list.
+int deleteCell(List *list, Value *value){
+  int type = value->type;
+  Value* current = list->head;
+  Value* storedValue;
+  Value* previous;
+  int found = 0;
+  if (type==cellType){
+    return 0; //invalid input
+  }
+  
+  while (current){
+    if (current->cons->car->type==type){
+      storedValue = current->cons->car;
+      switch type{
+	case booleanType:
+	  if (storedValue->boolValue == value->boolValue)
+	    {
+	      found =1;
+	    }
+	  break;
+	case integerType:
+	  if (storedValue->intValue == value->intValue)
+	    {
+	      found =1;
+	    }
+	  break;
+	case floatType:
+	  if (storedValue->floatValue == value->floatValue)
+	    {
+	      found =1;
+	    }
+	  break;
+	case stringType:
+	  if (storedValue->stringValue == value->stringValue)
+	    {
+	      found =1;
+	    }
+	  break;
+	case symbolType:
+	  if (storedValue->symbolValue == value->symbolValue)
+	    {
+	      found =1;
+	    }
+	  break;
+	case openType:
+	  if (storedValue->open == value->open)
+	    {
+	      found =1;
+	    }
+	  break;
+	case closeType:
+	  if (storedValue->close == value->close)
+	    {
+	      found = 1;
+	    }
+	  break;
+	}
+      if (found){
+	previous->cons->cdr = current->cons->cdr;
+	free(current->cons->car);
+	free(current);
+	return 1;
+      }
+    }
+    previous = current;
+    current = current->cons->cdr;
+  }
+  return 0;
+}
+
+// This function frees its cons cells.
+void cleanup(List* list){
+  Value current;
+  Value second;
+  while (list->head){
+    second = (list->head->cons)->cdr;
+    free((list->head->cons)->car);
+    free(list->head);
+    list->head = second;
+  }
+}
+
+// This function frees its cons cells and also frees the list.
+void destroy(List* list){
+  cleanup(list);
+  free(list);
+}
