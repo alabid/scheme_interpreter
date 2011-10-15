@@ -8,7 +8,7 @@ int main(int argc, char *argv[]){
   Value *value;
   int i;
   for (i=0;i<20;i++){
-    value = (Value *)malloc(sizeof(List));
+    value = (Value *)malloc(sizeof(Value));
     value->type = integerType;
     value->intValue = i;
     insertCell(list,value);
