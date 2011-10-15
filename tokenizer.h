@@ -45,6 +45,9 @@ void print(List* list);
 
 List* tokenize(char* expression);
 
+/* This function creates a new struct __Value and
+   copys the payload stored in the Value value. 
+   If value's payload contains a pointer, it only performs shallow copy.*/
 Value* copyValue(Value *value);
 
 

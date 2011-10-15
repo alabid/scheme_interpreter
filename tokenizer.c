@@ -37,7 +37,7 @@ int reverse(List *list){
   }
   cleanup(list);
   list->head = newList->head;
-  printf("hello world!!!\n");
+  free(newList);
   return 1;
 }
 
@@ -168,6 +168,9 @@ void destroy(List* list){
   free(list);
 }
 
+/* This function creates a new struct __Value and
+   copys the payload stored in the Value value. 
+   If value's payload contains a pointer, it only performs shallow copy.*/
 Value* copyValue(Value *value){
   Value *newValue = (Value *)malloc(sizeof(Value));
   newValue->type = value->type;
