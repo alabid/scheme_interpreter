@@ -7,13 +7,14 @@ int main(int argc, char *argv[]){
   initialize(list);
   Value *value;
   int i;
-  char letters[]={abcdefghijklmnopqrstuvwxyz};
+  char letters[]={'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
   for (i=0;i<20;i++){
     value = (Value *)malloc(sizeof(Value));
-    value->type = symbol;
+    value->type = symbolType;
     char *s = (char *)malloc(sizeof(char)*256);
-    *s=letters[i];
-    value->charValue =s; 
+    *s = letters[i];
+	*(s+1)='\0';
+    value->symbolValue =s; 
     insertCell(list,value);
   }
   print(list);

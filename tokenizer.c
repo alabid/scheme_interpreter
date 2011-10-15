@@ -185,7 +185,7 @@ Value* copyValue(Value *value){
       break;
     case stringType:
       
-      newValue->stringValue = newString;
+      newValue->stringValue = value->stringValue;
       break;
     case symbolType:
  
