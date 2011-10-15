@@ -42,7 +42,7 @@ int reverse(List *list){
 
 void print(List* list){
   Value *curValue = list->head;
-  while(curValue){
+  while (curValue){
     switch (curValue->cons->car->type){
       case booleanType:
 	if(curValue->cons->car->boolValue){
@@ -56,7 +56,7 @@ void print(List* list){
 	printf("%d:integer\n",curValue->cons->car->intValue);
 	break;
       case floatType:
-	printf("%lf:double\n",curValue->cons->car->dblValue);
+	printf("%lf:float\n",curValue->cons->car->dblValue);
 	break;
       case stringType:
 	printf("%s:string\n",curValue->cons->car->stringValue);
@@ -155,6 +155,7 @@ void cleanup(List* list){
   while (list->head){
     second = (list->head->cons)->cdr;
     free((list->head->cons)->car);
+    free(list->head->cons);
     free(list->head);
     list->head = second;
   }
