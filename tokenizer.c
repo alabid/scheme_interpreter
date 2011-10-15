@@ -21,23 +21,16 @@ int insertCell(List *list, Value *value){
 
 // This function reverses the linked list.
 int reverse(List *list){
-  List *newList = (List *) malloc(sizeof(List));
+  Value *nextValue;
+  Value *tempHead=NULL;
   Value *curValue = list->head;
-  Value *payload;
-  initialize(newList);
   while (curValue){
-    payload = copyValue(curValue->cons->car);
-    if (insertCell(newList, payload)){
-      curValue = curValue->cons->cdr;
-    }
-    else{
-      free(payload);
-      return 0;
-    }
+    nextValue = curValue->cons->cdr;
+    curValue->cons->cdr = tempHead;
+    tempHead = curValue;
+    curValue = nextValue;
   }
-  cleanup(list);
-  list->head = newList->head;
-  free(newList);
+  list->head = tempHead;
   return 1;
 }
 
@@ -139,6 +132,7 @@ int deleteCell(List *list, Value *value){
       if (found){
 	previous->cons->cdr = current->cons->cdr;
 	free(current->cons->car);
+	free(current->cons);
 	free(current);
 	return 1;
       }
@@ -151,11 +145,15 @@ int deleteCell(List *list, Value *value){
 
 // This function frees its cons cells.
 void cleanup(List* list){
-  Value *current;
   Value *second;
   while (list->head){
     second = (list->head->cons)->cdr;
-    free((list->head->cons)->car);
+    if (list->head->cons->car->type == stringType){
+      free(list->head->cons->car->stringValue);
+    }else if (list->head->cons->car->type == symbolType){
+      free(list->head->cons->car->symbolValue);
+    }
+    free(list->head->cons->car);
     free(list->head->cons);
     free(list->head);
     list->head = second;
@@ -183,12 +181,14 @@ Value* copyValue(Value *value){
       newValue->intValue = value->intValue;
       break;
     case floatType:
-	newValue->dblValue = value->dblValue;
-	break;
+      newValue->dblValue = value->dblValue;
+      break;
     case stringType:
-      newValue->stringValue = value->stringValue;
+      
+      newValue->stringValue = newString;
       break;
     case symbolType:
+ 
       newValue->symbolValue = value->symbolValue;
       break;
     case openType:
