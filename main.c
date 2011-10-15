@@ -3,6 +3,7 @@
 #include "tokenizer.h"
 
 int main(int argc, char *argv[]){
+  
   List *list = (List *) malloc(sizeof(List));
   initialize(list);
   Value *value;
@@ -13,6 +14,8 @@ int main(int argc, char *argv[]){
     value->intValue = i;
     insertCell(list,value);
   }
+  print(list);
+  reverse(list);
   print(list);
   destroy(list);
   return 0;
