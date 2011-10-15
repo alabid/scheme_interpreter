@@ -4,6 +4,7 @@
 
 int main(int argc, char *argv[]){
   List *list = (List *) malloc(sizeof(List));
+  initialize(list);
   Value *value;
   int i;
   for (i=0;i<20;i++){
