@@ -26,7 +26,7 @@ typedef struct __LinkedList{
 } List;
 
 // This function initializes a linked list. It will assign head as NULL.
-Void initialize(List *list);
+void initialize(List *list);
 
 // This function inserts a new cons cell to the linked list.
 int insertCell(List *list, Value *value);
@@ -42,3 +42,5 @@ void cleanup(List* list);
 
 // This function prints the linked list.
 void print(List* list);
+
+// This function tokenizes a line of scheme code.
