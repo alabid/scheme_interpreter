@@ -56,7 +56,7 @@ void print(List* list){
 	printf("%d:integer\n",curValue->cons->car->intValue);
 	break;
       case floatType:
-	printf("%lf:double\n",curValue->cons->car->dbValue);
+	printf("%lf:double\n",curValue->cons->car->dblValue);
 	break;
       case stringType:
 	printf("%s:string\n",curValue->cons->car->stringValue);
@@ -64,10 +64,10 @@ void print(List* list){
       case symbolType:
 	printf("%s:symbol\n",curValue->cons->car->symbolValue);
 	break;
-      case open:
+      case openType:
 	printf("(:open\n");
 	break;
-      case close:
+      case closeType:
 	printf("):close\n");
 	break;
       default:
@@ -91,7 +91,7 @@ int deleteCell(List *list, Value *value){
   while (current){
     if (current->cons->car->type==type){
       storedValue = current->cons->car;
-      switch type{
+      switch (type){
 	case booleanType:
 	  if (storedValue->boolValue == value->boolValue)
 	    {
@@ -105,7 +105,7 @@ int deleteCell(List *list, Value *value){
 	    }
 	  break;
 	case floatType:
-	  if (storedValue->floatValue == value->floatValue)
+	  if (storedValue->dblValue == value->dblValue)
 	    {
 	      found =1;
 	    }
@@ -150,8 +150,8 @@ int deleteCell(List *list, Value *value){
 
 // This function frees its cons cells.
 void cleanup(List* list){
-  Value current;
-  Value second;
+  Value *current;
+  Value *second;
   while (list->head){
     second = (list->head->cons)->cdr;
     free((list->head->cons)->car);

@@ -35,7 +35,7 @@ int insertCell(List *list, Value *value);
 int deleteCell(List *list, Value *value);
 
 // This function reverses the linked list.
-List *reverse(List *list);
+int reverse(List *list);
 
 // This function frees cons cells of the linked list.
 void cleanup(List* list);
