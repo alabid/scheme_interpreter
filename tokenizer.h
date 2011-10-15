@@ -43,3 +43,8 @@ void cleanup(List* list);
 // This function prints the linked list.
 void print(List* list);
 
+List* tokenize(char* expression);
+
+Value* copyValue(Value *value);
+
+

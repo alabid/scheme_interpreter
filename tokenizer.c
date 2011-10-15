@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "tokenizer.h"
@@ -20,23 +19,25 @@ int insertCell(List *list, Value *value){
 }
 
 
-
+// This function reverses the linked list.
 int reverse(List *list){
-  List *newList = (List *)malloc(sizeof(List));
-  List *oldList;
+  List *newList = (List *) malloc(sizeof(List));
   Value *curValue = list->head;
+  Value *payload;
   initialize(newList);
-  while(curValue){
-    if(insertCell(newList, curValue->cons->car)){
+  while (curValue){
+    payload = copyValue(curValue->cons->car);
+    if (insertCell(newList, payload)){
       curValue = curValue->cons->cdr;
     }
     else{
+      free(payload);
       return 0;
     }
   }
-  oldList = list;
-  list = newList;
-  cleanup(oldList);
+  cleanup(list);
+  list->head = newList->head;
+  printf("hello world!!!\n");
   return 1;
 }
 
@@ -165,4 +166,39 @@ void cleanup(List* list){
 void destroy(List* list){
   cleanup(list);
   free(list);
+}
+
+Value* copyValue(Value *value){
+  Value *newValue = (Value *)malloc(sizeof(Value));
+  newValue->type = value->type;
+  switch (value->type)
+    {
+    case booleanType:
+      newValue->boolValue = value->boolValue;
+      break;
+    case integerType:
+      newValue->intValue = value->intValue;
+      break;
+    case floatType:
+	newValue->dblValue = value->dblValue;
+	break;
+    case stringType:
+      newValue->stringValue = value->stringValue;
+      break;
+    case symbolType:
+      newValue->symbolValue = value->symbolValue;
+      break;
+    case openType:
+      newValue->open = value->open;
+      break;
+    case closeType:
+      newValue->close = value->close;
+      break;
+    case cellType:
+      newValue->cons = value->cons;
+      break;
+    default:
+      break;
+    }
+  return newValue;  
 }
