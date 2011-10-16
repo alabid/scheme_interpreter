@@ -216,6 +216,7 @@ List* tokenize(char* expression){
     switch(expression[i])
       {
       case ' ':
+	i++;
 	break;
       case '(':
 	newValue = (Value *)malloc(sizeof(Value));
@@ -245,22 +246,47 @@ List* tokenize(char* expression){
 	break;
       case ';':
 	return tokens;
+	break;
       case '"':
-	char *s = (char *)malloc(sizeof(char)*MAX);
-	int number;
+	char *tempString = (char *)malloc(sizeof(char)*(MAX+1));
 	int j = i;
-	while(expression[])
+        tempString[i-j]='"';
+	i++;
+	while(expression[i]!='"'){
+	  tempString[i-j]=expression[i];
+	  i++;
+	}
+	tempString[i-j]='"';
+	tempString[i-j+1]='\0';
+	newValue = (Value*)malloc(sizeof(Value));
+	newValue->type=stringType;
+	newValue->stringValue=tempString;
+	break;
+	
+      case '\'':
+	char *tempSymbol = (char *)malloc(sizeof(char)*(MAX+1));
+        int j = i;
+        i++;
+        while(expression[i]!=' '){
+          tempSymbol[i-j]=expression[i];
+          i++;
+        }
+        tempSymbol[i-j+1]='\0';
+        newValue = (Value*)malloc(sizeof(Value));
+        newValue->type=symbolType;
+        newValue->symbolValue=tempSymbol;
+        break;
 
-
+	
       default:
-	char *s = (char *)malloc(sizeof(char)*MAX);
+	char *tmp = (char *)malloc(sizeof(char)*(MAX+1));
 	int number;
 	int j = i;
 	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
-	  *(s+i-j) = expression[i];
+	  *(tmp+i-j) = expression[i];
 	  i++;
 	}
-	*(s+i)='\0';
+	*(tmp+i)='\0';
 	while('0'<=expression[i] && expression[i]<='9'){
 	  number = number*10+expression[i]-'0';
 	  i++;
