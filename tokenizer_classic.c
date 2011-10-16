@@ -222,145 +222,8 @@ Value* copyValue(Value *value){
   return newValue;  
 }
 
-/*
-List* tokenize(char* expression){
-  int i=0;
-  List *tokens = (List *)malloc(sizeof(List));
-  initialize(tokens);
-  Value *newValue;
-  while(i<MAX && expression[i]!='\0'){
-    switch(expression[i])
-      {
-      case ' ':
-	i++;
-	break;
-      case '(':
-	newValue = (Value *)malloc(sizeof(Value));
-	newValue->type = openType;
-	newValue->open = '(';
-	insertCell(tokens, newValue);
-	break;
-      case ')':
-	newValue = (Value *)malloc(sizeof(Value));
-	newValue->type = closeType;
-	newValue->close = ')';
-	insertCell(tokens, newValue);
-	break;
-      case '#':
-	i++;
-	if(expression[i]=='t'){
-	  newValue = (Value *)malloc(sizeof(Value));
-	  newValue->type = booleanType;
-	  newValue->boolValue = 1;
-	}else if(expression[i]=='f'){
-	  newValue = (Value *)malloc(sizeof(Value));
-	  newValue->type = booleanType;
-	  newValue->boolValue = 0;
-	}
-	// Ignored the case #\a (a is any character.)
-	else{
-	  //error catching needed.
-	}
-	break;
-      case ';':
-	return tokens;
-	break;
-      case '"':
-	char *tempString = (char *)malloc(sizeof(char)*MAX);
-	int j = i;
-        tempString[i-j]='"';
-	i++;
-	while(expression[i]!='"'){
-	  if(expression[i]=='\0'){
-	    // error catching needed.
-	    return tokens;
-	  }
-	  tempString[i-j]=expression[i];
-	  i++; 
-	}
-	tempString[i-j]='"';
-	tempString[i-j+1]='\0';
-	newValue = (Value*)malloc(sizeof(Value));
-	newValue->type=stringType;
-	newValue->stringValue=tempString;
-	i++;
-	break;
-	
-      case '\'':
-	char *tempSymbol = (char *)malloc(sizeof(char)*MAX);
-        int j = i;
-        i++;
-        while(expression[i]!=' '){
-	  if(expression[i]=='\0'){
-	    // error catching needed.
-	    return tokens;
-	  }
-          tempSymbol[i-j]=expression[i];
-          i++;
-        }
-        tempSymbol[i-j+1]='\0';
-        newValue = (Value*)malloc(sizeof(Value));
-        newValue->type=symbolType;
-        newValue->symbolValue=tempSymbol;
-        break;
-
-	
-      default:
-	char *tmp = (char *)malloc(sizeof(char)*MAX);
-	int number = 0;
-	double dblNumber = 0.0;
-	int j = i;
-	int isFloat = 0;
-	int isInt = 1;
-	int fractionCounter = 1;
-	newValue = (Value *)malloc(sizeof(Value));
-	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
-	  *(tmp+i-j) = expression[i];
-	  i++;
-	}
-	*(tmp+i)='\0';
-	j = 0;
-	while (tmp[j]!='\0'){
-	  if (tmp[j]=='.'){
-	    isFloat = 1;
-	    isInt = 0;
-	  }else if (! ('0'<tmp[j] && tmp[j]<'9')){
-	    isInt = 0;
-	    isFloat = 0;
-	    break;
-	  }
-	  number = number*10 + tmp[j]-'0';
-	  if (isFloat){
-	    dblNumber = dblNumber + (tmp[j]-'0')*pow(10,(-fractionCounter));
-	    fractionCounter++;
-	  }else{
-	    dblNumber = dblNumber*10+tmp[j]-'0';
-	  }
-	  
-	}
-	if (isFloat){
-	  newValue->type = floatType;
-	  newValue->dblType = dblNumber;   
-	
-	}else if (isInt){
-	  newValue->type = integerType;
-	  newValue->intValue = number;  
-	}else{
-	  newValue->type = procedureType;
-	  newValue->procedureValue = tmp;
-	  //procedure here.
-	}
-	insertCell(tokens, newValue);
-	break;
-	
-	// Code needed to check what tmp is. E.g. whether tmp is an int, a float, or a procedure(a function).
-      }
-  }
-  return tokens;
-}
-*/
-List *tokenize(char *expression) {
-  
+List *tokenize(char *expression) {  
+  printString(expression);
   int i; // counter for expression
 
   int numOpens,
@@ -400,20 +263,27 @@ List *tokenize(char *expression) {
   // now while loop that does main work
 
   while (expression[i] != '\n') {
+    printf("\n");
     if (isspace(expression[i])) {
       i++; continue;
     }
+    printChar(expression[i]);
+    printf("\ti=%d\n", i);
+
 
     if (expression[i] == ';') {
       break; // comment so get out
     }
     if (isdigit(expression[i])) {
+      printf("[digit]\n");
+      printf("digit starts with %c", expression[i]);
       numStart = i;
 
       // handle numbers here
       while (!isspace(expression[i]) 
 	     && expression[i] != ')'
 	     && expression[i] != '(') {
+	printChar(expression[i]);
 
 	if (expression[i] == ';') {
 	  // here we know that there is a comment
@@ -426,12 +296,16 @@ List *tokenize(char *expression) {
 	if (!isdigit(expression[i])) {
 	  // then we know it's not a digit but a symbol
 	  notDigit = 1;
+	  printf(" not a digit bcos it has %c", 
+		 expression[i]);
 	}
 	i++;
       }
       
       numEnd = i-1;
+      printf(" and ends with %c\n", expression[numEnd]);
 
+     printChar(expression[i]);
        if (isFloat && !notDigit) {
 	 
 	 strncpy(scratchFloat,
@@ -439,6 +313,7 @@ List *tokenize(char *expression) {
 		 numEnd - numStart + 1);
          scratchFloat[numEnd-numStart +1] = '\0';
          floatNum = atof(scratchFloat);
+	 printf("and this is my float value: %f", floatNum);
 	 // ====== USE ME ======== I'M A FLOAT
 	 // USE ME IN FLOATNUM
  	 
@@ -454,18 +329,21 @@ List *tokenize(char *expression) {
         scratchInt[numEnd-numStart + 1] = '\0';
         intNum = atoi(scratchInt);
 	
+	printf("And this is my int value: %d", intNum);	
 	// ========== USE ========== I'M AN INT
 	// USE ME IN INTNUM
 	newValue = (Value *)malloc(sizeof(Value));
 	newValue->type = integerType;
 	newValue->intValue = intNum;
 	insertCell(list, newValue);
+	
 	numInts++;
        } 
 
        if (notDigit) {
 	 // if it's not a digit, then it's probably
 	 // a symbol
+	 printf("[symbol] not [int]\n");
 	 // ======= USE ME ======= I'M A SYMBOL
 	 int length = numEnd - numStart + 1;
 	 scratchSymbol = (char *)malloc(sizeof(char)  * (length+1));
@@ -493,6 +371,7 @@ List *tokenize(char *expression) {
     // == GOING INTO THE SWITCH STATEMENT ==
     switch(expression[i]) { // these are for chars and strings
       case '(':
+        printf("[openParens]\n");
 	numOpens++;
 	// === USE ME === OPEN PARENS
 	 newValue = (Value *)malloc(sizeof(Value));
@@ -501,6 +380,7 @@ List *tokenize(char *expression) {
 	 insertCell(list, newValue);
 	break;
     case ')':
+      printf("[closeParens]\n");
       numCloses++;
       // ======= USE ME ======== CLOSE PARENS
        newValue = (Value *)malloc(sizeof(Value));
@@ -509,9 +389,12 @@ List *tokenize(char *expression) {
        insertCell(list, newValue);
       break;
     case '"':
+      printf("[string]\n");
       stringStart = i;
+      printf("string starts with %c", expression[i+1]);
       while (expression[++i] != '"');
 
+      printf(" and ends with %c", expression[i]);
       numStrings++;
 
       strncpy(scratchString, 
@@ -524,6 +407,7 @@ List *tokenize(char *expression) {
       stringStore[i-stringStart +1] = '\0'; // terminate the string
       scratchString[i-stringStart +1] = '\0'; // terminate the string
       
+      printf("\nYo, string=%s\n", scratchString);
       // ======== USE ME ========== STRING
       // I'm in scratchString
        newValue = (Value *)malloc(sizeof(Value));
@@ -535,6 +419,7 @@ List *tokenize(char *expression) {
       break;
     case '#':
       if (expression[i+1] == 'f' ) {
+        printf("[boolean]\n");
 	newValue = (Value *)malloc(sizeof(Value));
 	newValue->type = booleanType;
 	newValue->boolValue = 0;
@@ -543,6 +428,7 @@ List *tokenize(char *expression) {
 	i++;
 	numBools++;
       }else if (expression[i+1] == 't') {
+	printf("[boolean]\n");
 	newValue = (Value *)malloc(sizeof(Value));
 	newValue->type = booleanType;
 	newValue->boolValue = 1;
@@ -555,6 +441,8 @@ List *tokenize(char *expression) {
     default:
       // every other thing is a symbol
       symbolStart = i;
+      printf("[symbol]\n");
+      printf("starts with %c\t", expression[i]);
 
       while (expression[i] != '(' &&
 	     expression[i] != ')' &&
@@ -567,6 +455,7 @@ List *tokenize(char *expression) {
 	i++;
       }
       i--; // take me to the end of the symbol
+      printf("ends with %c\n", expression[i]);
       symbolEnd = i;
       
       scratchSymbol = (char *) malloc(sizeof(char) *
@@ -580,6 +469,7 @@ List *tokenize(char *expression) {
       newValue->type = symbolType;
       newValue->symbolValue = scratchSymbol;
       insertCell(list, newValue);
+      
       numSymbols++;
       // USE ME ================== I'M A SYMBOL
 	break;
@@ -588,7 +478,14 @@ List *tokenize(char *expression) {
     i++;
 
   }
-
+  printf("\n==========RESULT=========\n");
+  printf("Found %d opens, %d closes\n", numOpens, numCloses);
+  printf("Found %d ints and %d floats\n", numInts, numFloats);
+  printf("Found %d symbol(s)\n", numSymbols);
+  printf("Found %d boolean(s)\n", numBools);
+  printf("Found %d string(s)\n", numStrings);
+  printf("=============================\n\n");
+  
   reverse(list);
   return list;
 }
