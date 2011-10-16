@@ -1,0 +1,13 @@
+(+ x2 ( + ( quote x 'me ) "foo;; still a string" 323 91.25 23x4 42x.7 20.4 me and you) ;; now it's a comment!
+(+ 3 3.3 (this is my town and) 78.89 272.2 (* 2 3) ;; 32 23 me
+(*32 23 ; and I just ()) Remember that a ; comments out stuff
+(* 32 "" "d" 23 me 302.33) #t #f) #me ;; note that 2;3 is not a symbol. 2 is but ; comments out the remaining line
+(+ x2 ( + ( quote x 'me ) "foo;; still a string" 323 91.25 23x4 42x.7 20.4 me and you) ;; now it's a comment!
+(+ 3 3.3 (this is my town and) 78.89 272.2 (* 2 3) ;; 32 23 me
+(*32 45 ; and I just ()) Remember that a ;
+
+(* 32 "" "d" 23 me 302.33) #t #f) #me ;; note that 2;3 is not a symbol. 2 is but ; comments out the remaining line
+(+ we ( + ( quote x 'me ) "foo;; still a string" 323 91.25 23x4 42x.7 20.4 me and you) ;; now it's a comment!
+(+ 3 3.3 (this is anddasa) 78.89 272.2 (* 2 3) ;; 32 23 me
+(*32 23 ; and I just ()) Remember that a ;
+(* 32 "" "d" 23 me 302.34544543) #ft #f) #me ;; note that 2;3 is not a symbol. 2 is but ; comments out the remaining line
