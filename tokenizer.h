@@ -1,3 +1,5 @@
+#define MAX 256;
+
 enum TOKEN_TYPE{
   cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType
 };
@@ -41,7 +43,7 @@ int reverse(List *list);
 void cleanup(List* list);
 
 // This function prints the linked list.
-void print(List* list);
+void printToken(List* list);
 
 List* tokenize(char* expression);
 
@@ -50,4 +52,5 @@ List* tokenize(char* expression);
    If value's payload contains a pointer, it only performs shallow copy.*/
 Value* copyValue(Value *value);
 
-
+// This function frees its cons cells and also frees the list.
+void destroy(List* list)

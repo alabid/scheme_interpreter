@@ -34,10 +34,11 @@ int reverse(List *list){
   return 1;
 }
 
-void print(List* list){
+void printToken(List* list){
   Value *curValue = list->head;
   while (curValue){
-    switch (curValue->cons->car->type){
+    switch (curValue->cons->car->type)
+      {
       case booleanType:
 	if(curValue->cons->car->boolValue){
 	  printf("True:boolean\n");
@@ -205,3 +206,68 @@ Value* copyValue(Value *value){
     }
   return newValue;  
 }
+
+List* tokenize(char* expression){
+  int i=0;
+  List *tokens = (List *)malloc(sizeof(List));
+  initialize(tokens);
+  Value *newValue;
+  while(i<MAX && expression[i]!='\0'){
+    switch(expression[i])
+      {
+      case ' ':
+	break;
+      case '(':
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = openType;
+	newValue->open = '(';
+	insertCell(tokens, newValue);
+	break;
+      case ')':
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = closeType;
+	newValue->close = ')';
+	insertCell(tokens, newValue);
+	break;
+      case '#':
+	i++;
+	if(expression[i]=='t'){
+	  newValue = (Value *)malloc(sizeof(Value));
+	  newValue->type = booleanType;
+	  newValue->boolValue = 1;
+	}else if(expression[i]=='f'){
+	  newValue = (Value *)malloc(sizeof(Value));
+	  newValue->type = booleanType;
+	  newValue->boolValue = 0;
+	}else{
+	  //error catching needed.
+	}
+	break;
+      case ';':
+	return tokens;
+      case '"':
+	char *s = (char *)malloc(sizeof(char)*MAX);
+	int number;
+	int j = i;
+	while(expression[])
+
+
+      default:
+	char *s = (char *)malloc(sizeof(char)*MAX);
+	int number;
+	int j = i;
+	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
+	  *(s+i-j) = expression[i];
+	  i++;
+	}
+	*(s+i)='\0';
+	while('0'<=expression[i] && expression[i]<='9'){
+	  number = number*10+expression[i]-'0';
+	  i++;
+	}
+	  if(expression[i]==' '){
+	    newValue = (Value *)malloc(sizeof(Value));
+	    newValue->type = integerType;
+	    newValue->intValue = number;
+	  }else{
+	    
