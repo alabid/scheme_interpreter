@@ -291,14 +291,41 @@ List* tokenize(char* expression){
 	
       default:
 	char *tmp = (char *)malloc(sizeof(char)*MAX);
-	int number;
+	int number = 0;
 	int j = i;
+	int isFloat = 0;
+	int isInt = 1;
+	newValue = (Value *)malloc(sizeof(Value));
 	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
 	  *(tmp+i-j) = expression[i];
 	  i++;
 	}
 	*(tmp+i)='\0';
+	j = 0;
+	while (tmp[j]!='\0'){
+	  if (tmp[j]=='.'){
+	    isFloat = 1;
+	    isInt = 0;
+	  }else if (! ('0'<tmp[j] && tmp[j]<'9')){
+	    isInt = 0;
+	    isFloat = 0;
+	    break;
+	  }
+	}
+	if (isFloat){
+	  newValue->type = floatType;
+	  newValue->dblType =;   
+	}else if (isInt){
+
+	}else{
+	  //procedure here.
+	}
+
+	}
+	break;
+	
 	// Code needed to check what tmp is. E.g. whether tmp is an int, a float, or a procedure(a function).
       }
   }
+  return tokens;
 }
