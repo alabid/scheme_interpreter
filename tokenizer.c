@@ -240,7 +240,9 @@ List* tokenize(char* expression){
 	  newValue = (Value *)malloc(sizeof(Value));
 	  newValue->type = booleanType;
 	  newValue->boolValue = 0;
-	}else{
+	}
+	// Ignored the case #\a (a is any character.)
+	else{
 	  //error catching needed.
 	}
 	break;
@@ -248,26 +250,35 @@ List* tokenize(char* expression){
 	return tokens;
 	break;
       case '"':
-	char *tempString = (char *)malloc(sizeof(char)*(MAX+1));
+	char *tempString = (char *)malloc(sizeof(char)*MAX);
 	int j = i;
         tempString[i-j]='"';
 	i++;
 	while(expression[i]!='"'){
+	  if(expression[i]=='\0'){
+	    // error catching needed.
+	    return tokens;
+	  }
 	  tempString[i-j]=expression[i];
-	  i++;
+	  i++; 
 	}
 	tempString[i-j]='"';
 	tempString[i-j+1]='\0';
 	newValue = (Value*)malloc(sizeof(Value));
 	newValue->type=stringType;
 	newValue->stringValue=tempString;
+	i++;
 	break;
 	
       case '\'':
-	char *tempSymbol = (char *)malloc(sizeof(char)*(MAX+1));
+	char *tempSymbol = (char *)malloc(sizeof(char)*MAX);
         int j = i;
         i++;
         while(expression[i]!=' '){
+	  if(expression[i]=='\0'){
+	    // error catching needed.
+	    return tokens;
+	  }
           tempSymbol[i-j]=expression[i];
           i++;
         }
@@ -279,7 +290,7 @@ List* tokenize(char* expression){
 
 	
       default:
-	char *tmp = (char *)malloc(sizeof(char)*(MAX+1));
+	char *tmp = (char *)malloc(sizeof(char)*MAX);
 	int number;
 	int j = i;
 	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
@@ -287,13 +298,7 @@ List* tokenize(char* expression){
 	  i++;
 	}
 	*(tmp+i)='\0';
-	while('0'<=expression[i] && expression[i]<='9'){
-	  number = number*10+expression[i]-'0';
-	  i++;
-	}
-	  if(expression[i]==' '){
-	    newValue = (Value *)malloc(sizeof(Value));
-	    newValue->type = integerType;
-	    newValue->intValue = number;
-	  }else{
-	    
+	// Code needed to check what tmp is. E.g. whether tmp is an int, a float, or a procedure(a function).
+      }
+  }
+}
