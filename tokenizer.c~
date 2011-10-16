@@ -222,7 +222,143 @@ Value* copyValue(Value *value){
   return newValue;  
 }
 
+/*
+List* tokenize(char* expression){
+  int i=0;
+  List *tokens = (List *)malloc(sizeof(List));
+  initialize(tokens);
+  Value *newValue;
+  while(i<MAX && expression[i]!='\0'){
+    switch(expression[i])
+      {
+      case ' ':
+	i++;
+	break;
+      case '(':
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = openType;
+	newValue->open = '(';
+	insertCell(tokens, newValue);
+	break;
+      case ')':
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = closeType;
+	newValue->close = ')';
+	insertCell(tokens, newValue);
+	break;
+      case '#':
+	i++;
+	if(expression[i]=='t'){
+	  newValue = (Value *)malloc(sizeof(Value));
+	  newValue->type = booleanType;
+	  newValue->boolValue = 1;
+	}else if(expression[i]=='f'){
+	  newValue = (Value *)malloc(sizeof(Value));
+	  newValue->type = booleanType;
+	  newValue->boolValue = 0;
+	}
+	// Ignored the case #\a (a is any character.)
+	else{
+	  //error catching needed.
+	}
+	break;
+      case ';':
+	return tokens;
+	break;
+      case '"':
+	char *tempString = (char *)malloc(sizeof(char)*MAX);
+	int j = i;
+        tempString[i-j]='"';
+	i++;
+	while(expression[i]!='"'){
+	  if(expression[i]=='\0'){
+	    // error catching needed.
+	    return tokens;
+	  }
+	  tempString[i-j]=expression[i];
+	  i++; 
+	}
+	tempString[i-j]='"';
+	tempString[i-j+1]='\0';
+	newValue = (Value*)malloc(sizeof(Value));
+	newValue->type=stringType;
+	newValue->stringValue=tempString;
+	i++;
+	break;
+	
+      case '\'':
+	char *tempSymbol = (char *)malloc(sizeof(char)*MAX);
+        int j = i;
+        i++;
+        while(expression[i]!=' '){
+	  if(expression[i]=='\0'){
+	    // error catching needed.
+	    return tokens;
+	  }
+          tempSymbol[i-j]=expression[i];
+          i++;
+        }
+        tempSymbol[i-j+1]='\0';
+        newValue = (Value*)malloc(sizeof(Value));
+        newValue->type=symbolType;
+        newValue->symbolValue=tempSymbol;
+        break;
 
+	
+      default:
+	char *tmp = (char *)malloc(sizeof(char)*MAX);
+	int number = 0;
+	double dblNumber = 0.0;
+	int j = i;
+	int isFloat = 0;
+	int isInt = 1;
+	int fractionCounter = 1;
+	newValue = (Value *)malloc(sizeof(Value));
+	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
+	  *(tmp+i-j) = expression[i];
+	  i++;
+	}
+	*(tmp+i)='\0';
+	j = 0;
+	while (tmp[j]!='\0'){
+	  if (tmp[j]=='.'){
+	    isFloat = 1;
+	    isInt = 0;
+	  }else if (! ('0'<tmp[j] && tmp[j]<'9')){
+	    isInt = 0;
+	    isFloat = 0;
+	    break;
+	  }
+	  number = number*10 + tmp[j]-'0';
+	  if (isFloat){
+	    dblNumber = dblNumber + (tmp[j]-'0')*pow(10,(-fractionCounter));
+	    fractionCounter++;
+	  }else{
+	    dblNumber = dblNumber*10+tmp[j]-'0';
+	  }
+	  
+	}
+	if (isFloat){
+	  newValue->type = floatType;
+	  newValue->dblType = dblNumber;   
+	
+	}else if (isInt){
+	  newValue->type = integerType;
+	  newValue->intValue = number;  
+	}else{
+	  newValue->type = procedureType;
+	  newValue->procedureValue = tmp;
+	  //procedure here.
+	}
+	insertCell(tokens, newValue);
+	break;
+	
+	// Code needed to check what tmp is. E.g. whether tmp is an int, a float, or a procedure(a function).
+      }
+  }
+  return tokens;
+}
+*/
 List *tokenize(char *expression) {
   
   int i; // counter for expression
