@@ -1,7 +1,7 @@
 #define MAX 256;
 
 enum TOKEN_TYPE{
-  cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType
+  cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, procedureType
 };
 
 typedef struct __Value{
@@ -11,6 +11,7 @@ typedef struct __Value{
     int intValue;
     double dblValue;
     char* stringValue;
+    char* procedureValue;
     char* symbolValue;
     char open;
     char close;
