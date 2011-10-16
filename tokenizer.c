@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "tokenizer.h"
+#include <math.h>
 
 // This function initializes a linked list. It will assign head as NULL.
 void initialize(List *list){
@@ -292,9 +293,11 @@ List* tokenize(char* expression){
       default:
 	char *tmp = (char *)malloc(sizeof(char)*MAX);
 	int number = 0;
+	double dblNumber = 0.0;
 	int j = i;
 	int isFloat = 0;
 	int isInt = 1;
+	int fractionCounter = 1;
 	newValue = (Value *)malloc(sizeof(Value));
 	while(expression[i]!=' ' && expression[i]!=';' && expression[i]!='(' && expression[i]!='"'){
 	  *(tmp+i-j) = expression[i];
@@ -311,17 +314,28 @@ List* tokenize(char* expression){
 	    isFloat = 0;
 	    break;
 	  }
+	  number = number*10 + tmp[j]-'0';
+	  if (isFloat){
+	    dblNumber = dblNumber + (tmp[j]-'0')*pow(10,(-fractionCounter));
+	    fractionCounter++;
+	  }else{
+	    dblNumber = dblNumber*10+tmp[j]-'0';
+	  }
+	  
 	}
 	if (isFloat){
 	  newValue->type = floatType;
-	  newValue->dblType =;   
+	  newValue->dblType = dblNumber;   
+	
 	}else if (isInt){
-
+	  newValue->type = integerType;
+	  newValue->intValue = number;  
 	}else{
+	  newValue->type = procedureType;
+	  newValue->procedureValue = tmp;
 	  //procedure here.
 	}
-
-	}
+	insertCell(tokens, newValue);
 	break;
 	
 	// Code needed to check what tmp is. E.g. whether tmp is an int, a float, or a procedure(a function).
