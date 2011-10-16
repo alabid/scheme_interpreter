@@ -1,7 +1,21 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "tokenizer.h"
-#include <math.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <string.h>
+# include <ctype.h>
+# include "tokenizer.h"
+
+
+// debugging macros
+# define number(num_args) \
+  printf("The number of args received is: %d\n\n", num_args)
+
+# define printString(string) \
+  printf("[StringToTokenize]=%s\n", string)
+
+# define printChar(char) \
+  fprintf(stderr, ";%c;", char)
+
+// end of debugging macros
 
 // This function initializes a linked list. It will assign head as NULL.
 void initialize(List *list){
@@ -42,10 +56,10 @@ void printToken(List* list){
       {
       case booleanType:
 	if(curValue->cons->car->boolValue){
-	  printf("True:boolean\n");
+	  printf("#t:boolean\n");
 	}
 	else{
-	  printf("False:boolean\n");
+	  printf("#f:boolean\n");
 	}
 	break;
       case integerType:
@@ -208,6 +222,7 @@ Value* copyValue(Value *value){
   return newValue;  
 }
 
+/*
 List* tokenize(char* expression){
   int i=0;
   List *tokens = (List *)malloc(sizeof(List));
@@ -343,3 +358,276 @@ List* tokenize(char* expression){
   }
   return tokens;
 }
+*/
+List *tokenize(char *expression) {
+  printString(expression);
+  
+  int i; // counter for expression
+
+  int numOpens,
+  numCloses, 
+  numStrings,
+  numOpers,
+  numSymbols,
+    numFloats,
+    numInts, numBools,numOthers;
+
+  int numStart, numEnd, stringStart,
+  symbolStart, symbolEnd;// record the start and ends of the floats
+
+  numOpens = numCloses = numStrings = numSymbols = numInts = numBools
+    = numOthers = numOpers = numFloats = 0;
+
+  numStart = numEnd = symbolStart = symbolEnd = stringStart = 0;
+
+  i = 0;
+  
+  float floatNum;
+  int intNum;
+  char scratchFloat[256]; // I assume there isn't any float that
+  char scratchString[256]; // same thing for string
+  // has more than 256 in length
+  char scratchInt[256]; // same thing for int
+  char *scratchSymbol;
+  char *stringStore;
+  int isFloat = 0;
+  int notDigit = 0;
+  int isCommentInDig = 0;
+ 
+
+
+  Value *newValue;
+  List *list = (List *)malloc(sizeof(List));
+  // now while loop that does main work
+
+  while (expression[i] != '\n') {
+    printf("\n");
+    if (isspace(expression[i])) {
+      i++; continue;
+    }
+    printChar(expression[i]);
+    printf("\ti=%d\n", i);
+
+
+    if (expression[i] == ';') {
+      break; // comment so get out
+    }
+    if (isdigit(expression[i])) {
+      printf("[digit]\n");
+      printf("digit starts with %c", expression[i]);
+      numStart = i;
+
+      // handle numbers here
+      while (!isspace(expression[i]) 
+	     && expression[i] != ')'
+	     && expression[i] != '(') {
+	printChar(expression[i]);
+
+	if (expression[i] == ';') {
+	  // here we know that there is a comment
+	  isCommentInDig = 1;
+	  break;
+	}
+	if (expression[i] == '.') {
+	  isFloat = 1; i++; continue;
+	} 
+	if (!isdigit(expression[i])) {
+	  // then we know it's not a digit but a symbol
+	  notDigit = 1;
+	  printf(" not a digit bcos it has %c", 
+		 expression[i]);
+	}
+	i++;
+      }
+      
+      numEnd = i-1;
+      printf(" and ends with %c\n", expression[numEnd]);
+
+     printChar(expression[i]);
+       if (isFloat && !notDigit) {
+	 
+	 strncpy(scratchFloat,
+		 &expression[numStart],
+		 numEnd - numStart + 1);
+         scratchFloat[numEnd-numStart +1] = '\0';
+         floatNum = atof(scratchFloat);
+	 printf("and this is my float value: %f", floatNum);
+	 // ====== USE ME ======== I'M A FLOAT
+	 // USE ME IN FLOATNUM
+ 	 
+	 newValue = (Value *)malloc(sizeof(Value));
+	 newValue->type = floatType;
+	 newValue->dblValue = floatNum;
+	 insertCell(list, newValue);
+	numFloats++;
+       } else if (!isFloat && !notDigit) {
+	 strncpy(scratchInt,
+	         &expression[numStart],
+	 	 numEnd - numStart + 1);
+        scratchInt[numEnd-numStart + 1] = '\0';
+        intNum = atoi(scratchInt);
+	
+	printf("And this is my int value: %d", intNum);	
+	// ========== USE ========== I'M AN INT
+	// USE ME IN INTNUM
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = integerType;
+	newValue->intValue = intNum;
+	insertCell(list, newValue);
+	
+	numInts++;
+       } 
+
+       if (notDigit) {
+	 // if it's not a digit, then it's probably
+	 // a symbol
+	 printf("[symbol] not [int]\n");
+	 // ======= USE ME ======= I'M A SYMBOL
+	 int length = numEnd - numStart + 1;
+	 scratchSymbol = (char *)malloc(sizeof(char)  * (length+1));
+	 
+	 strncpy(scratchSymbol,
+		 &expression[numStart],
+		 length);
+	 // I START AT NUMSTART AND END AT NUM END
+	 scratchSymbol[length] = '\0';
+	 newValue = (Value *)malloc(sizeof(Value));
+	 newValue->type = symbolType;
+	 newValue->symbolValue = scratchSymbol;
+	 insertCell(list, newValue);
+       }
+
+       if (isCommentInDig) {
+	isCommentInDig = 0;
+	break; 
+      }
+
+       isFloat = notDigit = 0;
+      continue;
+    }
+    
+    // == GOING INTO THE SWITCH STATEMENT ==
+    switch(expression[i]) { // these are for chars and strings
+      case '(':
+        printf("[openParens]\n");
+	numOpens++;
+	// === USE ME === OPEN PARENS
+	 newValue = (Value *)malloc(sizeof(Value));
+	 newValue->type = openType;
+	 newValue->open = '(';
+	 insertCell(list, newValue);
+	break;
+    case ')':
+      printf("[closeParens]\n");
+      numCloses++;
+      // ======= USE ME ======== CLOSE PARENS
+       newValue = (Value *)malloc(sizeof(Value));
+       newValue->type = closeType;
+       newValue->close = ')';
+       insertCell(list, newValue);
+      break;
+    case '"':
+      printf("[string]\n");
+      stringStart = i;
+      printf("string starts with %c", expression[i+1]);
+      while (expression[++i] != '"');
+
+      printf(" and ends with %c", expression[i]);
+      numStrings++;
+
+      strncpy(scratchString, 
+	      &expression[stringStart],
+	      i - stringStart);
+      stringStore = (char *)malloc(sizeof(char) * (i-stringStart+2));
+      strncpy(stringStore,
+	      &expression[stringStart],
+	      i - stringStart+1);
+      stringStore[i-stringStart +1] = '\0'; // terminate the string
+      scratchString[i-stringStart +1] = '\0'; // terminate the string
+      
+      printf("\nYo, string=%s\n", scratchString);
+      // ======== USE ME ========== STRING
+      // I'm in scratchString
+       newValue = (Value *)malloc(sizeof(Value));
+       newValue->type = stringType;
+       newValue->stringValue = stringStore;
+       insertCell(list, newValue);
+      // reset scratch string after use
+      // clearStringContents(scratchString);
+      break;
+    case '#':
+      if (expression[i+1] == 'f' ) {
+        printf("[boolean]\n");
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = booleanType;
+	newValue->boolValue = 0;
+	insertCell(list, newValue);
+	
+	i++;
+	numBools++;
+      }else if (expression[i+1] == 't') {
+	printf("[boolean]\n");
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = booleanType;
+	newValue->boolValue = 1;
+	insertCell(list, newValue);
+	i++;
+	numBools++;
+      }
+      break;
+      
+    default:
+      // every other thing is a symbol
+      symbolStart = i;
+      printf("[symbol]\n");
+      printf("starts with %c\t", expression[i]);
+
+      while (expression[i] != '(' &&
+	     expression[i] != ')' &&
+	     expression[i] != ']' &&
+	     expression[i] != ']' &&
+	     expression[i] != ';' &&
+	     expression[i] != '#' &&
+	     expression[i] != '"' &&
+	     !isspace(expression[i])) {
+	i++;
+      }
+      i--; // take me to the end of the symbol
+      printf("ends with %c\n", expression[i]);
+      symbolEnd = i;
+      
+      scratchSymbol = (char *) malloc(sizeof(char) *
+				      (symbolEnd - symbolStart + 2));
+      strncpy(scratchSymbol,
+	      &expression[symbolStart],
+	      (symbolEnd-symbolStart+1));
+      
+      scratchSymbol[symbolEnd+1] = '\0';
+      newValue = (Value *)malloc(sizeof(Value));
+      newValue->type = symbolType;
+      newValue->symbolValue = scratchSymbol;
+      insertCell(list, newValue);
+      
+      numSymbols++;
+      // USE ME ================== I'M A SYMBOL
+	break;
+    }
+
+    i++;
+
+  }
+  printf("\n==========RESULT=========\n");
+  printf("Found %d opens, %d closes\n", numOpens, numCloses);
+  printf("Found %d ints and %d floats\n", numInts, numFloats);
+  printf("Found %d symbol(s)\n", numSymbols);
+  printf("Found %d boolean(s)\n", numBools);
+  printf("Found %d string(s)\n", numStrings);
+  printf("=============================\n\n");
+  
+  reverse(list);
+  return list;
+}
+
+
+
+

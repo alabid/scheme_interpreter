@@ -54,4 +54,4 @@ List* tokenize(char* expression);
 Value* copyValue(Value *value);
 
 // This function frees its cons cells and also frees the list.
-void destroy(List* list);
+void destroy(List* list)
