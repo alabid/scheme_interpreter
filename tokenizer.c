@@ -1,21 +1,9 @@
-# include <stdlib.h>
-# include <stdio.h>
-# include <string.h>
-# include <ctype.h>
-# include "tokenizer.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include "tokenizer.h"
 
-
-// debugging macros
-# define number(num_args) \
-  printf("The number of args received is: %d\n\n", num_args)
-
-# define printString(string) \
-  printf("[StringToTokenize]=%s\n", string)
-
-# define printChar(char) \
-  fprintf(stderr, ";%c;", char)
-
-// end of debugging macros
 
 // This function initializes a linked list. It will assign head as NULL.
 void initialize(List *list){
@@ -247,12 +235,10 @@ List *tokenize(char *expression) {
   
   float floatNum;
   int intNum;
-  char scratchFloat[256]; // I assume there isn't any float that
-  char scratchString[256]; // same thing for string
-  // has more than 256 in length
+  char scratchFloat[256]; // I assume there isn't any float that has more than 256 digits.
+  char *scratchString; 
   char scratchInt[256]; // same thing for int
   char *scratchSymbol;
-  char *stringStore;
   int isFloat = 0;
   int notDigit = 0;
   int isCommentInDig = 0;
@@ -310,13 +296,13 @@ List *tokenize(char *expression) {
 	 newValue->type = floatType;
 	 newValue->dblValue = floatNum;
 	 insertCell(list, newValue);
-	numFloats++;
+	 numFloats++;
        } else if (!isFloat && !notDigit) {
 	 strncpy(scratchInt,
 	         &expression[numStart],
 	 	 numEnd - numStart + 1);
-        scratchInt[numEnd-numStart + 1] = '\0';
-        intNum = atoi(scratchInt);
+	 scratchInt[numEnd-numStart + 1] = '\0';
+	 intNum = atoi(scratchInt);
 	
 	// ========== USE ========== I'M AN INT
 	// USE ME IN INTNUM
@@ -359,40 +345,40 @@ List *tokenize(char *expression) {
       case '(':
 	numOpens++;
 	// === USE ME === OPEN PARENS
-	 newValue = (Value *)malloc(sizeof(Value));
-	 newValue->type = openType;
-	 newValue->open = '(';
-	 insertCell(list, newValue);
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = openType;
+	newValue->open = '(';
+	insertCell(list, newValue);
 	break;
     case ')':
       numCloses++;
       // ======= USE ME ======== CLOSE PARENS
-       newValue = (Value *)malloc(sizeof(Value));
-       newValue->type = closeType;
-       newValue->close = ')';
-       insertCell(list, newValue);
+      newValue = (Value *)malloc(sizeof(Value));
+      newValue->type = closeType;
+      newValue->close = ')';
+      insertCell(list, newValue);
       break;
     case '"':
       stringStart = i;
-      while (expression[++i] != '"');
-
+      while (expression[++i] != '"'){
+	if (expression[i]=='\n'){
+	  reverse(list);
+	  return list;
+	}
+      }
       numStrings++;
-
+      
+      scratchString = (char *)malloc(sizeof(char) * (i-stringStart+2));
       strncpy(scratchString, 
 	      &expression[stringStart],
-	      i - stringStart);
-      stringStore = (char *)malloc(sizeof(char) * (i-stringStart+2));
-      strncpy(stringStore,
-	      &expression[stringStart],
 	      i - stringStart+1);
-      stringStore[i-stringStart +1] = '\0'; // terminate the string
       scratchString[i-stringStart +1] = '\0'; // terminate the string
       
       // ======== USE ME ========== STRING
       // I'm in scratchString
        newValue = (Value *)malloc(sizeof(Value));
        newValue->type = stringType;
-       newValue->stringValue = stringStore;
+       newValue->stringValue = scratchString;
        insertCell(list, newValue);
       // reset scratch string after use
       // clearStringContents(scratchString);
@@ -422,7 +408,7 @@ List *tokenize(char *expression) {
 
       while (expression[i] != '(' &&
 	     expression[i] != ')' &&
-	     expression[i] != ']' &&
+	     expression[i] != '[' &&
 	     expression[i] != ']' &&
 	     expression[i] != ';' &&
 	     expression[i] != '#' &&
