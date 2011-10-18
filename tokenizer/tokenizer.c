@@ -5,6 +5,7 @@
 #include "tokenizer.h"
 
 
+
 // This function initializes a linked list. It will assign head as NULL.
 void initialize(List *list){
   list->head = NULL;
@@ -242,8 +243,10 @@ List *tokenize(char *expression) {
   int isFloat = 0;
   int notDigit = 0;
   int isCommentInDig = 0;
- 
-
+  int isNegative = 0;
+  char *boolString;
+  int boolStart = 0;
+  int boolEnd = 0;
 
   Value *newValue;
   List *list = (List *)malloc(sizeof(List));
@@ -257,9 +260,12 @@ List *tokenize(char *expression) {
     if (expression[i] == ';') {
       break; // comment so get out
     }
-    if (isdigit(expression[i])) {
+    if (isdigit(expression[i])||expression[i]=='.'
+	||expression[i]=='-' || expression[i]=='+') {
       numStart = i;
-
+      if (expression[i]=='-' || expression[i]=='+'){
+	i++;
+      }
       // handle numbers here
       while (!isspace(expression[i]) 
 	     && expression[i] != ')'
@@ -272,7 +278,8 @@ List *tokenize(char *expression) {
 	}
 	if (expression[i] == '.') {
 	  isFloat = 1; i++; continue;
-	} 
+	}
+	
 	if (!isdigit(expression[i])) {
 	  // then we know it's not a digit but a symbol
 	  notDigit = 1;
@@ -384,21 +391,36 @@ List *tokenize(char *expression) {
       // clearStringContents(scratchString);
       break;
     case '#':
-      if (expression[i+1] == 'f' ) {
-	newValue = (Value *)malloc(sizeof(Value));
+      boolStart= i;
+      while (expression[i] != ' '){
+	i++;
+      }
+      newValue = (Value *)malloc(sizeof(Value));
+      boolEnd = i-1;
+      boolString = (char *)malloc(sizeof(char)*(boolEnd-boolStart+2));
+      strncpy(boolString, 
+	      &expression[boolStart],
+	      boolEnd-boolStart+1);
+      
+      if ((strncmp(boolString,"#f",2)==0) || (strncmp(boolString,"#F",2)==0) || (strncmp(boolString,"#false",6)==0)){
 	newValue->type = booleanType;
 	newValue->boolValue = 0;
 	insertCell(list, newValue);
-	
-	i++;
 	numBools++;
-      }else if (expression[i+1] == 't') {
-	newValue = (Value *)malloc(sizeof(Value));
+	free(boolString);
+      }else if ((strncmp(boolString,"#t",2)==0) ||(strncmp(boolString,"#T",2)==0) || (strncmp(boolString,"#true",5)==0)) {
 	newValue->type = booleanType;
 	newValue->boolValue = 1;
 	insertCell(list, newValue);
-	i++;
 	numBools++;
+	free(boolString);
+      }
+      else{
+	boolString[boolEnd-boolStart+1] ='\0'; 
+	newValue->type = symbolType;
+	newValue->symbolValue = boolString;
+	insertCell(list, newValue);
+	numSymbols++;
       }
       break;
       
