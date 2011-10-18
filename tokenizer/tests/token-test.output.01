@@ -1,0 +1,15 @@
+(:open
+/:symbol
+(:open
+define:symbol
+x:symbol
+"Jie":string
+):close
+(:open
+sum:symbol
+x:symbol
+"Lin":string
+):close
+2:integer
+):close
+):close

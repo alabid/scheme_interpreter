@@ -1,0 +1,12 @@
+!:symbol
+.5:symbol
+&&:symbol
+,:symbol
+abc:symbol
+(:open
+quote:symbol
+x:symbol
+):close
+'x:symbol
+data:symbol
+"this is a string,please":string
