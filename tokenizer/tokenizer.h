@@ -32,7 +32,7 @@ void initialize(List *list);
 int insertCell(List *list, Value *value);
 
 // This function pops the head of the linked list.
-Value* popCell(List *list);
+Value* pop(List *list);
 
 // This function deletes a cons cell from the linked list.
 int deleteCell(List *list, Value *value);
@@ -46,7 +46,7 @@ void cleanup(List* list);
 // This function prints the linked list.
 void printToken(List* list);
 
-List* tokenize(char* expression);
+List* tokenize(char* expressionpopCell);
 
 /* This function creates a new struct __Value and
    copys the payload stored in the Value value. 

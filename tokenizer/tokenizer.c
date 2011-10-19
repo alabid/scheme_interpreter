@@ -22,7 +22,18 @@ int insertCell(List *list, Value *value){
   return 1;
 }
 
-
+Value* pop(List *list){
+  Value *returnValue = NULL;
+  Value *prevHead = list->head;
+  if(list->head){
+    returnValue = prevHead->cons->car;
+    list->head = prevHead->cons->cdr;
+    free(prevHead->cons);
+    free(prevHead);
+  }
+  return returnValue;
+}
+   
 // This function reverses the linked list.
 int reverse(List *list){
   Value *nextValue;
