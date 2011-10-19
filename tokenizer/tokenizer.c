@@ -1,16 +1,17 @@
+/* By Jie Lin, Kan Wang, Daniel Alabi, Yichen Shen.
+   CS 251, Fall 2011
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include "tokenizer.h"
-
-
-
 // This function initializes a linked list. It will assign head as NULL.
 void initialize(List *list){
   list->head = NULL;
 }
 
+// This function inserts a new cons cell to the linked list.
 int insertCell(List *list, Value *value){
   Value *newValue = (Value *)malloc(sizeof(Value));
   ConsCell *newCell = (ConsCell *)malloc(sizeof(ConsCell));
@@ -22,6 +23,8 @@ int insertCell(List *list, Value *value){
   return 1;
 }
 
+
+// This function pops the head of the linked list.
 Value* pop(List *list){
   Value *returnValue = NULL;
   Value *prevHead = list->head;
@@ -49,6 +52,7 @@ int reverse(List *list){
   return 1;
 }
 
+// This function prints the linked list.
 void printToken(List* list){
   Value *curValue = list->head;
   while (curValue){
@@ -182,45 +186,6 @@ void destroy(List* list){
   free(list);
 }
 
-/* This function creates a new struct __Value and
-   copys the payload stored in the Value value. 
-   If value's payload contains a pointer, it only performs shallow copy.*/
-Value* copyValue(Value *value){
-  Value *newValue = (Value *)malloc(sizeof(Value));
-  newValue->type = value->type;
-  switch (value->type)
-    {
-    case booleanType:
-      newValue->boolValue = value->boolValue;
-      break;
-    case integerType:
-      newValue->intValue = value->intValue;
-      break;
-    case floatType:
-      newValue->dblValue = value->dblValue;
-      break;
-    case stringType:
-      
-      newValue->stringValue = value->stringValue;
-      break;
-    case symbolType:
- 
-      newValue->symbolValue = value->symbolValue;
-      break;
-    case openType:
-      newValue->open = value->open;
-      break;
-    case closeType:
-      newValue->close = value->close;
-      break;
-    case cellType:
-      newValue->cons = value->cons;
-      break;
-    default:
-      break;
-    }
-  return newValue;  
-}
 
 
 List *tokenize(char *expression) {

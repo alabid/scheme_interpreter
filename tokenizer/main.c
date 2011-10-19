@@ -15,7 +15,6 @@ int main(int argc, char *argv[]) {
     // printf("\n===========START=============\n");
     list = tokenize(expression);
     printToken(list);
-
     // destroy and clean up
     destroy(list);
     // printf("\n=============END===========\n");
