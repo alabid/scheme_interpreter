@@ -250,7 +250,10 @@ List *tokenize(char *expression) {
     if (isdigit(expression[i])||expression[i]=='.'
 	||expression[i]=='-' || expression[i]=='+') {
       numStart = i;
-      i++;
+      if (expression[i] == '.') {
+	isFloat=1; 
+      }
+      i++; 
       
       // handle numbers here
       while ((!isspace(expression[i])) 
@@ -264,7 +267,9 @@ List *tokenize(char *expression) {
 	  if (isFloat){
 	    notDigit =1;
 	  }
-	  isFloat=1; i++; continue;
+	  isFloat=1; 
+	  i++; 
+	  continue;
 	}
 	
 	if (!isdigit(expression[i])) {
@@ -276,29 +281,29 @@ List *tokenize(char *expression) {
       
       i--;
       numEnd = i;
-      if (numStart == numEnd && !isdigit(expression[numStart])){
+      if (numStart == numEnd && (!isdigit(expression[numStart]))){
 	notDigit = 1;
       }
-       if (isFloat && !notDigit) {
-	 
-	 strncpy(scratchFloat,
-		 &expression[numStart],
-		 numEnd - numStart + 1);
-         scratchFloat[numEnd-numStart +1] = '\0';
-         floatNum = atof(scratchFloat);
-	 // ====== USE ME ======== I'M A FLOAT
-	 // USE ME IN FLOATNUM
- 	 
-	 newValue = (Value *)malloc(sizeof(Value));
-	 newValue->type = floatType;
-	 newValue->dblValue = floatNum;
-	 insertCell(list, newValue);
-       } else if (!isFloat && !notDigit) {
-	 strncpy(scratchInt,
-	         &expression[numStart],
-	 	 numEnd - numStart + 1);
-	 scratchInt[numEnd-numStart + 1] = '\0';
-	 intNum = atoi(scratchInt);
+      if (isFloat && !notDigit) {
+	
+	strncpy(scratchFloat,
+		&expression[numStart],
+		numEnd - numStart + 1);
+	scratchFloat[numEnd-numStart +1] = '\0';
+	floatNum = atof(scratchFloat);
+	// ====== USE ME ======== I'M A FLOAT
+	// USE ME IN FLOATNUM
+	
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = floatType;
+	newValue->dblValue = floatNum;
+	insertCell(list, newValue);
+      } else if (!isFloat && !notDigit) {
+	strncpy(scratchInt,
+		&expression[numStart],
+		numEnd - numStart + 1);
+	scratchInt[numEnd-numStart + 1] = '\0';
+	intNum = atoi(scratchInt);
 	
 	// ========== USE ========== I'M AN INT
 	// USE ME IN INTNUM
@@ -306,39 +311,40 @@ List *tokenize(char *expression) {
 	newValue->type = integerType;
 	newValue->intValue = intNum;
 	insertCell(list, newValue);
-
-       } 
-
-       if (notDigit) {
-	 // if it's not a digit, then it's probably a symbol
-	 // ======= USE ME ======= I'M A SYMBOL
-	 int length = numEnd - numStart + 1;
-	 scratchSymbol = (char *)malloc(sizeof(char)  * (length+1));
-	 
-	 strncpy(scratchSymbol,
-		 &expression[numStart],
-		 length);
-	 
-	 scratchSymbol[length] = '\0';
-	 newValue = (Value *)malloc(sizeof(Value));
-	 newValue->type = symbolType;
-	 newValue->symbolValue = scratchSymbol;
-	 insertCell(list, newValue);
-       }
-
-       isFloat = notDigit = 0;
+	
+      } 
+      
+      if (notDigit) {
+	// if it's not a digit, then it's probably a symbol
+	// ======= USE ME ======= I'M A SYMBOL
+	int length = numEnd - numStart + 1;
+	scratchSymbol = (char *)malloc(sizeof(char)  * (length+1));
+	
+	strncpy(scratchSymbol,
+		&expression[numStart],
+		length);
+	
+	scratchSymbol[length] = '\0';
+	newValue = (Value *)malloc(sizeof(Value));
+	newValue->type = symbolType;
+	newValue->symbolValue = scratchSymbol;
+	insertCell(list, newValue);
+      }
+      
+      isFloat = notDigit = 0;
+      i++;
       continue;
     }
     
     // == GOING INTO THE SWITCH STATEMENT ==
     switch(expression[i]) { // these are for chars and strings
-      case '(':
-	// === USE ME === OPEN PARENS
-	newValue = (Value *)malloc(sizeof(Value));
-	newValue->type = openType;
-	newValue->open = '(';
-	insertCell(list, newValue);
-	break;
+    case '(':
+      // === USE ME === OPEN PARENS
+      newValue = (Value *)malloc(sizeof(Value));
+      newValue->type = openType;
+      newValue->open = '(';
+      insertCell(list, newValue);
+      break;
     case ')':
       // ======= USE ME ======== CLOSE PARENS
       newValue = (Value *)malloc(sizeof(Value));
@@ -443,9 +449,11 @@ List *tokenize(char *expression) {
     i++;
 
   }
+ 
+    reverse(list);
+    return list;
 
-  reverse(list);
-  return list;
+    
 }
 
 
