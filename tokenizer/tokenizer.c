@@ -261,7 +261,10 @@ List *tokenize(char *expression) {
 
 
 	if (expression[i] == '.') {
-	  isFloat = 1; i++; continue;
+	  if (isFloat){
+	    notDigit =1;
+	  }
+	  isFloat=1; i++; continue;
 	}
 	
 	if (!isdigit(expression[i])) {
@@ -271,8 +274,9 @@ List *tokenize(char *expression) {
 	i++;
       }
       
-      numEnd = i-1;
-      if (numStart == numEnd){
+      i--;
+      numEnd = i;
+      if (numStart == numEnd && !isdigit(expression[numStart])){
 	notDigit = 1;
       }
        if (isFloat && !notDigit) {
