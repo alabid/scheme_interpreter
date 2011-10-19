@@ -18,3 +18,13 @@ typing!:symbol
 -54.5:symbol
 -22.2:symbol
 +055:symbol
+#f:boolean
+(:open
+I'm:symbol
+typing!:symbol
+):close
+-54.500000:float
+-594:integer
+-54.500000:float
+-22.200001:float
+55:integer
