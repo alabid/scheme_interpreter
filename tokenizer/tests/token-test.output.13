@@ -1,0 +1,10 @@
+token:symbol
+-:symbol
+test:symbol
+inp:symbol
+#t:boolean
+"13":string
+int:symbol
+boolean:symbol
+x:symbol
+'xxxxxxxx:symbol

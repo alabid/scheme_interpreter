@@ -1,0 +1,12 @@
++:symbol
+#t:boolean
+#t:boolean
+#f:boolean
+#f:boolean
+"this is not a symbol":string
+7.600000:float
+-10.500000:float
+5+5i:symbol
++abdc:symbol
+-dkke:symbol
++2a:symbol
