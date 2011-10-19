@@ -216,19 +216,8 @@ List *tokenize(char *expression) {
   
   int i; // counter for expression
 
-  int numOpens,
-  numCloses, 
-  numStrings,
-  numOpers,
-  numSymbols,
-    numFloats,
-    numInts, numBools,numOthers;
-
   int numStart, numEnd, stringStart,
   symbolStart, symbolEnd;// record the start and ends of the floats
-
-  numOpens = numCloses = numStrings = numSymbols = numInts = numBools
-    = numOthers = numOpers = numFloats = 0;
 
   numStart = numEnd = symbolStart = symbolEnd = stringStart = 0;
 
@@ -242,8 +231,6 @@ List *tokenize(char *expression) {
   char *scratchSymbol;
   int isFloat = 0;
   int notDigit = 0;
-  int isCommentInDig = 0;
-  int isNegative = 0;
   char *boolString;
   int boolStart = 0;
   int boolEnd = 0;
@@ -263,19 +250,16 @@ List *tokenize(char *expression) {
     if (isdigit(expression[i])||expression[i]=='.'
 	||expression[i]=='-' || expression[i]=='+') {
       numStart = i;
-      if (expression[i]=='-' || expression[i]=='+'){
-	i++;
-      }
+      i++;
+      
       // handle numbers here
-      while (!isspace(expression[i]) 
+      while ((!isspace(expression[i])) 
 	     && expression[i] != ')'
-	     && expression[i] != '(') {
+	     && expression[i] != '('
+	     && expression[i] != '"'
+	     && expression[i] != ';') {
 
-	if (expression[i] == ';') {
-	  // here we know that there is a comment
-	  isCommentInDig = 1;
-	  break;
-	}
+
 	if (expression[i] == '.') {
 	  isFloat = 1; i++; continue;
 	}
@@ -288,7 +272,9 @@ List *tokenize(char *expression) {
       }
       
       numEnd = i-1;
-
+      if (numStart == numEnd){
+	notDigit = 1;
+      }
        if (isFloat && !notDigit) {
 	 
 	 strncpy(scratchFloat,
@@ -303,7 +289,6 @@ List *tokenize(char *expression) {
 	 newValue->type = floatType;
 	 newValue->dblValue = floatNum;
 	 insertCell(list, newValue);
-	 numFloats++;
        } else if (!isFloat && !notDigit) {
 	 strncpy(scratchInt,
 	         &expression[numStart],
@@ -317,12 +302,11 @@ List *tokenize(char *expression) {
 	newValue->type = integerType;
 	newValue->intValue = intNum;
 	insertCell(list, newValue);
-	numInts++;
+
        } 
 
        if (notDigit) {
-	 // if it's not a digit, then it's probably
-	 // a symbol
+	 // if it's not a digit, then it's probably a symbol
 	 // ======= USE ME ======= I'M A SYMBOL
 	 int length = numEnd - numStart + 1;
 	 scratchSymbol = (char *)malloc(sizeof(char)  * (length+1));
@@ -330,18 +314,13 @@ List *tokenize(char *expression) {
 	 strncpy(scratchSymbol,
 		 &expression[numStart],
 		 length);
-	 // I START AT NUMSTART AND END AT NUM END
+	 
 	 scratchSymbol[length] = '\0';
 	 newValue = (Value *)malloc(sizeof(Value));
 	 newValue->type = symbolType;
 	 newValue->symbolValue = scratchSymbol;
 	 insertCell(list, newValue);
        }
-
-       if (isCommentInDig) {
-	isCommentInDig = 0;
-	break; 
-      }
 
        isFloat = notDigit = 0;
       continue;
@@ -350,7 +329,6 @@ List *tokenize(char *expression) {
     // == GOING INTO THE SWITCH STATEMENT ==
     switch(expression[i]) { // these are for chars and strings
       case '(':
-	numOpens++;
 	// === USE ME === OPEN PARENS
 	newValue = (Value *)malloc(sizeof(Value));
 	newValue->type = openType;
@@ -358,7 +336,6 @@ List *tokenize(char *expression) {
 	insertCell(list, newValue);
 	break;
     case ')':
-      numCloses++;
       // ======= USE ME ======== CLOSE PARENS
       newValue = (Value *)malloc(sizeof(Value));
       newValue->type = closeType;
@@ -373,7 +350,7 @@ List *tokenize(char *expression) {
 	  return list;
 	}
       }
-      numStrings++;
+    
       
       scratchString = (char *)malloc(sizeof(char) * (i-stringStart+2));
       strncpy(scratchString, 
@@ -392,35 +369,41 @@ List *tokenize(char *expression) {
       break;
     case '#':
       boolStart= i;
-      while (expression[i] != ' '){
+      while (expression[i] != ' ' && 
+	     expression[i] != ')' &&
+	     expression[i] != '(' &&
+	     expression[i] != ';' &&
+	     expression[i] != '"' ){
 	i++;
       }
+      i--;
+      boolEnd = i;
+      if (boolEnd<=boolStart){
+	i++;
+	continue;
+      }
       newValue = (Value *)malloc(sizeof(Value));
-      boolEnd = i-1;
+     
       boolString = (char *)malloc(sizeof(char)*(boolEnd-boolStart+2));
       strncpy(boolString, 
 	      &expression[boolStart],
 	      boolEnd-boolStart+1);
-      
-      if ((strncmp(boolString,"#f",2)==0) || (strncmp(boolString,"#F",2)==0) || (strncmp(boolString,"#false",6)==0)){
+      boolString[boolEnd-boolStart+1] ='\0'; 
+      if ((strcmp(boolString,"#f")==0) || (strcmp(boolString,"#F")==0) || (strcmp(boolString,"#false")==0)){
 	newValue->type = booleanType;
 	newValue->boolValue = 0;
 	insertCell(list, newValue);
-	numBools++;
 	free(boolString);
-      }else if ((strncmp(boolString,"#t",2)==0) ||(strncmp(boolString,"#T",2)==0) || (strncmp(boolString,"#true",5)==0)) {
+      }else if ((strcmp(boolString,"#t")==0) ||(strcmp(boolString,"#T")==0) || (strcmp(boolString,"#true")==0)) {
 	newValue->type = booleanType;
 	newValue->boolValue = 1;
 	insertCell(list, newValue);
-	numBools++;
 	free(boolString);
       }
       else{
-	boolString[boolEnd-boolStart+1] ='\0'; 
 	newValue->type = symbolType;
 	newValue->symbolValue = boolString;
 	insertCell(list, newValue);
-	numSymbols++;
       }
       break;
       
@@ -430,10 +413,7 @@ List *tokenize(char *expression) {
 
       while (expression[i] != '(' &&
 	     expression[i] != ')' &&
-	     expression[i] != '[' &&
-	     expression[i] != ']' &&
 	     expression[i] != ';' &&
-	     expression[i] != '#' &&
 	     expression[i] != '"' &&
 	     !isspace(expression[i])) {
 	i++;
@@ -452,7 +432,6 @@ List *tokenize(char *expression) {
       newValue->type = symbolType;
       newValue->symbolValue = scratchSymbol;
       insertCell(list, newValue);
-      numSymbols++;
       // USE ME ================== I'M A SYMBOL
 	break;
     }
