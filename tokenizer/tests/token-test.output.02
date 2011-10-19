@@ -12,17 +12,3 @@ here:symbol
 ):close
 7&:symbol
 daniel:symbol
-(:open
-someone:symbol
-is:symbol
-here:symbol
-(:open
-/:symbol
-*:symbol
-23:integer
-23.230000:float
-"23.23":string
-32.x33:symbol
-):close
-7&:symbol
-daniel:symbol
