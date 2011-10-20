@@ -1,0 +1,18 @@
+a:symbol
+b:symbol
+c:symbol
+"this is good":string
+#t:boolean
++-+--+5:symbol
+44.500000:float
+"#t":string
+"#f":string
+#t:boolean
+#f:boolean
+#tre:symbol
+#false1:symbol
+###:symbol
+#:symbol
+,:symbol
+!:symbol
+3:integer
