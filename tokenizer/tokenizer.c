@@ -217,14 +217,15 @@ List *tokenize(char *expression) {
 
   while (expression[i] != '\n') {
     if (isspace(expression[i])) {
-      i++; continue;
+      i++; 
+      continue;
     }
 
     if (expression[i] == ';') {
       break; // comment so get out
     }
-    if (isdigit(expression[i])||expression[i]=='.'
-	||expression[i]=='-' || expression[i]=='+') {
+    if (isdigit(expression[i]) || expression[i]=='.'
+	|| expression[i]=='-' || expression[i]=='+') {
       numStart = i;
       if (expression[i] == '.') {
 	isFloat=1; 
@@ -350,24 +351,24 @@ List *tokenize(char *expression) {
        newValue->type = stringType;
        newValue->stringValue = scratchString;
        insertCell(list, newValue);
-      // reset scratch string after use
-      // clearStringContents(scratchString);
+    
       break;
     case '#':
       boolStart= i;
-      while (expression[i] != ' ' && 
+      while (!isspace(expression[i]) && 
 	     expression[i] != ')' &&
 	     expression[i] != '(' &&
 	     expression[i] != ';' &&
-	     expression[i] != '"' ){
+	     expression[i] != '"' &&
+	     expression[i] != '\n'){
 	i++;
       }
       i--;
       boolEnd = i;
-      if (boolEnd<=boolStart){
+      if (boolEnd<boolStart){
 	i++;
-	continue;
       }
+      
       newValue = (Value *)malloc(sizeof(Value));
      
       boolString = (char *)malloc(sizeof(char)*(boolEnd-boolStart+2));
@@ -401,19 +402,24 @@ List *tokenize(char *expression) {
 	     expression[i] != ')' &&
 	     expression[i] != ';' &&
 	     expression[i] != '"' &&
-	     !isspace(expression[i])) {
+	     !isspace(expression[i]) &&
+	     expression[i] != '\n'
+	     ) {
 	i++;
       }
       i--; // take me to the end of the symbol
       symbolEnd = i;
-      
+      if (symbolEnd<symbolStart){
+	i++;
+      }
+     
       scratchSymbol = (char *) malloc(sizeof(char) *
 				      (symbolEnd - symbolStart + 2));
       strncpy(scratchSymbol,
 	      &expression[symbolStart],
 	      (symbolEnd-symbolStart+1));
       
-      scratchSymbol[symbolEnd+1] = '\0';
+      scratchSymbol[symbolEnd-symbolStart+1] = '\0';
       newValue = (Value *)malloc(sizeof(Value));
       newValue->type = symbolType;
       newValue->symbolValue = scratchSymbol;
@@ -426,10 +432,8 @@ List *tokenize(char *expression) {
 
   }
  
-    reverse(list);
-    return list;
-
-    
+  reverse(list);
+  return list;   
 }
 
 
