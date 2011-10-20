@@ -1,7 +1,8 @@
-#define MAX 256;
-
+/* By Jie Lin, Kan Wang, Daniel Alabi, Yichen Shen.
+   CS 251, Fall 2011
+*/
 enum TOKEN_TYPE{
-  cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, procedureType
+  cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType
 };
 
 typedef struct __Value{
@@ -11,7 +12,6 @@ typedef struct __Value{
     int intValue;
     double dblValue;
     char* stringValue;
-    char* procedureValue;
     char* symbolValue;
     char open;
     char close;
@@ -34,6 +34,9 @@ void initialize(List *list);
 // This function inserts a new cons cell to the linked list.
 int insertCell(List *list, Value *value);
 
+// This function pops the head of the linked list.
+Value* pop(List *list);
+
 // This function deletes a cons cell from the linked list.
 int deleteCell(List *list, Value *value);
 
@@ -46,12 +49,8 @@ void cleanup(List* list);
 // This function prints the linked list.
 void printToken(List* list);
 
+// This function tokenizes a string and returns a linked list containing tokens.
 List* tokenize(char* expression);
-
-/* This function creates a new struct __Value and
-   copys the payload stored in the Value value. 
-   If value's payload contains a pointer, it only performs shallow copy.*/
-Value* copyValue(Value *value);
 
 // This function frees its cons cells and also frees the list.
 void destroy(List* list);

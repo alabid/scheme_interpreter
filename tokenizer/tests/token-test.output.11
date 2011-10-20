@@ -1,0 +1,11 @@
+(:open
+this:symbol
+is:symbol
+boring:symbol
+"boring":string
+):close
+/n:symbol
+12.32.23:symbol
+0:integer
+false:symbol
+12345:integer
