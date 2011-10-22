@@ -33,7 +33,7 @@ int pushStack(Stack *stack, Value *value) {
 
 void printStack(Stack *stack) {
   fprintf(stderr, "\n=========STACK=========\n");
-  fprintf(stderr, "SIZE OF STACK=%d", stack->size);
+  fprintf(stderr, "SIZE OF STACK=%d\n", stack->size);
   
   printToken(stack->items);
 }
