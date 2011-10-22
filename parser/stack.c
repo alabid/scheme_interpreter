@@ -1,4 +1,5 @@
 # include <stdio.h>
+# include <stdlib.h>
 # include "stack.h"
 
 /*
@@ -6,6 +7,8 @@
   Implements a stack.
 */
 void initStack(Stack *stack) {
+  List *items = (List *) malloc(sizeof(List));
+  stack->items = items;
   initialize(stack->items);
   stack->size = 0;
 }
