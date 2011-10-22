@@ -66,6 +66,15 @@ void printToken(List* list){
 	  printf("#f:boolean\n");
 	}
 	break;
+      case cellType:
+	printf("===listInStack===\n");	
+	// I don't want to recursively allocate 
+	// memory on the heap
+	List listInStack;
+	listInStack.head = curValue->cons->car;
+	printToken(&listInStack);
+	printf("===listInStack==\n");
+	break;
       case integerType:
 	printf("%d:integer\n",curValue->cons->car->intValue);
 	break;

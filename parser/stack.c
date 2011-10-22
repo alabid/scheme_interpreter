@@ -23,6 +23,22 @@ Value * popStack(Stack *stack) {
   return popped;
 }
 
+int pushListInStack(Stack *stack, List *newList) {
+  Value *listValue = (Value *)malloc(sizeof(Value));
+  ConsCell *listConsCell = (ConsCell *)malloc(sizeof(ConsCell));
+
+  listValue->type = cellType;
+  listValue->cons = listConsCell;
+  
+  listConsCell->car = newList->head;
+  listConsCell->cdr = stack->items->head;
+  stack->items->head = listValue;
+
+  stack->size += 1;
+  
+  return 1;
+}
+
 int pushStack(Stack *stack, Value *value) {
   int inserted = insertCell(stack->items, value);
   if (inserted)
