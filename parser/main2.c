@@ -8,8 +8,9 @@ int main(int argc, char *argv[]) {
   leftoverTokens = initializeList();
   int depth = 0;
   char *expression = (char *)malloc(256 * sizeof(char));
+  
+  //fgets(expression, 256, stdin);
   /*
-  fgets(expression, 256, stdin);
   tokens = append(leftoverTokens, tokenize(expression));
   printf("===================print before parse\n");
   printValue(tokens->head);
@@ -24,16 +25,16 @@ int main(int argc, char *argv[]) {
   printValue(tokens->head);
   parseTree = parse(tokens,&depth);
   printf("===================print after parse 2\n");
-  printValue(tokens->head);
+   printValue(tokens->head);
   printf("===================\n");
-  // printToken(tokens->head);
+  printToken(tokens->head);
   
   tokens = append(leftoverTokens, tokens);
   leftoverTokens = tokens;
-  printValue(tokens->head);
+  // printValue(tokens->head);
   printf("================\n");
 
-  printValue(tokens->head);
+  //printValue(tokens->head);
   fgets(expression, 256, stdin);
   tokens = tokenize(expression);
   tokens = append(leftoverTokens, tokens);
@@ -41,13 +42,13 @@ int main(int argc, char *argv[]) {
   parse(tokens,&depth);
   //printToken(parse(tokens,&depth)->head);
   
-  printValue(tokens->head);
+  // printValue(tokens->head);
     
   //printToken(parse(tokens,&depth)->head);
-  /*
+  */
   
   while (fgets(expression, 256, stdin)) {
-     printf("hello\n"); 
+    
      tokens = append(leftoverTokens, tokenize(expression));  // actually, my tokenize does both steps:
   
      // tokenize(expression, leftoverTokens) 
@@ -69,13 +70,15 @@ int main(int argc, char *argv[]) {
 	
       } else {
 	if (parseTree){
-	  // printValue(parseTree->head);
+	   printValue(parseTree->head);
+	   //destroy(parseTree);
+	   printf("\n");
 	}else{
 	   printf("syntax error2.5\n"); 
 	}
 	
-	//cleanup(leftoverTokens->head);
-	//leftoverTokens = NULL;
+	cleanup(leftoverTokens->head);
+	leftoverTokens = NULL;
       }
   }
   if (leftoverTokens) {
@@ -92,6 +95,6 @@ int main(int argc, char *argv[]) {
   
    
   free(expression);
-  */
+  
   return -1;
 }

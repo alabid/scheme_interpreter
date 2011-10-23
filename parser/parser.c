@@ -14,26 +14,30 @@ List* parse(List* tokens, int* depth){
   }
   *depth = 0;
   while (tokens->head){
+   
     if (tokens->head->cons->car->type == openType){
 	(*depth)++;
 	push(stack, pop(tokens));
     }else if (tokens->head->cons->car->type == closeType){
       (*depth)--;
       // push the close paren into the temp list.
-      tempList->head = pop(tokens);
+      tempList->head = NULL;
+      push(tempList, pop(tokens));
       while (stack->head && stack->head->cons->car->type!=openType){
 	push(tempList, pop(stack));
       }
       if (!stack->head){
 	*depth = -1;
-	//free(tempList);
-	//free(stack);
+	free(tempList);
+	
+	free(stack);
+	
 	return NULL;
       } 
       if (*depth == 0){
 	tokens->head = NULL;
 	push(tempList, pop(stack));
-
+	free(stack);
 	return tempList;
       }
       
@@ -49,7 +53,7 @@ List* parse(List* tokens, int* depth){
   tokens->head = stack->head;
   free(tempList);
   free(stack);
-
+  
   return tokens;
 }
 
@@ -66,7 +70,6 @@ List* append(List* list1, List* list2){
 void printValue(Value* value){
 if (value && value->type == cellType){
     Value *curValue = value;
-    Value* second;
     while (curValue){
       switch (curValue->cons->car->type)
 	{
@@ -97,21 +100,6 @@ if (value && value->type == cellType){
 	  printf(")");
 	  break;
 	case cellType:
-	  second = curValue->cons->car->cons->car;
-	  // printf("\ncurrent type is %d\n",curValue->type);
-	  //printf("\ncurrent->cons->car type is %d\n",second->type);
-	  /*while (second){
-	    printf("\nsecond->cons->car type is %d\n",second->cons->car->type);
-	    if (second->cons->car->type == openType){
-	      printf("(");
-	    }else if (second->cons->car->type ==closeType){
-	      printf("(");
-	    }else if (second->cons->car->type ==symbolType){
-	      printf("%s",second->cons->car->symbolValue);
-	    }
-	    second = second->cons->cdr;
-	    }*/
-	  //printf("hello world");
 	  printValue(curValue->cons->car);
 	  break;
 	default:
@@ -119,8 +107,7 @@ if (value && value->type == cellType){
 	}
       printf(" ");
       curValue = curValue->cons->cdr;
-    }
-    printf("\n");
+    } 
  }
 }
 

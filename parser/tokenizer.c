@@ -193,7 +193,7 @@ void cleanup(Value* head){
 	free(head->cons->car->symbolValue);
 	free(head->cons->car);
       }else if (head->cons->car->type == cellType){
-	//cleanup(head->cons->car);
+	cleanup(head->cons->car);
       }else{
 	free(head->cons->car);
       }
