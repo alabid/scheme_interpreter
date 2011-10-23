@@ -15,6 +15,9 @@ List* initializeList(){
 
 // This function inserts a new cons cell to the linked list.
 int insertCell(List *list, Value *value){
+  if (value==NULL || list==NULL){
+    return 0;
+  }
   Value *newValue = (Value *)malloc(sizeof(Value));
   ConsCell *newCell = (ConsCell *)malloc(sizeof(ConsCell));
   newValue->type = cellType;
@@ -31,6 +34,9 @@ int push(List *list, Value *value){
 
 // This function pops the head of the linked list.
 Value* pop(List *list){
+  if (!list){
+    return NULL;
+  }
   Value *returnValue = NULL;
   Value *prevHead = list->head;
   if(list->head){
@@ -100,6 +106,7 @@ void printToken(Value* value){
     }
   }
 }
+
 
 // This function deletes a cons cell from the linked list.
 int deleteCell(List *list, Value *value){
@@ -175,7 +182,7 @@ int deleteCell(List *list, Value *value){
 
 // This function frees its cons cells.
 void cleanup(Value* head){
-  if (head && head->type == cellType){
+  if (head && (head->type == cellType)){
     Value *second;
     while (head){
       second = (head->cons)->cdr;
@@ -186,7 +193,7 @@ void cleanup(Value* head){
 	free(head->cons->car->symbolValue);
 	free(head->cons->car);
       }else if (head->cons->car->type == cellType){
-	cleanup(head->cons->car);
+	//cleanup(head->cons->car);
       }else{
 	free(head->cons->car);
       }

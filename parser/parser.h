@@ -6,3 +6,4 @@ enum ERROR{
 
 List* parse(List* tokens, int* depth);
 List* append(List* list1, List* list2);
+void printValue(Value* head);

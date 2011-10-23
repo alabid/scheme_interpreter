@@ -4,60 +4,124 @@
 
 
 List* parse(List* tokens, int* depth){
-  // List* parseTree = initializeList();
   List* stack = initializeList();
   List* tempList = initializeList();
-  Value* newValue;
-  *depth = 0;
+ 
   if (!tokens){
     free(stack);
     free(tempList);
     return NULL;
   }
+  *depth = 0;
   while (tokens->head){
-    if (tokens->head->cons->car->type!=closeType){
-      push(stack, tokens->head->cons->car);
-      if (tokens->head->cons->car->type==openType){
+    if (tokens->head->cons->car->type == openType){
 	(*depth)++;
-      }
-    }
-    else{
+	push(stack, pop(tokens));
+    }else if (tokens->head->cons->car->type == closeType){
       (*depth)--;
       // push the close paren into the temp list.
-      tempList->head = tokens->head->cons->car;
-      //push(stack, tokens->head->cons->car);
+      tempList->head = pop(tokens);
       while (stack->head && stack->head->cons->car->type!=openType){
 	push(tempList, pop(stack));
       }
-      if (!(stack->head)){
+      if (!stack->head){
 	*depth = -1;
-	free(tempList);
-	tokens->head = stack->head;
-	free(stack);
-	return tokens;
+	//free(tempList);
+	//free(stack);
+	return NULL;
+      } 
+      if (*depth == 0){
+	tokens->head = NULL;
+	push(tempList, pop(stack));
+
+	return tempList;
       }
+      
       // push the open paren into the temp list.
       push(tempList, pop(stack));
-      newValue = (Value *)malloc(sizeof(Value));
-      newValue->type = cellType;
-      newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
-      newValue->cons->car = tempList->head;
-      newValue->cons->cdr = tokens->head->cons->cdr;
-      push(stack, newValue);
+      push(stack, tempList->head);
     }
-    tokens->head = tokens->head->cons->cdr;  
+    else{
+      push(stack, pop(tokens));
+    }
   }
   
   tokens->head = stack->head;
   free(tempList);
   free(stack);
+
   return tokens;
 }
 
 List* append(List* list1, List* list2){
-  while (list1->head){
-    push(list2, pop(list1));
+  if (!list1){
+    return list2;
   }
-  free(list1);
+  while (list1->head){
+  push(list2, pop(list1));
+  }
   return list2;
 }
+
+void printValue(Value* value){
+if (value && value->type == cellType){
+    Value *curValue = value;
+    Value* second;
+    while (curValue){
+      switch (curValue->cons->car->type)
+	{
+	case booleanType:
+	  if(curValue->cons->car->boolValue){
+	    printf("#t");
+	  }
+	  else{
+	    printf("#f");
+	  }
+	  break;
+	case integerType:
+	  printf("%d",curValue->cons->car->intValue);
+	  break;
+	case floatType:
+	  printf("%lf",curValue->cons->car->dblValue);
+	  break;
+	case stringType:
+	  printf("%s",curValue->cons->car->stringValue);
+	  break;
+	case symbolType:
+	  printf("%s",curValue->cons->car->symbolValue);
+	  break;
+	case openType:
+	  printf("(");
+	  break;
+	case closeType:
+	  printf(")");
+	  break;
+	case cellType:
+	  second = curValue->cons->car->cons->car;
+	  // printf("\ncurrent type is %d\n",curValue->type);
+	  //printf("\ncurrent->cons->car type is %d\n",second->type);
+	  /*while (second){
+	    printf("\nsecond->cons->car type is %d\n",second->cons->car->type);
+	    if (second->cons->car->type == openType){
+	      printf("(");
+	    }else if (second->cons->car->type ==closeType){
+	      printf("(");
+	    }else if (second->cons->car->type ==symbolType){
+	      printf("%s",second->cons->car->symbolValue);
+	    }
+	    second = second->cons->cdr;
+	    }*/
+	  //printf("hello world");
+	  printValue(curValue->cons->car);
+	  break;
+	default:
+	  break;
+	}
+      printf(" ");
+      curValue = curValue->cons->cdr;
+    }
+    printf("\n");
+ }
+}
+
+
