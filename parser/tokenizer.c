@@ -7,8 +7,10 @@
 #include <ctype.h>
 #include "tokenizer.h"
 // This function initializes a linked list. It will assign head as NULL.
-void initialize(List *list){
+List* initializeList(){
+  List *list = (List*)malloc(sizeof(List));
   list->head = NULL;
+  return list;
 }
 
 // This function inserts a new cons cell to the linked list.
@@ -23,6 +25,9 @@ int insertCell(List *list, Value *value){
   return 1;
 }
 
+int push(List *list, Value *value){
+  return insertCell(list, value);
+}
 
 // This function pops the head of the linked list.
 Value* pop(List *list){
@@ -53,50 +58,46 @@ int reverse(List *list){
 }
 
 // This function prints the linked list.
-void printToken(List* list){
-  Value *curValue = list->head;
-  while (curValue){
-    switch (curValue->cons->car->type)
-      {
-      case booleanType:
-	if(curValue->cons->car->boolValue){
-	  printf("#t:boolean\n");
+void printToken(Value* value){
+  if (value && value->type == cellType){
+    Value *curValue = value;
+    while (curValue){
+      switch (curValue->cons->car->type)
+	{
+	case booleanType:
+	  if(curValue->cons->car->boolValue){
+	    printf("#t:boolean\n");
+	  }
+	  else{
+	    printf("#f:boolean\n");
+	  }
+	  break;
+	case cellType:
+	  printToken(curValue->cons->car);
+	  break;
+	case integerType:
+	  printf("%d:integer\n",curValue->cons->car->intValue);
+	  break;
+	case floatType:
+	  printf("%lf:float\n",curValue->cons->car->dblValue);
+	  break;
+	case stringType:
+	  printf("%s:string\n",curValue->cons->car->stringValue);
+	  break;
+	case symbolType:
+	  printf("%s:symbol\n",curValue->cons->car->symbolValue);
+	  break;
+	case openType:
+	  printf("(:open\n");
+	  break;
+	case closeType:
+	  printf("):close\n");
+	  break;
+	default:
+	  break;
 	}
-	else{
-	  printf("#f:boolean\n");
-	}
-	break;
-      case cellType:
-	printf("===listInStack===\n");	
-	// I don't want to recursively allocate 
-	// memory on the heap while printing
-	List listInStack;
-	listInStack.head = curValue->cons->car;
-	printToken(&listInStack);
-	printf("===listInStack==\n");
-	break;
-      case integerType:
-	printf("%d:integer\n",curValue->cons->car->intValue);
-	break;
-      case floatType:
-	printf("%lf:float\n",curValue->cons->car->dblValue);
-	break;
-      case stringType:
-	printf("%s:string\n",curValue->cons->car->stringValue);
-	break;
-      case symbolType:
-	printf("%s:symbol\n",curValue->cons->car->symbolValue);
-	break;
-      case openType:
-	printf("(:open\n");
-	break;
-      case closeType:
-	printf("):close\n");
-	break;
-      default:
-	break;
-      }
-    curValue = curValue->cons->cdr;
+      curValue = curValue->cons->cdr;
+    }
   }
 }
 
@@ -173,26 +174,34 @@ int deleteCell(List *list, Value *value){
 }
 
 // This function frees its cons cells.
-void cleanup(List* list){
-  Value *second;
-  while (list->head){
-    second = (list->head->cons)->cdr;
-    if (list->head->cons->car->type == stringType){
-      free(list->head->cons->car->stringValue);
-    }else if (list->head->cons->car->type == symbolType){
-      free(list->head->cons->car->symbolValue);
+void cleanup(Value* head){
+  if (head && head->type == cellType){
+    Value *second;
+    while (head){
+      second = (head->cons)->cdr;
+      if (head->cons->car->type == stringType){
+	free(head->cons->car->stringValue);
+	free(head->cons->car);
+      }else if (head->cons->car->type == symbolType){
+	free(head->cons->car->symbolValue);
+	free(head->cons->car);
+      }else if (head->cons->car->type == cellType){
+	cleanup(head->cons->car);
+      }else{
+	free(head->cons->car);
+      }
+      free(head->cons);
+      free(head);
+      head = second;
     }
-    free(list->head->cons->car);
-    free(list->head->cons);
-    free(list->head);
-    list->head = second;
   }
 }
-
 // This function frees its cons cells and also frees the list.
 void destroy(List* list){
-  cleanup(list);
-  free(list);
+  if (list){
+    cleanup(list->head);
+    free(list);
+  }
 }
 
 
@@ -221,7 +230,7 @@ List *tokenize(char *expression) {
   int boolEnd = 0;
 
   Value *newValue;
-  List *list = (List *)malloc(sizeof(List));
+  List *list = initializeList();
   // now while loop that does main work
 
   while (expression[i] != '\n') {
@@ -440,7 +449,9 @@ List *tokenize(char *expression) {
     i++;
 
   }
- 
+  if (!list->head){
+    return NULL;
+  }
   reverse(list);
   return list;   
 }
