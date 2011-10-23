@@ -103,10 +103,12 @@ int main(int argc, char **argv) {
   printStack(mainStack);
  
   plistStackCopy = deepCopy(plistInStack);
-    
-  pushListInStack(mainStack, plistStackCopy);
+  toTestAppend = deepCopy(plistInStack);
+  resultAppend = append(plistStackCopy, toTestAppend);
+
+  pushListInStack(mainStack, resultAppend);
   
-  // printStack(mainStack);
+  printStack(mainStack);
 
   /*
     Story so far:
@@ -122,3 +124,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+

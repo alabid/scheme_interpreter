@@ -29,6 +29,7 @@ int pushListInStack(Stack *stack, List *list);
 
 void printStack(Stack *stack);
 
+Value *car (List *list);
 /*
   append returns a new list containing list1 and list2 
   where list2 is at the tail of list1

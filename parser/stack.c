@@ -42,6 +42,11 @@ int pushListInStack(Stack *stack, List *newList) {
 /*
   I can only copy by one level.
  */
+
+Value *car(List *list) {
+  return pop(list);
+}
+
 List *deepCopy(List *listToCopy) {
   Value *head = listToCopy->head;
   Value *newValue = NULL;
@@ -91,29 +96,30 @@ List *deepCopy(List *listToCopy) {
     insertCell(newList, newValue);
     head = head->cons->cdr;
   }
-  // fprintf(stderr, "returning from exile\n");
+    
+  reverse(newList);
   
-  // printToken(newList);
-  // reverse(newList);
-  fprintf(stderr, "returning from exile\n");
   return newList;
 }
 
 List *append(List *list1, List *list2) {
-  Value *tempValue = list1->head;
+  List *list1Copy = deepCopy(list1);
+  List *list2Copy = deepCopy(list2);
+
+  Value *tempValue = list1Copy->head;
   // we should return a new list
-  if (list1 == NULL) return list2; // my deepCopy
+  if (list1Copy == NULL) return list2; // my deepCopy
   // function isn't working right now
-  else if (list2 == NULL) return list1;
+  else if (list2Copy == NULL) return list1;
 
   else {
     do {
       tempValue = tempValue->cons->cdr;
     } while (tempValue->cons->cdr);
 
-    tempValue->cons->cdr = list2->head;
+    tempValue->cons->cdr = list2Copy->head;
   }
-  return list1;
+  return list1Copy;
 }
 
 int pushStack(Stack *stack, Value *value) {
