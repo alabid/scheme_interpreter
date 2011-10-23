@@ -69,7 +69,7 @@ void printToken(List* list){
       case cellType:
 	printf("===listInStack===\n");	
 	// I don't want to recursively allocate 
-	// memory on the heap
+	// memory on the heap while printing
 	List listInStack;
 	listInStack.head = curValue->cons->car;
 	printToken(&listInStack);

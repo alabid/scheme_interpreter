@@ -6,60 +6,65 @@ int main(int argc, char **argv) {
   Stack *mainStack = (Stack *) malloc(sizeof(Stack));
   
   // for the list that's going into the stack
-  List listInStack;
-  List *plistInStack = &listInStack; // pointer to somewhere on 
+
+  List *plistInStack = (List *)malloc(sizeof(List)); // pointer to somewhere on 
+  // I don't want to allocate stuff on the stack here
+  List *plistStackCopy;
+  List *toTestAppend;
+  List *resultAppend;
   // stack
   initialize(plistInStack);
-
+ 
   initStack(mainStack);
  
-  Value oneValue, twoValue,
-    threeValue, fourValue,
-    fiveValue, sixValue,
-    sevenValue; 
-  
-  oneValue.type = booleanType;
-  oneValue.boolValue = 1;
+  Value *oneValue, *twoValue,
+    *threeValue, *fourValue,
+    *fiveValue, *sixValue,
+    *sevenValue; 
+  oneValue = (Value *)malloc(sizeof(Value));
+  oneValue->type = booleanType;
+  oneValue->boolValue = 1;
   printStack(mainStack);
-  pushStack(mainStack, &oneValue);
+  pushStack(mainStack, oneValue);
   printStack(mainStack);
   // insert #t into the list
-  insertCell(plistInStack, &oneValue);
+  insertCell(plistInStack, oneValue);
   // end of insert
-  
-  twoValue.type = integerType;
-  twoValue.intValue = 5;
-  pushStack(mainStack, &twoValue);
+  twoValue = (Value *)malloc(sizeof(Value));
+  twoValue->type = integerType;
+  twoValue->intValue = 5;
+  pushStack(mainStack, twoValue);
   popStack(mainStack);
   printStack(mainStack);
   // insert #t into the list
-  insertCell(plistInStack, &twoValue);
+  insertCell(plistInStack, twoValue);
   // end of insert
-  
-  threeValue.type = floatType;
-  threeValue.dblValue = 2.32;
-  pushStack(mainStack, &threeValue);
+  threeValue = (Value *)malloc(sizeof(Value));
+  threeValue->type = floatType;
+  threeValue->dblValue = 2.32;
+  pushStack(mainStack, threeValue);
   printStack(mainStack);
   // insert #t into the list
-  insertCell(plistInStack, &threeValue);
+  insertCell(plistInStack, threeValue);
   // end of insert
   
-  fourValue.type = symbolType;
-  fourValue.symbolValue = "randomSym";
-  pushStack(mainStack, &fourValue);
+  fourValue = (Value *)malloc(sizeof(Value));
+  fourValue->type = symbolType;
+  fourValue->symbolValue = "randomSym";
+  pushStack(mainStack, fourValue);
   printStack(mainStack);
   popStack(mainStack);
   popStack(mainStack);
   // insert #t into the list
-  insertCell(plistInStack, &fourValue);
+  insertCell(plistInStack, fourValue);
   // end of insert
-  
-  fiveValue.type = openType;
-  fiveValue.open = '(';
-  pushStack(mainStack, &fiveValue);
+  fiveValue = (Value *)malloc(sizeof(Value));
+  fiveValue->type = openType;
+  fiveValue->open = '(';
+  pushStack(mainStack, fiveValue);
   printStack(mainStack);
   // insert #t into the list
-  insertCell(plistInStack, &fiveValue);
+  insertCell(plistInStack, fiveValue);
   // end of insert
 
 
@@ -67,14 +72,16 @@ int main(int argc, char **argv) {
   // '(']; oops. prints in reverse. Just can't think like
   // a stack does.
   // reverse(list);
-  sixValue.type = closeType;
-  sixValue.close = ')';
-  pushStack(mainStack, &sixValue);
+  sixValue = (Value *)malloc(sizeof(Value));
+  sixValue->type = closeType;
+  sixValue->close = ')';
+  pushStack(mainStack, sixValue);
   printStack(mainStack);
-
-  sevenValue.type = stringType;
-  sevenValue.stringValue = "\"man;; this is is some string\"";
-  pushStack(mainStack, &sevenValue);  
+ 
+  sevenValue = (Value *)malloc(sizeof(Value));
+  sevenValue->type = stringType;
+  sevenValue->stringValue = "\"man;; this is is some string\"";
+  pushStack(mainStack, sevenValue);  
 
 
   printStack(mainStack);
@@ -94,11 +101,24 @@ int main(int argc, char **argv) {
   printStack(mainStack);
   popStack(mainStack);
   printStack(mainStack);
-
-
-  pushListInStack(mainStack, plistInStack);
+ 
+  plistStackCopy = deepCopy(plistInStack);
+    
+  pushListInStack(mainStack, plistStackCopy);
   
-  printStack(mainStack);
+  // printStack(mainStack);
+
+  /*
+    Story so far:
+    I've been working on append. Append should return a new list.
+    But it doesn't right now because it depends on a function,
+    deepCopy that should return a copy of one list. Remember
+    that a copy should point to different parts of memory but should
+    have the same values as the one from which it should be copying from.
+
+    whenever I try to reverse the newlist or print it, it gives me a
+    Segmentation fault. Could someone held me.
+   */
 
   return 0;
 }

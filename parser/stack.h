@@ -18,6 +18,8 @@ pops an item off the stack and returns it
 */
 Value* popStack(Stack *stack);
 
+List *deepCopy(List *listToCopy);
+
 /*
 pushes an item onto the top of the stack
 */
@@ -26,3 +28,9 @@ int pushStack(Stack *stack, Value *value);
 int pushListInStack(Stack *stack, List *list);
 
 void printStack(Stack *stack);
+
+/*
+  append returns a new list containing list1 and list2 
+  where list2 is at the tail of list1
+ */
+List *append(List *list1, List *list2);
