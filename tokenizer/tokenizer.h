@@ -44,13 +44,22 @@ int deleteCell(List *list, Value *value);
 int reverse(List *list);
 
 // This function frees cons cells of the linked list.
-void cleanup(List* list);
+void cleanup(List *list);
 
 // This function prints the linked list.
-void printToken(List* list);
+void printToken(List *list);
 
 // This function tokenizes a string and returns a linked list containing tokens.
-List* tokenize(char* expression);
+List* tokenize(char *expression);
 
 // This function frees its cons cells and also frees the list.
-void destroy(List* list);
+void destroy(List *list);
+
+// This function returns the car of the list. 
+Value* car(List *list);
+
+// This function returns the cdr of the list and put it in a linked list.
+List* cdr(List *list);
+
+// This function returns 1 if no parenthesis left, 0 if a parenthesis left.
+int isEmptyPair(List *list);

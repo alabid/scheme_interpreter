@@ -22,7 +22,10 @@ int insertCell(List *list, Value *value){
   list->head = newValue;
   return 1;
 }
+int push(List *list, Value *value){
+  return insertCell(list, value);
 
+}
 
 // This function pops the head of the linked list.
 Value* pop(List *list){
