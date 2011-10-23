@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "parser.h"
 
+
 List* parse(List* tokens, int* depth){
   // List* parseTree = initializeList();
   List* stack = initializeList();

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "parser.h"
 
+
 int main(int argc, char *argv[]) {
    List *tokens, *parseTree, *leftoverTokens = NULL;
    int depth = 0;

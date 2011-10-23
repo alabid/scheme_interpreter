@@ -36,6 +36,7 @@ List* initializeList();
 int insertCell(List *list, Value *value);
 
 int push(List *list, Value *value);
+
 // This function pops the head of the linked list.
 Value* pop(List *list);
 
