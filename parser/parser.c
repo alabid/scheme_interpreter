@@ -10,6 +10,8 @@ List* parse(List* tokens, int* depth){
   Value* newValue;
   *depth = 0;
   if (!tokens){
+    free(stack);
+    free(tempList);
     return NULL;
   }
   while (tokens->head){
