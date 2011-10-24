@@ -1,4 +1,0 @@
-(define people
-    (quote ((Clinton (president United States))
-            (Dole (wanted to be President))
-            (Perot (also wanted to be President)))))
