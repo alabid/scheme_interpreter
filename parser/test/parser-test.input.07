@@ -1,0 +1,5 @@
+(define subsets
+  (lambda (lst)
+    (if (null? lst) '(())
+        (append (subsets (cdr lst))
+                (stick-on (car lst) (subsets (cdr lst)))))))
