@@ -17,9 +17,9 @@ int main(int argc, char *argv[]) {
      // tokenize(expression, leftoverTokens) 
      
      if (!tokens) {
-       leftoverTokens = NULL;
+       leftoverTokens->head = NULL;
        continue;
-     }
+       }
      /*
        printf("syntax error1\n");   // This line is untokenizable. 
        destroy(leftoverTokens);   
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
        return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
      } else if (depth > 0) {
        // There are more open parens than close parens, so these tokens are saved as leftovers.
-       leftoverTokens = tokens;
+       leftoverTokens->head = tokens->head;
        
       } else {
        if (parseTree){
@@ -51,12 +51,12 @@ int main(int argc, char *argv[]) {
   if (leftoverTokens->head) {
     printf("syntax error3\n");   // Too few close parens at end of input. 
     destroy(leftoverTokens);   
-    destroy(tokens);
+    free(tokens);
     return SYNTAX_ERROR_UNTERMINATED_INPUT;
   }
   // clean up memory 
-  destroy(tokens);
-  free(leftoverTokens);
+  destroy(leftoverTokens);
+  free(tokens);
   free(expression);
   
   return -1;
