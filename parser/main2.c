@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 	printf("syntax error1\n");   // This line is untokenizable. 
 	destroy(leftoverTokens);   
 	destroy(tokens);
-	destroy(parseTree);
+	//destroy(parseTree);
 	return SYNTAX_ERROR_UNTOKENIZABLE;
       }
       parseTree = parse(tokens,&depth);    // My parse() takes a list of tokens and an integer pointer, and 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
   }
   // clean up memory 
   destroy(tokens);
-  destroy(parseTree);
+  //destroy(parseTree);
   
    
   free(expression);
