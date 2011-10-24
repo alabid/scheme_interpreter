@@ -11,4 +11,4 @@ parser.o: 	parser.c
 		gcc -c parser.c
 
 clean:
-	rm *.o  parser
+	rm *.o  
