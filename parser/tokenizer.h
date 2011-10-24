@@ -40,9 +40,6 @@ int push(List *list, Value *value);
 // This function pops the head of the linked list.
 Value* pop(List *list);
 
-// This function deletes a cons cell from the linked list.
-int deleteCell(List *list, Value *value);
-
 // This function reverses the linked list.
 int reverse(List *list);
 

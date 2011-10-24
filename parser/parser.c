@@ -35,8 +35,9 @@ List* parse(List* tokens, int* depth){
 	return NULL;
       } 
       if (*depth == 0 && !(tokens->head)){
-	tokens->head = NULL;
 	push(tempList, pop(stack));
+	push(stack, tempList->head);
+	tokens->head = stack->head;
 	free(stack);
 	return tempList;
       }
@@ -60,6 +61,9 @@ List* parse(List* tokens, int* depth){
 List* append(List* list1, List* list2){
   if (!list1){
     return list2;
+  }
+  if (!list2){
+    list2 = initializeList();
   }
   while (list1->head){
     push(list2, pop(list1));
