@@ -1,0 +1,1 @@
+(define mult-two (lambda (x y) (* x y)))
