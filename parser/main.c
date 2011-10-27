@@ -28,11 +28,9 @@ int main(int argc, char *argv[]) {
        leftoverTokens->head = tokens->head;
        
       } else {
-       if (parseTree){
+       if (parseTree && parseTree->head){
 	 printValue(parseTree->head);
 	 printf("\n");
-	 free(parseTree); // The only time we need to free parse tree 
-	 //because only when the complete parse tree is formed do we malloc memories that have not freed.
 	 cleanup(leftoverTokens->head);
        }
       }

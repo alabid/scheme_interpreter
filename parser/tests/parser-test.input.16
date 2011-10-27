@@ -1,6 +1,0 @@
-(set! +
-      (let ((original+ +))
-        (lambda args
-          (if (and (not (null? args)) (string? (car args)))
-              (apply string-append args)
-              (apply original+ args)))))

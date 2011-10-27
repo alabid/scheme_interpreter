@@ -1,3 +1,7 @@
+/* By Jie Lin, Kan Wang, Daniel Alabi, Yichen Shen.
+   CS 251, Fall 2011
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
@@ -8,14 +12,13 @@
    "depth" determines whether the parse tree is complete.
 */
 List* parse(List* tokens, int* depth){
-  List* stack = initializeList();
-  List* tempList = initializeList();
- 
   if (!tokens){
-    free(stack);
-    free(tempList);
+    *depth = 0;
     return NULL;
   }
+  
+  List* stack = initializeList();
+  List* tempList = initializeList();
   *depth = 0;
   while (tokens->head){
    
@@ -84,7 +87,7 @@ List* append(List* list1, List* list2){
   This function accepts a Value that is the head of the list, and prints out the list.
 */
 void printValue(Value* value){
-if (value && value->type == cellType){
+  if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
       switch (curValue->cons->car->type)
@@ -121,7 +124,9 @@ if (value && value->type == cellType){
 	default:
 	  break;
 	}
-      printf(" ");
+      if ((curValue->cons->car->type!=openType) && ((curValue->cons->cdr) && (curValue->cons->cdr->cons->car->type!=closeType))){
+	printf(" ");
+      } 
       curValue = curValue->cons->cdr;
     } 
  }

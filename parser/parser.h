@@ -1,3 +1,6 @@
+/* By Jie Lin, Kan Wang, Daniel Alabi, Yichen Shen.
+   CS 251, Fall 2011
+*/
 #include "tokenizer.h"
 
 // define the types of errors.
