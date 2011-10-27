@@ -1,0 +1,2 @@
+(define centimeters-in-a-foot
+  (* 12 centimeters-in-an-inch)))  ; One foot equals twelve inches.

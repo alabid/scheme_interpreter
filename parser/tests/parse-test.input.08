@@ -1,0 +1,5 @@
+(define stick-on
+  (lambda (s lst)
+    (if (null? lst) '()
+        (cons (cons s (car lst))      ;;; what is the car of my list?
+              (stick-on s (cdr lst)))))) ;;; what is the cdr of my list?
