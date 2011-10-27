@@ -9,47 +9,36 @@ int main(int argc, char *argv[]) {
   int depth = 0;
   char *expression = (char *)malloc(256 * sizeof(char));
  
-  
   while (fgets(expression, 256, stdin)) {
     
-     tokens = append(leftoverTokens, tokenize(expression));  // actually, my tokenize does both steps:
-  
-     // tokenize(expression, leftoverTokens) 
+     tokens = append(leftoverTokens, tokenize(expression)); 
      
      if (!tokens) {
        leftoverTokens->head = NULL;
        continue;
        }
-     /*
-       printf("syntax error1\n");   // This line is untokenizable. 
-       destroy(leftoverTokens);   
-       destroy(tokens);
-       //destroy(parseTree);
-       return SYNTAX_ERROR_UNTOKENIZABLE;
-       }*/
-     parseTree = parse(tokens,&depth);    // My parse() takes a list of tokens and an integer pointer, and 
+    
+     parseTree = parse(tokens,&depth);   
      
      if (depth < 0) {
-       printf("syntax error2\n");   // Too many close parentheses. 
+       printf("syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
        return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
      } else if (depth > 0) {
-       // There are more open parens than close parens, so these tokens are saved as leftovers.
+       // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
        leftoverTokens->head = tokens->head;
        
       } else {
        if (parseTree){
 	 printValue(parseTree->head);
 	 printf("\n");
-       }else{
-	 printf("syntax error2.5\n"); 
+	 free(parseTree); // The only time we need to free parse tree 
+	 //because only when the complete parse tree is formed do we malloc memories that have not freed.
+	 cleanup(leftoverTokens->head);
        }
-	
-       cleanup(leftoverTokens->head);
-       
       }
   }
   if (leftoverTokens->head) {
-    printf("syntax error3\n");   // Too few close parens at end of input. 
+    printf("syntax error. Too few close parentheses\n");   // Too few close parens at end of input. 
     destroy(leftoverTokens);   
     free(tokens);
     return SYNTAX_ERROR_UNTERMINATED_INPUT;

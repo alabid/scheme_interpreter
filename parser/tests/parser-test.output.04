@@ -1,3 +1,0 @@
-
-( define reduce-left ( lambda ( f init lst )  ( if ( null? lst )  init ( reduce-left f ( f init ( car lst )  )  ( cdr lst )  )  )  )  ) 
-

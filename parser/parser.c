@@ -3,6 +3,10 @@
 #include "parser.h"
 
 
+/* 
+   This function parses a list of tokens. If the tokens is incomplete, the parse tree is incomplete. 
+   "depth" determines whether the parse tree is complete.
+*/
 List* parse(List* tokens, int* depth){
   List* stack = initializeList();
   List* tempList = initializeList();
@@ -29,16 +33,17 @@ List* parse(List* tokens, int* depth){
       if (!stack->head){
 	*depth = -1;
 	free(tempList);
-	
-	free(stack);
-	
+	free(stack);	
 	return NULL;
       } 
+
+      // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
       if (*depth == 0 && !(tokens->head)){
 	push(tempList, pop(stack));
 	push(stack, tempList->head);
 	tokens->head = stack->head;
 	free(stack);
+
 	return tempList;
       }
       
@@ -58,6 +63,10 @@ List* parse(List* tokens, int* depth){
   return tokens;
 }
 
+/*
+  This function accepts the first list in the reverse order, and the second list in order. 
+  It modifies the lists in place and returns list2 as the final list.
+*/
 List* append(List* list1, List* list2){
   if (!list1){
     return list2;
@@ -71,6 +80,9 @@ List* append(List* list1, List* list2){
   return list2;
 }
 
+/*
+  This function accepts a Value that is the head of the list, and prints out the list.
+*/
 void printValue(Value* value){
 if (value && value->type == cellType){
     Value *curValue = value;

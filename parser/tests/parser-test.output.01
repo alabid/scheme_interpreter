@@ -1,2 +1,0 @@
-
-( define ( merge! a b less? )  ( define ( loop r a b )  ( if ( less? ( car b )  ( car a )  )  ( begin ( set-cdr! r b )  ( if ( null? ( cdr b )  )  ( set-cdr! b a )  ( loop b a ( cdr b )  )  )  )  ( begin ( set-cdr! r a )  ( if ( null? ( cdr a )  )  ( set-cdr! a b )  ( loop a ( cdr a )  b )  )  )  )  )  ( cond ( ( null? a )  b )  ( ( null? b )  a )  ( ( less? ( car b )  ( car a )  )  ( if ( null? ( cdr b )  )  ( set-cdr! b a )  ( loop b a ( cdr b )  )  )  b )  ( else ( if ( null? ( cdr a )  )  ( set-cdr! a b )  ( loop a ( cdr a )  b )  )  a )  )  ) 

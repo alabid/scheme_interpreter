@@ -1,2 +1,0 @@
-
-( define in-list? ( lambda ( word lst )  ( if ( null? lst )  #f ( or ( equal? ( car lst )  word )  ( in-list? word ( cdr lst )  )  )  )  )  ) 
