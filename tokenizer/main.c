@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     if (list){
       printToken(list->head);
     }
-  }
+  
     // destroy and clean up
     destroy(list);
     // printf("\n=============END===========\n");
