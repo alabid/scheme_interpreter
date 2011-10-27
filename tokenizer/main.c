@@ -14,7 +14,10 @@ int main(int argc, char *argv[]) {
   while (fgets(expression, 256, stdin)) {
     // printf("\n===========START=============\n");
     list = tokenize(expression);
-    printToken(list);
+    if (list){
+      printToken(list->head);
+    }
+  }
     // destroy and clean up
     destroy(list);
     // printf("\n=============END===========\n");
