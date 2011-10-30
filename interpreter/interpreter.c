@@ -22,6 +22,10 @@ Value* eval(Value *expr, Environment * env){
 	  return evalLambda(args, env);
 	}else if (strcmp(operator->symbolValue,"if")==0){
 	  /*eval if goes here*/
+	}else if (strcmp(operator->symbolValue,"quote")==0){
+	  /*eval if goes here*/
+	  return args;
+	}
 	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
