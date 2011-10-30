@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+# include <assert.h>
 
 Value* eval(Value *expr, Environment * env){
   switch (expr->type) 
@@ -10,17 +11,19 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      Value *operator = expr->cons->car;
+      // Value *operator;
+      Value *operator;
+      operator = expr->cons->car;
       Value *args = expr->cons->cdr;
       if (operator->type == symbolType){
-	if (strcmp(operator->symbolType,"define")==0){
+	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
-	}else if (strcmp(operator->symbolType,"lambda")==0){
+	}else if (strcmp(operator->symbolValue,"lambda")==0){
 	  /*eval lambda goes here*/
 	  return evalLambda(args, env);
-	}else if (strcmp(operator->symbolType,"if")==0){
+	}else if (strcmp(operator->symbolValue,"if")==0){
 	  /*eval if goes here*/
-	}else if (strcmp(operator->symbolType,"let")==0){
+	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
 	  Value *evaledOperator = eval(operator, env);
@@ -89,7 +92,7 @@ Environment *createTopFrame(){
   return frame;
 }
 
-Environment *creatFrame(Environment *parent){
+Environment *createFrame(Environment *parent){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
   frame->parent = parent;
   HashTable *table = initializeTable(32);
