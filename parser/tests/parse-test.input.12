@@ -1,0 +1,6 @@
+(define sum
+   (lambda (lst)
+     (if ((null? lst)))))
+             '()
+	 (+ (car lst) (sum lst)))))
+    

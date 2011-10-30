@@ -1,0 +1,8 @@
+(define subst
+  (lambda (new old lst)
+    (cond ((null? lst)  lst)
+          ((list? (car lst))  
+           (cons (subst new old (car lst)) (subst new old (cdr lst)) ))
+          ((equal? old (car lst)) 
+           (cons new (subst new old (cdr lst))))
+          (else  (cons (car lst) (subst new old (cdr lst)))))))

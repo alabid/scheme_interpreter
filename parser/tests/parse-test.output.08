@@ -1,0 +1,1 @@
+(define stick-on (lambda (s lst) (if (null? lst) ' () (cons (cons s (car lst)) (stick-on s (cdr lst))))))

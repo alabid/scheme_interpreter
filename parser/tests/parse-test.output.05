@@ -1,0 +1,1 @@
+(define reduce-right (lambda (f init lst) (if (null? lst) init (f (car lst) (reduce-right f init (cdr lst))))))
