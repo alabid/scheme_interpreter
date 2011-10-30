@@ -3,7 +3,7 @@
 */
 
 enum TOKEN_TYPE{
-  cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, funType, bindingType
+  tableType, cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
 
@@ -21,7 +21,7 @@ typedef struct __Value{
     struct __Closure *closureValue;
     struct __Value* (*primitiveValue)(struct __Value*);
     struct __Environment* envValue;
-    struct __Binding* bindingValue;
+    struct __HashTable *tableValue;
   };
 } Value;
 
@@ -65,14 +65,10 @@ typedef struct __Environment{
   struct __Environment* parent;
 }Environment;
 
-typedef struct __Binding{
-  char* name;
-  Value* value;
-}Binding;
 
 typedef struct __Closure{
-  Value* parseTree;
-  Value* paramList;
+  Value* body;
+  Value* args;
   Environment* parent;
 }Closure;
 
@@ -80,8 +76,10 @@ typedef struct __HashTable{
   struct __ConsCell* entries;
   int size; // actual data size
   int capacity; //the maximum size
-} HashTable;
+}HashTable;
 
+// The following are functions for hash table.
+// Note, every parameter except atmoic type (int, float, one character) must be mallocated in the heap.
 /* 
    This function initializes one hash table with size = capacity
    If capacity is less than or equal to zero, NULL is returned.
@@ -137,8 +135,4 @@ void destroyTable(HashTable *table);
   Print the table for debugging purposes.
 */
 void printTable(HashTable* table);
-
-
-
-
 
