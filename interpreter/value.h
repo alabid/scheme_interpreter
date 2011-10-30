@@ -51,8 +51,11 @@ int reverse(List *list);
 // This function frees cons cells of the linked list.
 void cleanup(Value* head);
 
-// This function prints the linked list.
+// This function prints the each token.
 void printToken(Value* value);
+
+// This function prints the linked list.
+void printTokens(Value* value);
 
 // This function frees its cons cells and also frees the list.
 void destroy(List* list);
@@ -79,20 +82,63 @@ typedef struct __HashTable{
   int capacity; //the maximum size
 } HashTable;
 
+/* 
+   This function initializes one hash table with size = capacity
+   If capacity is less than or equal to zero, NULL is returned.
+*/
 HashTable* initializeTable(int size);
 
+/*
+  Hash function that uses open addressing.
+  No duplicate keys are allowed.
+*/
 int hash(HashTable* table, char* id);
 
+/*
+  Insert key = id, payload = value into the hash table.
+  Auto doubling the hash table if the size of the hash table reaches 2/3 of the capacity, 
+  where 2/3 is the load factor.
+*/
 int insertItem(HashTable* table, char* id, Value* value);
 
+/*
+  Auto doubling the hash table if the size of the hash table reaches 2/3 of the capacity, 
+  where 2/3 is the load factor.
+*/
 int autoDouble(HashTable* table);
 
+/*
+  Return the entry with key = id
+*/
 ConsCell* lookupEntry(HashTable* table, char* id);
 
+/*
+  Return the payload with key = id
+*/
 Value* lookup(HashTable* table, char* id);
 
+/*
+  Delete an item with key = id.
+  This function does not free the payload since we did not malloc memory 
+  inside the insertItem function for payload.
+*/
 Value* deleteItem(HashTable* table, char* id);
 
+// cleanupTable only cleans the cons cells and keys.
 void cleanupTable(HashTable* table);
 
+/* 
+   Destroy the table by freeing the cons cells, keys and hash table itself.
+   This function cannot free any payloads.
+*/
+void destroyTable(HashTable *table);
+
+/*
+  Print the table for debugging purposes.
+*/
 void printTable(HashTable* table);
+
+
+
+
+

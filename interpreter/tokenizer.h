@@ -3,8 +3,5 @@
 */
 #include "value.h"
 
-
 // This function tokenizes a string and returns a linked list containing tokens.
 List* tokenize(char* expression);
-
-
