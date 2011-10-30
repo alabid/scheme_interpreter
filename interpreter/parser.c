@@ -87,18 +87,21 @@ List* append(List* list1, List* list2){
   This returns the car of a value (that is a list)
  */
 Value *car(Value *value) {
-  // so we want to skip the first parenthesis
-  if (value->type == cellType && value->cons->cdr->type == cellType) 
-    return value->cons->cdr->cons->car;
-  else return NULL;
+  if (value->type == cellType){ 
+    return value->cons->car;
+  }else{
+    return NULL;
+  }
 }
 /*
   This returns the cdr of a value (that is a list)
 */
 Value *cdr(Value *value) {
-  if (value->type == cellType)
+  if (value->type == cellType){
     return value->cons->cdr;
-  else return NULL;
+  }else{ 
+    return NULL;
+  }
 }
 
 /*
