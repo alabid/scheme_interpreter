@@ -11,7 +11,6 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      ; // simple hack to fix GCC problem
       Value *operator = car(expr);
       Value *args = cdr(expr);
       if (operator->type == symbolType){
@@ -25,7 +24,6 @@ Value* eval(Value *expr, Environment * env){
 	}else if (strcmp(operator->symbolValue,"quote")==0){
 	  /*eval if goes here*/
 	  return args;
-	}
 	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
