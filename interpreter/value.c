@@ -5,44 +5,47 @@
 
 // This function prints the linked list.
 void printToken(Value* curValue){
-   
-  switch (curValue->type)
-    {
-    case booleanType:
-      if(curValue->boolValue){
-	printf("#t:boolean\n");
+  if (curValue){
+    switch (curValue->type)
+      {
+      case booleanType:
+	if(curValue->boolValue){
+	  printf("#t:boolean\n");
+	}
+	else{
+	  printf("#f:boolean\n");
+	}
+	break;
+      case cellType:
+	printf("Cell type");
+	break;
+      case integerType:
+	printf("%d:integer\n",curValue->intValue);
+	break;
+      case floatType:
+	printf("%lf:float\n",curValue->dblValue);
+	break;
+      case stringType:
+	printf("%s:string\n",curValue->stringValue);
+	break;
+      case symbolType:
+	printf("%s:symbol\n",curValue->symbolValue);
+	break;
+      case openType:
+	printf("(:open\n");
+	break;
+      case closeType:
+	printf("):close\n");
+	break;
+      default:
+	break;
       }
-      else{
-	printf("#f:boolean\n");
-      }
-      break;
-    case cellType:
-      printf("Cell type");
-      break;
-    case integerType:
-      printf("%d:integer\n",curValue->intValue);
-      break;
-    case floatType:
-      printf("%lf:float\n",curValue->dblValue);
-      break;
-    case stringType:
-      printf("%s:string\n",curValue->stringValue);
-      break;
-    case symbolType:
-      printf("%s:symbol\n",curValue->symbolValue);
-      break;
-    case openType:
-	  printf("(:open\n");
-	  break;
-    case closeType:
-      printf("):close\n");
-      break;
-    default:
-      break;
-    }
+  }
 }
-
 HashTable* initializeTable(int capacity){
+  if (capacity<=0){
+    return NULL;
+  }
   HashTable* table = (HashTable*) malloc(sizeof(HashTable));
   table->entries = (ConsCell *) malloc(sizeof(ConsCell)*capacity);
   table->capacity = capacity;
@@ -73,7 +76,7 @@ int hash(HashTable* table, char* id){
 
 int insertItem(HashTable* table, char* id, Value* value){
   if (table){
-    if ((table->size) > ((table->capacity)*3/4)){
+    if ((table->size) >= ((table->capacity)*3/4)){
       autoDouble(table);
     }
     int key = hash(table, id);
@@ -129,12 +132,13 @@ int autoDouble(HashTable* table){
 Value* deleteItem(HashTable* table, char* id){
   ConsCell* entry = lookupEntry(table, id);
   if (entry){
-    if (entry->car && entry->car->type==symbolType){
-      free(entry->car->symbolValue);
+    if (entry->car && entry->car->type == symbolType){
+      free(entry->car->symbolValue); 
       free(entry->car);
-    }
-    entry->car = NULL;
-    (table->size)--;
+     }
+     entry->car = NULL;
+     (table->size)--;
+     
     return entry->cdr;
   }
   return NULL;

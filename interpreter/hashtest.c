@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(){
-  HashTable* table = initializeTable(2);
+  HashTable* table = initializeTable(32);
   char x[]="x\0";
   char y[]="y\0";
   char z[]="z\0";
@@ -28,9 +28,11 @@ int main(){
   printToken(lookup(table,x));
   printf("\n");
   printTable(table);
-  printf("before cleaning\n");
+  printf("before deleting\n");
+  printToken(deleteItem(table,t));
+  printf("after deleting\n\n\n");
+  printTable(table);
   cleanupTable(table);
-  printf("after cleaning\n");
   free(value1);
   free(value2);
   free(value3);

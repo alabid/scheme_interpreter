@@ -1,7 +1,6 @@
 #include "parser.h"
 
-
-Value* eval(Value *parsetREE, Environment * env);
+Value* eval(Value *parseTree, Environment * env);
 
 Value* apply(Value *function, Value* actualArgs);
 

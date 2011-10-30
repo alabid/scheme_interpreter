@@ -80,11 +80,19 @@ typedef struct __HashTable{
 } HashTable;
 
 HashTable* initializeTable(int size);
+
 int hash(HashTable* table, char* id);
+
 int insertItem(HashTable* table, char* id, Value* value);
+
 int autoDouble(HashTable* table);
+
 ConsCell* lookupEntry(HashTable* table, char* id);
+
 Value* lookup(HashTable* table, char* id);
+
 Value* deleteItem(HashTable* table, char* id);
+
 void cleanupTable(HashTable* table);
+
 void printTable(HashTable* table);
