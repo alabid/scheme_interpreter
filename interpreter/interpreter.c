@@ -11,8 +11,7 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      Value *operator;
-      operator = car(expr);
+      Value *operator = car(expr);
       Value *args = cdr(expr);
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
@@ -72,7 +71,14 @@ Value* evalLet(Value* args, Environment* env){
 }
 
 Value* evalIf(Value* args, Environment* env){
+  Value *evalTest = eval(car(args), env);
 
+  if ((evalTest->type == booleanType && evalTest->boolValue))
+    return eval(car(cdr(args)), env); // return eval(consequent)
+  else 
+    // return eval(alternate) or return NULL if 
+    // there is no alternate
+    return eval(car(cdr(cdr(args))), env); // return eval(alternate)
 }
 
 Value* evalLambda(Value* args, Environment* env){
