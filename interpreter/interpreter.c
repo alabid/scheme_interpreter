@@ -13,7 +13,7 @@ Value* eval(Value *expr, Environment * env){
     case cellType:
       Value *operator;
       operator = car(expr);
-      Value *args = expr->cons->cdr;
+      Value *args = cdr(expr);
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
