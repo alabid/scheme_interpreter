@@ -47,7 +47,7 @@ HashTable* initializeTable(int capacity){
     return NULL;
   }
   HashTable* table = (HashTable*) malloc(sizeof(HashTable));
-  table->entries = (ConsCell *) malloc(sizeof(ConsCell)*capacity);
+  table->entries = (ConsCell *) calloc(capacity,sizeof(ConsCell));
   table->capacity = capacity;
   table->size = 0;
   return table;
@@ -76,7 +76,7 @@ int hash(HashTable* table, char* id){
 
 int insertItem(HashTable* table, char* id, Value* value){
   if (table){
-    if ((table->size) >= ((table->capacity)*3/4)){
+    if ((table->size) >= ((table->capacity)*2/3)){
       autoDouble(table);
     }
     int key = hash(table, id);
@@ -185,16 +185,12 @@ void cleanupTable(HashTable* table){
 void printTable(HashTable* table){
   if (table){
     int i;
-    
     for (i=0;i<table->capacity;i++){
       if ((table->entries)[i].car){
 	printToken((table->entries)[i].car);
 	printToken((table->entries)[i].cdr);	
-      }
-      
+      }  
     }
   }
 }
-  /*
-  This function accepts a Value that is the head of the list, and prints out the list.
-*/
+

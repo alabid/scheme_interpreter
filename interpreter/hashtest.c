@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(){
-  HashTable* table = initializeTable(32);
+  HashTable* table = initializeTable(2);
   char x[]="x\0";
   char y[]="y\0";
   char z[]="z\0";
