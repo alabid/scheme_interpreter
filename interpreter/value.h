@@ -2,7 +2,7 @@
    CS 251, Fall 2011
 */
 
-enum TOKEN_TYPE{
+enum VALUE_TYPE{
   tableType, cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
