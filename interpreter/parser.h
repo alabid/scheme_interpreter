@@ -24,3 +24,13 @@ List* append(List* list1, List* list2);
   This function accepts a Value that is the head of the list, and prints out the list.
 */
 void printValue(Value* head);
+
+/*
+  returns the car of the List
+*/
+Value *car (Value *value);
+
+/*
+  returns the cdr of the List
+*/
+Value *cdr (Value *value);

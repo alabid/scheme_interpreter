@@ -11,9 +11,8 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      // Value *operator;
       Value *operator;
-      operator = expr->cons->car;
+      operator = car(expr);
       Value *args = expr->cons->cdr;
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
