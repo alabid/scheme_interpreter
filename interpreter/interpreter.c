@@ -65,17 +65,23 @@ Value* envLookup(char* id, Environment* env){
 
 
 int typeCheck(Value* value){
-  if (value->type == booleanType || integerType || floatType || stringType || closureType){
-    return 1;
-  }
-  else{
-    if(value->type == symbolType){ 
-      return 2;
+  if (value){
+    switch (value->type)
+      {
+      case booleanType:
+      case integerType:
+      case floatType:
+      case stringType:
+      case closureType:
+	return 1;
+	break;
+      case symbolType:
+	return 2;
+	break;
+      default:
+	return 0;
     }
-    else{
-      return 0;
   }
-}
 }
 
 
@@ -86,31 +92,33 @@ Value* evalDefine(Value* args, Environment* env){
     return NULL;
 }
   else{
-    if (lookup(env->bindings->tableValue, args->cons->car)){
-      deleteItem(env->bindings->tableValue, args->cons->car);
-    }
+    assert(args-type == cellType);
+    assert(env!=NULL);
+    assert(env->bindings-type == tableType);
+    assert(args->cons->car->type == symbolType);
     if (typeCheck(args->cons->cdr) == 1){
-      insertItem(env->bindings->tableValue, args->cons->car, args->cons->cdr);
+      insertItem(env->bindings->tableValue, args->cons->car->symbolValue, args->cons->cdr);
       return NULL;
     }
     else{
       if ((typeCheck(args->cons->cdr == 2))){ 
-	if (lookup(env->bindings, args->cons->cdr)){
-	  insertItem(env->bindings->tableValue, args->cons->car, lookup(env->bindings->tableValue, args->cons->cdr));
+	if (lookup(env->bindings->tableValue, args->cons->cdr->symbolValue)){
+	  insertItem(env->bindings->tableValue, args->cons->car->symbolValue, lookup(env->bindings->tableValue, args->cons->cdr->symbolValue));
 	  return NULL;
-	   }
+	}
 	else{
 	  printf("syntax error: unknown identifier");
 	  return NULL;
-      }
-      else{
-	printf("syntax error;the component is undefinable");
-	return NULL;
-      }	
+	}
+	else{
+	  printf("syntax error;the component is undefinable");
+	  return NULL;
+	}	
       }
     }
   }
 }
+
 Value* evalEach(Value* args, Environment* env){
 
 }
@@ -121,12 +129,12 @@ Value* evalLet(Value* args, Environment* env){
 
 Value* evalIf(Value* args, Environment* env){
   Value *evalTest = eval(car(args), env);
-
+  
  if (evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
    return eval(car(cdr(cdr(args))), env);
-  }
+ }
   else {
     // else return eval(consequence)
     return eval(car(cdr(args)), env); // return eval(alternate)
