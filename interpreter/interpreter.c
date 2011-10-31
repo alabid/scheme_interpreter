@@ -107,9 +107,9 @@ Value* evalDefine(Value* args, Environment* env){
 	printf("syntax error;the component is undefinable");
 	return NULL;
       }	
-     }
-}
-}
+      }
+    }
+  }
 }
 Value* evalEach(Value* args, Environment* env){
 
