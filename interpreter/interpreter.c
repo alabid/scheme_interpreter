@@ -12,7 +12,7 @@ Value* eval(Value *expr, Environment * env){
       break;
     case cellType:
       ; // simple hack to fix GCC problem
-     
+
       Value *operator = car(expr);
       Value *args = cdr(expr);
       if (operator->type == symbolType){
@@ -23,6 +23,10 @@ Value* eval(Value *expr, Environment * env){
 	  return evalLambda(args, env);
 	}else if (strcmp(operator->symbolValue,"if")==0){
 	  return evalIf(args, env);
+	  /*eval if goes here*/
+	}else if (strcmp(operator->symbolValue,"quote")==0){
+	  /*eval if goes here*/
+	  return args;
 	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
