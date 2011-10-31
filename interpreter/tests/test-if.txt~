@@ -1,4 +1,0 @@
-;; test if statement
-(if 2 2)
-(if 7 2 3)
-(if #f 10 20)
