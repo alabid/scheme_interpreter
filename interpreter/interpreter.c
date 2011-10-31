@@ -12,9 +12,10 @@ Value* eval(Value *expr, Environment * env){
       break;
     case cellType:
       ; // simple hack to fix GCC problem
-
+      
       Value *operator = car(expr);
-      Value *args = cdr(expr);
+     
+       Value *args = cdr(expr);
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
@@ -22,6 +23,7 @@ Value* eval(Value *expr, Environment * env){
 	  /*eval lambda goes here*/
 	  return evalLambda(args, env);
 	}else if (strcmp(operator->symbolValue,"if")==0){
+	  // printf("I'm here %d\n", evalTest->cons->car->boolValue);
 	  return evalIf(args, env);
 	  /*eval if goes here*/
 	}else if (strcmp(operator->symbolValue,"quote")==0){
@@ -78,12 +80,11 @@ Value* evalLet(Value* args, Environment* env){
 
 Value* evalIf(Value* args, Environment* env){
   Value *evalTest = eval(car(args), env);
-  
 
-  if (evalTest->type == booleanType && !(evalTest->boolValue)) {
+ if (evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
-    return eval(car(cdr(cdr(args))), env);
+   return eval(car(cdr(cdr(args))), env);
   }
   else {
     // else return eval(consequence)

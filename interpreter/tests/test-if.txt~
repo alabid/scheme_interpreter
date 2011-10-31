@@ -1,4 +1,4 @@
 ;; test if statement
-(if #f 2)
+(if 2 2)
 (if 7 2 3)
-(if #t 10 20)
+(if #f 10 20)

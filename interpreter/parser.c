@@ -87,8 +87,9 @@ List* append(List* list1, List* list2){
   This returns the car of a value (that is a list)
  */
 Value *car(Value *value) {
-  if (value->type == cellType){ 
-    return value->cons->car;
+  if (value->type == cellType && 
+      value->cons->cdr->cons->car->type){ 
+    return value->cons->cdr->cons->car;
   }else{
     return NULL;
   }
@@ -97,8 +98,13 @@ Value *car(Value *value) {
   This returns the cdr of a value (that is a list)
 */
 Value *cdr(Value *value) {
-  if (value->type == cellType){
-    return value->cons->cdr;
+  // Value *newValue = (Value *) malloc(sizeof(Value));
+  // we might need to create a new value
+
+  if (value->type == cellType && 
+      value->cons->cdr->type){
+    value->cons->cdr = value->cons->cdr->cons->cdr;
+    return value;
   }else{ 
     return NULL;
   }
