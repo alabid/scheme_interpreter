@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+# include <assert.h>
 
 Value* eval(Value *expr, Environment * env){
   switch (expr->type) 
@@ -10,17 +11,23 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      Value *operator = expr->cons->car;
-      Value *args = expr->cons->cdr;
+      ; // simple hack to fix GCC problem
+
+      Value *operator = car(expr);
+      Value *args = cdr(expr);
       if (operator->type == symbolType){
-	if (strcmp(operator->symbolType,"define")==0){
+	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
-	}else if (strcmp(operator->symbolType,"lambda")==0){
+	}else if (strcmp(operator->symbolValue,"lambda")==0){
 	  /*eval lambda goes here*/
 	  return evalLambda(args, env);
-	}else if (strcmp(operator->symbolType,"if")==0){
+	}else if (strcmp(operator->symbolValue,"if")==0){
+	  return evalIf(args, env);
 	  /*eval if goes here*/
-	}else if (strcmp(operator->symbolType,"let")==0){
+	}else if (strcmp(operator->symbolValue,"quote")==0){
+	  /*eval if goes here*/
+	  return args;
+	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
 	  Value *evaledOperator = eval(operator, env);
@@ -114,7 +121,18 @@ Value* evalLet(Value* args, Environment* env){
 }
 
 Value* evalIf(Value* args, Environment* env){
+  Value *evalTest = eval(car(args), env);
+  
 
+  if (evalTest->type == booleanType && !(evalTest->boolValue)) {
+    // if evalTest is false, then return eval(alternate)
+    // if no alternate, just returns NULL
+    return eval(car(cdr(cdr(args))), env);
+  }
+  else {
+    // else return eval(consequence)
+    return eval(car(cdr(args)), env); // return eval(alternate)
+  }
 }
 
 Value* evalLambda(Value* args, Environment* env){
@@ -127,13 +145,13 @@ Value *makePrimitiveValue(Value* (*f)(Value *)){
 
 Environment *createTopFrame(){
   Environment *frame = createFrame(NULL);
-  bind("+", makePrimitiveValue(add), frame);
-  bind("exp", makePrimitiveValue(exponentiate), frame);
-  bind("load", makePrimitiveValue(loadFunction), frame);
+  // bind("+", makePrimitiveValue(add), frame);
+  // bind("exp", makePrimitiveValue(exponentiate), frame);
+  // bind("load", makePrimitiveValue(loadFunction), frame);
   return frame;
 }
 
-Environment *creatFrame(Environment *parent){
+Environment *createFrame(Environment *parent){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
   frame->parent = parent;
   HashTable *table = initializeTable(32);

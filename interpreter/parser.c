@@ -84,6 +84,27 @@ List* append(List* list1, List* list2){
 }
 
 /*
+  This returns the car of a value (that is a list)
+ */
+Value *car(Value *value) {
+  if (value->type == cellType){ 
+    return value->cons->car;
+  }else{
+    return NULL;
+  }
+}
+/*
+  This returns the cdr of a value (that is a list)
+*/
+Value *cdr(Value *value) {
+  if (value->type == cellType){
+    return value->cons->cdr;
+  }else{ 
+    return NULL;
+  }
+}
+
+/*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
 void printValue(Value* value){

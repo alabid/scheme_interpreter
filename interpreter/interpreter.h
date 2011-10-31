@@ -21,7 +21,7 @@ Value *makePrimitiveValue(Value *(*f)(Value *));
 
 Environment *createTopFrame();
 
-Environment *creatFrame(Environment* parent);
+Environment *createFrame(Environment* parent);
 
 Value *exponentiate(Value *args);
 
