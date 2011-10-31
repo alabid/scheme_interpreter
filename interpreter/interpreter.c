@@ -66,10 +66,54 @@ Value* envLookup(char* id, Environment* env){
   return returnValue;
 }
 
-Value* evalDefine(Value* args, Environment* env){
 
+int typeCheck(Value* value){
+  if (value->type == booleanType || integerType || floatType || stringType || closureType){
+    return 1;
+  }
+  else{
+    if(value->type == symbolType){ 
+      return 2;
+    }
+    else{
+      return 0;
+  }
+}
 }
 
+
+
+Value* evalDefine(Value* args, Environment* env){
+  if (args == NULL||args->cons->cdr== NULL){
+    printf ("syntax error: missing components here");
+    return NULL;
+}
+  else{
+    if (lookup(env->bindings->tableValue, args->cons->car)){
+      deleteItem(env->bindings->tableValue, args->cons->car);
+    }
+    if (typeCheck(args->cons->cdr) == 1){
+      insertItem(env->bindings->tableValue, args->cons->car, args->cons->cdr);
+      return NULL;
+    }
+    else{
+      if ((typeCheck(args->cons->cdr == 2))){ 
+	if (lookup(env->bindings, args->cons->cdr)){
+	  insertItem(env->bindings->tableValue, args->cons->car, lookup(env->bindings->tableValue, args->cons->cdr));
+	  return NULL;
+	   }
+	else{
+	  printf("syntax error: unknown identifier");
+	  return NULL;
+      }
+      else{
+	printf("syntax error;the component is undefinable");
+	return NULL;
+      }	
+     }
+}
+}
+}
 Value* evalEach(Value* args, Environment* env){
 
 }
