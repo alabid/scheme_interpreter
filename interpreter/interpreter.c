@@ -11,11 +11,8 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      ; // simple hack to fix GCC problem
-      
       Value *operator = car(expr);
-     
-       Value *args = cdr(expr);
+      Value *args = cdr(expr);
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
