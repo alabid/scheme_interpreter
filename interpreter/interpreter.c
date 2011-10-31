@@ -72,11 +72,13 @@ int typeCheck(Value* value){
       case integerType:
       case floatType:
       case stringType:
-      case closureType:
 	return 1;
 	break;
-      case symbolType:
+      case closureType:
 	return 2;
+	break;
+      case symbolType:
+	return 3;
 	break;
       default:
 	return 0;
@@ -99,22 +101,27 @@ Value* evalDefine(Value* args, Environment* env){
     if (typeCheck(args->cons->cdr) == 1){
       insertItem(env->bindings->tableValue, args->cons->car->symbolValue, args->cons->cdr);
       return NULL;
-    }
-    else{
-      if ((typeCheck(args->cons->cdr == 2))){ 
-	if (lookup(env->bindings->tableValue, args->cons->cdr->symbolValue)){
-	  insertItem(env->bindings->tableValue, args->cons->car->symbolValue, lookup(env->bindings->tableValue, args->cons->cdr->symbolValue));
+    }else{
+      if (typeCheck(args->cons->cdr == 2){
+	  // do something here
 	  return NULL;
+	}else{
+	  if ((typeCheck(args->cons->cdr == 3))){ 
+	    if (lookup(env->bindings->tableValue, args->cons->cdr->symbolValue)){  // use envLookUp instead. // modify the value directly.
+	      insertItem(env->bindings->tableValue, args->cons->car->symbolValue, lookup(env->bindings->tableValue, args->cons->cdr->symbolValue));
+	      return NULL;
+	    }
+	    else{
+	      printf("syntax error: unknown identifier");
+	      return NULL;
+	    }
+	    else{
+	      printf("syntax error;the component is undefinable");
+	      return NULL;
+	    }	
+	  }
 	}
-	else{
-	  printf("syntax error: unknown identifier");
-	  return NULL;
 	}
-	else{
-	  printf("syntax error;the component is undefinable");
-	  return NULL;
-	}	
-      }
     }
   }
 }

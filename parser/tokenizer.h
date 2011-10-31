@@ -47,7 +47,7 @@ int reverse(List *list);
 void cleanup(Value* head);
 
 // This function prints the linked list.
-void printToken(Value* value);
+void printTokens(Value* value);
 
 // This function tokenizes a string and returns a linked list containing tokens.
 List* tokenize(char* expression);

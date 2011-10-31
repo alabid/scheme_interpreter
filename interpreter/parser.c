@@ -27,9 +27,10 @@ List* parse(List* tokens, int* depth){
 	push(stack, pop(tokens));
     }else if (tokens->head->cons->car->type == closeType){
       (*depth)--;
-      // push the close paren into the temp list.
+      // ignore the close parent.
+      pop(tokens); 
       tempList->head = NULL;
-      push(tempList, pop(tokens));
+  
       while (stack->head && stack->head->cons->car->type!=openType){
 	push(tempList, pop(stack));
       }
@@ -42,7 +43,7 @@ List* parse(List* tokens, int* depth){
 
       // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
       if (*depth == 0 && !(tokens->head)){
-	push(tempList, pop(stack));
+	pop(stack); // ignore the open parenthese.
 	push(stack, tempList->head);
 	tokens->head = stack->head;
 	free(stack);
@@ -50,8 +51,8 @@ List* parse(List* tokens, int* depth){
 	return tempList;
       }
       
-      // push the open paren into the temp list.
-      push(tempList, pop(stack));
+      // ignore the open paren.
+      pop(stack);
       push(stack, tempList->head);
     }
     else{
@@ -87,9 +88,8 @@ List* append(List* list1, List* list2){
   This returns the car of a value (that is a list)
  */
 Value *car(Value *value) {
-  if (value->type == cellType && 
-      value->cons->cdr->cons->car->type){ 
-    return value->cons->cdr->cons->car;
+  if (value->type == cellType){ 
+    return value->cons->car;
   }else{
     return NULL;
   }
@@ -98,13 +98,8 @@ Value *car(Value *value) {
   This returns the cdr of a value (that is a list)
 */
 Value *cdr(Value *value) {
-  // Value *newValue = (Value *) malloc(sizeof(Value));
-  // we might need to create a new value
-
-  if (value->type == cellType && 
-      value->cons->cdr->type){
-    value->cons->cdr = value->cons->cdr->cons->cdr;
-    return value;
+  if (value->type == cellType){
+    return value->cons->cdr;
   }else{ 
     return NULL;
   }
@@ -115,6 +110,7 @@ Value *cdr(Value *value) {
 */
 void printValue(Value* value){
   if (value && value->type == cellType){
+    printf("(");
     Value *curValue = value;
     while (curValue){
       switch (curValue->cons->car->type)
@@ -148,15 +144,20 @@ void printValue(Value* value){
 	case cellType:
 	  printValue(curValue->cons->car);
 	  break;
+	case closureType:
+	case primitiveType:
+	  printf("#<procedure>");
+	  break;
 	default:
 	  break;
 	}
-      if ((curValue->cons->car->type!=openType) && ((curValue->cons->cdr) && (curValue->cons->cdr->cons->car->type!=closeType))){
+      if (curValue->cons->cdr){
 	printf(" ");
       } 
       curValue = curValue->cons->cdr;
     } 
- }
+    printf(")");
+  }
 }
 
 

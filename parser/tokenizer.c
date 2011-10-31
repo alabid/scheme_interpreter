@@ -64,7 +64,7 @@ int reverse(List *list){
 }
 
 // This function prints the linked list.
-void printToken(Value* value){
+void printTokens(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
@@ -79,7 +79,7 @@ void printToken(Value* value){
 	  }
 	  break;
 	case cellType:
-	  printToken(curValue->cons->car);
+	  printTokens(curValue->cons->car);
 	  break;
 	case integerType:
 	  printf("%d:integer\n",curValue->cons->car->intValue);
