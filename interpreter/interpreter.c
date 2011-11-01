@@ -86,6 +86,34 @@ int typeCheck(Value* value){
   }
 }
 
+int variableCheck(Value* value){
+  if (value){
+    if (value->type = symbolType){
+      switch(value->symbolValue)
+	{
+	case ".":
+	case "+":
+	case "-":
+	case "*":
+	case "#":
+	case ">":
+	case "=":
+	case "<":
+	case "car":
+	case "cdr":
+	case "list":
+	  return 0;
+	default:
+	  return 1;
+	}
+      return -1;
+    }
+  }
+}
+	  
+	  
+      
+
 
 
 Value* evalDefine(Value* args, Environment* env){
@@ -93,38 +121,46 @@ Value* evalDefine(Value* args, Environment* env){
     printf ("syntax error: missing components here");
     return NULL;
 }
+  if (cdr(cdr(cdr(args))) != NULL){
+    printf ("syntax error: multiple expressions after identifier");
+    return NULL;
+  }
+  if(variableCheck(car(args)) < 1){
+    if (variableCheck(car(args)) < 0){
+      printf ("bad syntax");
+      return NULL;
+    }
+    else{
+      printf("cannot change constant variable");
+      return NULL;
+    }
+  }   
   else{
     assert(args-type == cellType);
     assert(env!=NULL);
     assert(env->bindings-type == tableType);
     assert(args->cons->car->type == symbolType);
-    if (typeCheck(args->cons->cdr) == 1){
-      insertItem(env->bindings->tableValue, args->cons->car->symbolValue, args->cons->cdr);
+    if (typeCheck(cdr(args)) != 3 ){
+      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(car(cdr(args)), env));
       return NULL;
-    }else{
-      if (typeCheck(args->cons->cdr == 2){
-	  // do something here
-	  return NULL;
-	}else{
-	  if ((typeCheck(args->cons->cdr == 3))){ 
-	    if (lookup(env->bindings->tableValue, args->cons->cdr->symbolValue)){  // use envLookUp instead. // modify the value directly.
-	      insertItem(env->bindings->tableValue, args->cons->car->symbolValue, lookup(env->bindings->tableValue, args->cons->cdr->symbolValue));
-	      return NULL;
-	    }
-	    else{
-	      printf("syntax error: unknown identifier");
-	      return NULL;
-	    }
-	    else{
-	      printf("syntax error;the component is undefinable");
-	      return NULL;
-	    }	
-	  }
-	}
-	}
     }
+    else if(typeCheck(cdr(args)) == 3){ 
+      if (envLookup(env->bindings->tableValue, cdr(args)->symbolValue)){  // use envLookUp instead. // modify the value directly.
+	insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(env->bindings->tableValue, cdr(args)->symbolValue));
+	return NULL;
+      }
+      else{
+	printf("syntax error: unknown identifier");
+	return NULL;
+	    }
+    }
+    else{
+      printf("syntax error;the component is undefinable");
+      return NULL;
+    }	
   }
 }
+
 
 Value* evalEach(Value* args, Environment* env){
 
