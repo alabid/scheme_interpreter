@@ -140,7 +140,7 @@ Value* evalDefine(Value* args, Environment* env){
     assert(env!=NULL);
     assert(env->bindings-type == tableType);
     assert(args->cons->car->type == symbolType);
-    if (typeCheck(cdr(args)) != 3 ){
+    if (typeCheck(cdr(args)) != 3 && typeCheck(cdr(args)) >0 ){
       insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args)), env));
       return NULL;
     }
