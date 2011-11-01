@@ -89,35 +89,38 @@ int typeCheck(Value* value){
 	return 0;
     }
   }
-  return -1;
+  else{
+    return -1;
+}
 }
 
 int variableCheck(Value* value){
   if (value){
-    if (value->type = symbolType){
-      switch(value->symbolValue)
+    if (value->type == symbolType){
+      if (strcmp(value->symbolValue,".")==0 ||
+	  strcmp(value->symbolValue,"+")==0 ||
+	  strcmp(value->symbolValue,"-")==0 ||
+	  strcmp(value->symbolValue,"*")==0 ||
+	  strcmp(value->symbolValue,"/")==0 ||
+	  strcmp(value->symbolValue,"<")==0 ||
+	  strcmp(value->symbolValue,"=")==0 ||
+	  strcmp(value->symbolValue,">")==0 ||
+	  strcmp(value->symbolValue,"car")==0 ||
+	  strcmp(value->symbolValue,"cdr")==0 ||
+	  strcmp(value->symbolValue,"list")==0)
 	{
-	case ".":
-	case "+":
-	case "-":
-	case "*":
-	case "#":
-	case ">":
-	case "=":
-	case "<":
-	case "car":
-	case "cdr":
-	case "list":
 	  return 0;
-	default:
+	}else{
 	  return 1;
 	}
+    }else{
       return -1;
     }
   }
-  return -1;
+  else{
+    return -1;
 }
-	  
+}	  
 	  
       
 
@@ -155,33 +158,29 @@ Value* evalDefine(Value* args, Environment* env){
       insertItem(env->bindings->tableValue, car(args)->symbolValue, cdr(args));
       return NULL;
     //if next value contains a higher level of parse tree (most likely function), eval it then bind it to env.
-      else {
-	if (typeCheck(cdr(args)) == 2){
-	  insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args)), env);
+    if (typeCheck(cdr(args)) == 2){
+      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args), env));
+      return NULL;
+    }
+    //if next value is a symbol, check if it is already existed in the env.
+    else if(typeCheck(cdr(args)) == 3){ 
+      if (envLookup(cdr(args)->symbolValue, env)){  // use envLookUp instead. // modify the value directly.
+	insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(cdr(args)->symbolValue, env));
 	return NULL;
-      
-    
-      	//if next value is a symbol, check if it is already existed in the env.
-	}else{
-	  if(typeCheck(cdr(args)) == 3){ 
-	    if (envLookup(env->bindings->tableValue, cdr(args)->symbolValue)){  // use envLookUp instead. // modify the value directly.
-	      insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(env->bindings->tableValue, cdr(args)->symbolValue));
-	      return NULL;
-	    }
-	    else{
-	      printf("syntax error: unknown identifier");
-	      return NULL;
-	    }
-	  }
-	  else{
-	    printf("syntax error;the component is undefinable");
-	    return NULL;
-	  }	
-	}
+      }
+      else{
+	printf("syntax error: unknown identifier");
+	return NULL;
       }
     }
+    else{
+      printf("syntax error;the component is undefinable");
+      return NULL;
+    }	
   }
-}  
+}
+}
+
 Value* evalEach(Value* args, Environment* env){
   Value *temp;
   while (args){
