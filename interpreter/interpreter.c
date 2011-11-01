@@ -88,6 +88,7 @@ int typeCheck(Value* value){
 	return 0;
     }
   }
+  return -1;
 }
 
 int variableCheck(Value* value){
@@ -113,6 +114,7 @@ int variableCheck(Value* value){
       return -1;
     }
   }
+  return -1;
 }
 	  
 	  
@@ -143,38 +145,42 @@ Value* evalDefine(Value* args, Environment* env){
     }
   }   
   else{
-    assert(args-type == cellType);
+    assert(args->type == cellType);
     assert(env!=NULL);
-    assert(env->bindings-type == tableType);
+    assert(env->bindings->type == tableType);
     assert(args->cons->car->type == symbolType);
     //if next value is a single definable expr, bind it to env. 
     if (typeCheck(cdr(args)) == 1){
       insertItem(env->bindings->tableValue, car(args)->symbolValue, cdr(args));
       return NULL;
     //if next value contains a higher level of parse tree (most likely function), eval it then bind it to env.
-    if (typeCheck(cdr(args)) == 2){
-      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args)), env));
-      return NULL;
-    }
-    //if next value is a symbol, check if it is already existed in the env.
-    else if(typeCheck(cdr(args)) == 3){ 
-      if (envLookup(env->bindings->tableValue, cdr(args)->symbolValue)){  // use envLookUp instead. // modify the value directly.
-	insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(env->bindings->tableValue, cdr(args)->symbolValue));
+      else {
+	if (typeCheck(cdr(args)) == 2){
+	  insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args)), env);
 	return NULL;
-      }
-      else{
-	printf("syntax error: unknown identifier");
-	return NULL;
+      
+    
+      	//if next value is a symbol, check if it is already existed in the env.
+	}else{
+	  if(typeCheck(cdr(args)) == 3){ 
+	    if (envLookup(env->bindings->tableValue, cdr(args)->symbolValue)){  // use envLookUp instead. // modify the value directly.
+	      insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(env->bindings->tableValue, cdr(args)->symbolValue));
+	      return NULL;
+	    }
+	    else{
+	      printf("syntax error: unknown identifier");
+	      return NULL;
+	    }
+	  }
+	  else{
+	    printf("syntax error;the component is undefinable");
+	    return NULL;
+	  }	
+	}
       }
     }
-    else{
-      printf("syntax error;the component is undefinable");
-      return NULL;
-    }	
   }
 }
-
-
 Value* evalEach(Value* args, Environment* env){
   Value *temp;
   while (args){
@@ -188,7 +194,7 @@ Value* evalEach(Value* args, Environment* env){
 }
 
 Value* evalLet(Value* args, Environment* env){
-
+  return NULL;
 }
 
 Value* evalIf(Value* args, Environment* env){
@@ -206,7 +212,7 @@ Value* evalIf(Value* args, Environment* env){
 }
 
 Value* evalLambda(Value* args, Environment* env){
-
+  return NULL;
 }
 
 Value *makePrimitiveValue(Value* (*f)(Value *)){
@@ -238,7 +244,7 @@ Environment *createFrame(Environment *parent){
 }
 
 Value *exponentiate(Value *args){
-
+  return NULL;
 }
 
 Value *add(Value *args){
@@ -266,10 +272,20 @@ Value *add(Value *args){
     }
     args = cdr(args);
   }
-  return isFloat? dblSum : intSum;
+  Value *value = (Value*) malloc(sizeof(Value));
+  if (isFloat){
+    value->type = floatType;
+    value->dblValue = dblSum; 
+  }else{
+    value->type = integerType;
+    value->intValue = intSum; 
+  }
+  return value;
+}
+ 
 
 Value *loadFunction(Value *args){
-
+  return NULL;
 }
 
 

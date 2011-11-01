@@ -30,7 +30,7 @@ int main() {
       } else {
        if (parseTree && parseTree->head){
 	 printValue(parseTree->head);
-	 printToken(eval(parseTree->head, topEnv));
+	 printTokens(eval(parseTree->head, topEnv));
 	 printf("\n");
 	 cleanup(leftoverTokens->head);
        }
