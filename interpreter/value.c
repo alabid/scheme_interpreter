@@ -126,25 +126,19 @@ int insertItem(HashTable* table, char* id, Value* value){
 */
 int autoDouble(HashTable* table){
   if (table){
-    ConsCell* newEntries;
     int oldCapacity = table->capacity;
     int i;
-    int newID;
-    newEntries = (ConsCell*)calloc(oldCapacity*2,sizeof(ConsCell));
-    table->capacity = oldCapacity*2;
+    HashTable* newTable = initializeTable(table->capacity*2);
     for (i=0;i<oldCapacity;i++){
       if ((table->entries)[i].car){
 	if (((table->entries)[i].car)->type == symbolType){
-	  newID = hash(table, ((table->entries)[i].car)->symbolValue);
-	  if (newID!=-1){
-	    newEntries[newID].car = (table->entries)[i].car;
-	    newEntries[newID].cdr = (table->entries)[i].cdr;
-	  }
-	}
+	  insertItem(newTable, ((table->entries)[i].car)->symbolValue, (table->entries)[i].cdr);
+	}	
       }
     }
-    free(table->entries);
-    table->entries = newEntries;
+    cleanupTable(table);
+    table->entries = newTable->entries;
+    free(newTable);
     return 1;
   }else{
     return 0;
