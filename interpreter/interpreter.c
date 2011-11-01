@@ -74,6 +74,7 @@ int typeCheck(Value* value){
       case stringType:
 	return 1;
 	break;
+      case cellType:
       case closureType:
 	return 2;
 	break;
@@ -121,10 +122,12 @@ Value* evalDefine(Value* args, Environment* env){
     printf ("syntax error: missing components here");
     return NULL;
 }
+  //check if there are more than 2 values after define
   if (cdr(cdr(cdr(args))) != NULL){
     printf ("syntax error: multiple expressions after identifier");
     return NULL;
   }
+  //check if the variable is valid
   if(variableCheck(car(args)) < 1){
     if (variableCheck(car(args)) < 0){
       printf ("bad syntax");
@@ -140,10 +143,16 @@ Value* evalDefine(Value* args, Environment* env){
     assert(env!=NULL);
     assert(env->bindings-type == tableType);
     assert(args->cons->car->type == symbolType);
-    if (typeCheck(cdr(args)) != 3 && typeCheck(cdr(args)) >0 ){
+    //if next value is a single definable expr, bind it to env. 
+    if (typeCheck(cdr(args)) == 1){
+      insertItem(env->bindings->tableValue, car(args)->symbolValue, cdr(args));
+      return NULL;
+    //if next value contains a higher level of parse tree (most likely function), eval it then bind it to env.
+    if (typeCheck(cdr(args)) == 2){
       insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args)), env));
       return NULL;
     }
+    //if next value is a symbol, check if it is already existed in the env.
     else if(typeCheck(cdr(args)) == 3){ 
       if (envLookup(env->bindings->tableValue, cdr(args)->symbolValue)){  // use envLookUp instead. // modify the value directly.
 	insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(env->bindings->tableValue, cdr(args)->symbolValue));
