@@ -529,3 +529,10 @@ void printValue(Value* value){
     printf(")");
   }
 }
+
+int listLength(Value *value) {
+  if (!value) 
+    return 0;
+  else
+    return 1 + listLength(value->cons->cdr);
+}

@@ -153,6 +153,11 @@ void cleanupValue(Value* value);
 */
 void printValue(Value* head);
 
+/*
+give me the length of the list
+*/
+int listLength(Value *value);
+
 List* getKeys(HashTable* table);
 
 List* getValues(HashTable* table);

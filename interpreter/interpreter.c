@@ -14,6 +14,7 @@ Value* eval(Value *expr, Environment * env){
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
+      ;
       Value *operator = car(expr);
       Value *args = cdr(expr);
       if (operator->type == symbolType){
@@ -180,7 +181,7 @@ Value* evalDefine(Value* args, Environment* env){
       }
     }
   }
-}
+}  
 Value* evalEach(Value* args, Environment* env){
   Value *temp;
   while (args){
