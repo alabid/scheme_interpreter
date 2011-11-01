@@ -5,6 +5,9 @@
 # include <assert.h>
 
 Value* eval(Value *expr, Environment * env){
+  if (!expr){
+    return NULL;
+  }
   switch (expr->type) 
     {
     case symbolType:
@@ -121,7 +124,8 @@ Value* evalDefine(Value* args, Environment* env){
   if (args == NULL||args->cons->cdr== NULL){
     printf ("syntax error: missing components here");
     return NULL;
-}
+  }
+  
   //check if there are more than 2 values after define
   if (cdr(cdr(cdr(args))) != NULL){
     printf ("syntax error: multiple expressions after identifier");
@@ -161,7 +165,7 @@ Value* evalDefine(Value* args, Environment* env){
       else{
 	printf("syntax error: unknown identifier");
 	return NULL;
-	    }
+      }
     }
     else{
       printf("syntax error;the component is undefinable");
@@ -172,7 +176,15 @@ Value* evalDefine(Value* args, Environment* env){
 
 
 Value* evalEach(Value* args, Environment* env){
-
+  Value *temp;
+  while (args){
+    temp = args->cons->car;
+    args->cons->car = eval(args->cons->car, env);
+    // free memory?
+    // cleanup(temp);
+    args = cdr(args);
+  }
+  return args;
 }
 
 Value* evalLet(Value* args, Environment* env){
@@ -198,7 +210,10 @@ Value* evalLambda(Value* args, Environment* env){
 }
 
 Value *makePrimitiveValue(Value* (*f)(Value *)){
-
+  Value *resultValue = (Value *)malloc(sizeof(Value));
+  resultValue->type = primitiveType;
+  resultValue->primitiveValue = f;
+  return resultValue;
 }
 
 Environment *createTopFrame(){
@@ -206,6 +221,8 @@ Environment *createTopFrame(){
   // bind("+", makePrimitiveValue(add), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
+  // bind("car", makePrimitiveValue(car), frame);
+  // bind("cdr", makePrimitiveValue(cdr), frame);
   return frame;
 }
 
@@ -225,8 +242,31 @@ Value *exponentiate(Value *args){
 }
 
 Value *add(Value *args){
-
-}
+  int intSum = 0;
+  double dblSum = 0;
+  int isFloat = 0;
+  while (args){
+    if (args->type == integerType){
+      if (!isFloat){
+	intSum += args->intValue;
+      }else{
+	dblSum += args->dblValue;
+      }
+    }else{ 
+      if (args->type == floatType){
+	if (!isFloat){
+	  isFloat = 1;
+	  dblSum +=intSum;
+	}
+	dblSum += args->dblValue;	
+      }else{
+	  printf("+: expects type <number> as arguments");
+	  return NULL;
+      }
+    }
+    args = cdr(args);
+  }
+  return isFloat? dblSum : intSum;
 
 Value *loadFunction(Value *args){
 

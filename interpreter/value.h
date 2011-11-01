@@ -136,3 +136,23 @@ void destroyTable(HashTable *table);
 */
 void printTable(HashTable* table);
 
+/*
+  returns the car of the List
+*/
+Value *car (Value *value);
+
+/*
+  returns the cdr of the List
+*/
+Value *cdr (Value *value);
+
+void cleanupValue(Value* value);
+
+/*
+  This function accepts a Value that is the head of the list, and prints out the list.
+*/
+void printValue(Value* head);
+
+List* getKeys(HashTable* table);
+
+List* getValues(HashTable* table);

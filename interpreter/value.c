@@ -77,6 +77,7 @@ int hash(HashTable* table, char* id){
 	  return key%(table->capacity);
       }
       key++;
+      current = ((table->entries)[key%(table->capacity)]).car;
     }
     return key%(table->capacity);  
   }
@@ -90,7 +91,7 @@ int hash(HashTable* table, char* id){
 */
 int insertItem(HashTable* table, char* id, Value* value){
   if (table){
-    if ((table->size) >= ((table->capacity)*2/3)){
+    if ((table->size) >= ((table->capacity)/2)){
       autoDouble(table);
     }
     int key = hash(table, id);
@@ -103,7 +104,8 @@ int insertItem(HashTable* table, char* id, Value* value){
     }
     length++;
     char* copiedID = (char*)malloc(sizeof(char)*length);
-    strncpy(copiedID,id,length);
+    strncpy(copiedID,id,length-1);
+    copiedID[length-1]='\0';
     Value* keyVal = (Value*)malloc(sizeof(Value));
     keyVal->type = symbolType;
     keyVal->symbolValue = copiedID;
@@ -125,17 +127,19 @@ int insertItem(HashTable* table, char* id, Value* value){
 int autoDouble(HashTable* table){
   if (table){
     ConsCell* newEntries;
-    int oldCapacity = (table->capacity);
+    int oldCapacity = table->capacity;
     int i;
     int newID;
-    newEntries = (ConsCell*) malloc(sizeof(ConsCell)*oldCapacity*2);
+    newEntries = (ConsCell*)calloc(oldCapacity*2,sizeof(ConsCell));
     table->capacity = oldCapacity*2;
     for (i=0;i<oldCapacity;i++){
       if ((table->entries)[i].car){
-	if ((table->entries)[i].car->type==symbolType){
-	  newID = hash(table, (table->entries)[i].car->symbolValue);
-	  newEntries[newID].car = (table->entries)[i].car;
-	  newEntries[newID].cdr = (table->entries)[i].cdr;
+	if (((table->entries)[i].car)->type == symbolType){
+	  newID = hash(table, ((table->entries)[i].car)->symbolValue);
+	  if (newID!=-1){
+	    newEntries[newID].car = (table->entries)[i].car;
+	    newEntries[newID].cdr = (table->entries)[i].cdr;
+	  }
 	}
       }
     }
@@ -237,6 +241,34 @@ void printTable(HashTable* table){
   }
 }
 
+List* getKeys(HashTable* table){
+  List* list = NULL;
+  if (table){
+    list = initializeList();
+    int i;
+    for (i=0;i<table->capacity;i++){
+      if ((table->entries)[i].car){
+	push(list, (table->entries)[i].car);	
+      }  
+    }
+  }
+  return list;
+}
+
+List* getValues(HashTable* table){
+  List* list = NULL;
+  if (table){
+    list = initializeList();
+    int i;
+    for (i=0;i<table->capacity;i++){
+      if ((table->entries)[i].car && (table->entries)[i].cdr){
+	push(list, (table->entries)[i].cdr);
+      }	 
+    }
+  }
+  return list; 
+}
+
 
 
 List* initializeList(){
@@ -282,6 +314,9 @@ Value* pop(List *list){
    
 // This function reverses the linked list.
 int reverse(List *list){
+  if (!list){
+    return 0;
+  }
   Value *nextValue;
   Value *tempHead=NULL;
   Value *curValue = list->head;
@@ -361,12 +396,142 @@ void cleanup(Value* head){
       free(head);
       head = second;
     }
-  }
+  }    
 }
 // This function frees its cons cells and also frees the list.
 void destroy(List* list){
   if (list){
     cleanup(list->head);
     free(list);
+  }
+}
+
+/*
+// We haven't finish this function yet. 
+// We will not need this function until we want to destroy all the things after interpreting. 
+void cleanupValue(Value* value){
+  if (value){
+    switch  (value->type)
+      {
+      case cellType:
+	cleanupValue(car(value));
+	cleanupValue(cdr(value));
+	free(value->cons);
+	break;
+      case tableType:
+	if (value->tableValue){
+	  cleanupTable(value->tableValue);
+	  free(value->tableValue);
+	}
+	break;
+      case envType:
+	if (value->envValue){
+	  cleanupValue(value->envValue->bindings);
+	  free(value->envValue);
+	}
+	break;
+      case closureType:
+	if (value->closureValue){
+	  cleanupValue(value->closureValue->body);
+	  cleanupValue(value->closureValue->args);
+	  if (value->closureValue->parent){
+	    if (value->closureValue->parent->bindings){
+	      cleanupValue(value->closureValue->parent->bindings);
+	    }
+	    free(value->closureValue->parent);
+	  }
+	}
+      case stringType:
+	free(value->stringValue);
+	break;
+      case symbolType:
+	free(value->symbolValue);
+
+      }
+    
+    free(value);   
+    
+  }
+}
+*/
+/*
+  This returns the car of a value (that is a list)
+ */
+Value *car(Value *value) {
+  if (!value){
+    return NULL;
+  }
+  if (value->type == cellType){ 
+    return value->cons->car;
+  }else{
+    return NULL;
+  }
+}
+/*
+  This returns the cdr of a value (that is a list)
+*/
+Value *cdr(Value *value) {
+  if (!value){
+    return NULL;
+  }
+  if (value->type == cellType){
+    return value->cons->cdr;
+  }else{ 
+    return NULL;
+  }
+}
+
+/*
+  This function accepts a Value that is the head of the list, and prints out the list.
+*/
+void printValue(Value* value){
+  if (value && value->type == cellType){
+    printf("(");
+    Value *curValue = value;
+    while (curValue){
+      switch (curValue->cons->car->type)
+	{
+	case booleanType:
+	  if(curValue->cons->car->boolValue){
+	    printf("#t");
+	  }
+	  else{
+	    printf("#f");
+	  }
+	  break;
+	case integerType:
+	  printf("%d",curValue->cons->car->intValue);
+	  break;
+	case floatType:
+	  printf("%lf",curValue->cons->car->dblValue);
+	  break;
+	case stringType:
+	  printf("%s",curValue->cons->car->stringValue);
+	  break;
+	case symbolType:
+	  printf("%s",curValue->cons->car->symbolValue);
+	  break;
+	case openType:
+	  printf("(");
+	  break;
+	case closeType:
+	  printf(")");
+	  break;
+	case cellType:
+	  printValue(curValue->cons->car);
+	  break;
+	case closureType:
+	case primitiveType:
+	  printf("#<procedure>");
+	  break;
+	default:
+	  break;
+	}
+      if (curValue->cons->cdr){
+	printf(" ");
+      } 
+      curValue = curValue->cons->cdr;
+    } 
+    printf(")");
   }
 }
