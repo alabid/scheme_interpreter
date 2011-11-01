@@ -40,7 +40,7 @@ void printToken(Value* curValue){
       default:
 	break;
       }
-  }
+  } else printf("I'm nothing!\n");
 }
 
 /* 
@@ -528,6 +528,7 @@ void printValue(Value* value){
     } 
     printf(")");
   }
+  else printf("This is not a value\n");
 }
 
 int listLength(Value *value) {

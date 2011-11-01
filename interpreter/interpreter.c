@@ -24,7 +24,6 @@ Value* eval(Value *expr, Environment * env){
 	  /*eval lambda goes here*/
 	  return evalLambda(args, env);
 	}else if (strcmp(operator->symbolValue,"if")==0){
-	  // printf("I'm here %d\n", evalTest->cons->car->boolValue);
 	  return evalIf(args, env);
 	  /*eval if goes here*/
 	}else if (strcmp(operator->symbolValue,"quote")==0){
@@ -128,23 +127,23 @@ int variableCheck(Value* value){
 
 Value* evalDefine(Value* args, Environment* env){
   if (args == NULL||args->cons->cdr== NULL){
-    printf ("syntax error: missing components here");
+    printf ("syntax error: missing components here\n");
     return NULL;
   }
   
   //check if there are more than 2 values after define
   if (cdr(cdr(cdr(args))) != NULL){
-    printf ("syntax error: multiple expressions after identifier");
+    printf ("syntax error: multiple expressions after identifier\n");
     return NULL;
   }
   //check if the variable is valid
   if(variableCheck(car(args)) < 1){
     if (variableCheck(car(args)) < 0){
-      printf ("bad syntax");
+      printf ("bad syntax\n");
       return NULL;
     }
     else{
-      printf("cannot change constant variable");
+      printf("cannot change constant variable\n");
       return NULL;
     }
   }   
@@ -198,14 +197,30 @@ Value* evalLet(Value* args, Environment* env){
 }
 
 Value* evalIf(Value* args, Environment* env){
+  int count = listLength(args);
+
+  if (count < 2) {
+    printf("syntax error: too few arguments in if statement\n");
+    return NULL;
+  } if ( count > 3) {
+      printf("syntax error: too many arguments in if statement\n");
+      return NULL;
+  }
+
   Value *evalTest = eval(car(args), env);
-  
+  // Value *tempArgs;
+ 
  if (evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
-   return eval(car(cdr(cdr(args))), env);
+  if (count == 3) {
+     return eval(car(cdr(cdr(args))), env);
+   }
+   else 
+     return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
   else {
+
     // else return eval(consequence)
     return eval(car(cdr(args)), env); // return eval(alternate)
   }
