@@ -28,7 +28,7 @@ Value* eval(Value *expr, Environment * env){
 	  /*eval if goes here*/
 	}else if (strcmp(operator->symbolValue,"quote")==0){
 	  /*eval if goes here*/
-	  return args;
+	  return args->car;
 	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
 	}else{
@@ -118,10 +118,10 @@ int variableCheck(Value* value){
   }
   else{
     return -1;
-}
+  }
 }	  
-	  
-      
+
+
 
 
 
