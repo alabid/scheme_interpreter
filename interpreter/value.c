@@ -475,6 +475,7 @@ Value *cdr(Value *value) {
   }
 }
 
+// print value.
 void printValue(Value* curValue){
   if (curValue){
     switch (curValue->type)
@@ -506,22 +507,25 @@ void printValue(Value* curValue){
 	printf(")");
 	break;
       case cellType:
-	printf("(");
-	printValue(curValue->cons->car);
-
-	
-	Value* current = curValue->cons->cdr;
-	while (current){
-	  printf(" ");
-	  if (current->type == cellType){
-	    printValue(current->cons->car);	  
-	    current = cdr(current);
-	
-	  }else{
-	    break;
+	if (curValue->cons->car->type == cellType){
+	  printf("(");
+	  printValue(curValue->cons->car);	
+	  Value* current = curValue->cons->cdr;
+	  while (current){
+	    printf(" ");
+	    if (current->type == cellType){
+	      printValue(current->cons->car);	  
+	      current = cdr(current);
+	      
+	    }else{
+	      break;
+	    }
 	  }
+	  printf(")");
+	}else{
+	  printValue(curValue->cons->car);
+	  printValue(curValue->cons->cdr);
 	}
-	printf(")");
 	break;
 	case closureType:
       case primitiveType:

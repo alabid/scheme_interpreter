@@ -12,7 +12,6 @@ Value* eval(Value *expr, Environment *env){
   if (!expr){
     return NULL;
   }
-  
   switch (expr->type) 
     {
     case symbolType:
@@ -21,7 +20,6 @@ Value* eval(Value *expr, Environment *env){
     case cellType:
       operator = car(expr);
       args = cdr(expr);
-      
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
@@ -39,8 +37,6 @@ Value* eval(Value *expr, Environment *env){
 	  return evalLet(args, env);
 	}else if (envLookup(operator->symbolValue, env)){
 	  return envLookup(operator->symbolValue, env);
-	}else if (typeCheck(operator)==1 && !args){
-	    return operator;
 	}else{
 	  Value *evaledOperator = eval(operator, env);
 	  Value *evaledArgs = evalEach(args, env);
@@ -49,6 +45,7 @@ Value* eval(Value *expr, Environment *env){
       }
     default:
       return expr;
+      
     }
 }
 
@@ -63,8 +60,6 @@ Value* apply(Value* function, Value* actualArgs){
     Environment *frame = createFrame(function->closureValue->parent);
     return eval(function->closureValue->body, frame);
   }else{
-    printValue(function);
-    printValue(actualArgs);
     return NULL;
   }
 }

@@ -30,12 +30,7 @@ int main() {
       } else {
        if (parseTree && parseTree->head){
 	 //printValue(parseTree->head);
-	 Value* current = parseTree->head;
-	 while (current){
-	   printValue(eval(current->cons->car,topEnv));
-	   current = cdr(current);
-	 }
-	 
+	 printValue(eval(parseTree->head,topEnv));
 	 printf("\n");
 	 cleanup(leftoverTokens->head);
        }
