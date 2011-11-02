@@ -2,21 +2,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-# include <assert.h>
+#include <assert.h>
 
-Value* eval(Value *expr, Environment * env){
+
+// This function evaluates the parse tree given by expr within the given environment.
+Value* eval(Value *expr, Environment *env){
+  Value* operator;
+  Value* args;
   if (!expr){
     return NULL;
   }
+  
   switch (expr->type) 
     {
     case symbolType:
       return envLookup(expr->symbolValue, env);
       break;
     case cellType:
-      ;
-      Value *operator = car(expr);
-      Value *args = cdr(expr);
+      operator = car(expr);
+      args = cdr(expr);
+      
       if (operator->type == symbolType){
 	if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
@@ -27,10 +32,15 @@ Value* eval(Value *expr, Environment * env){
 	  return evalIf(args, env);
 	  /*eval if goes here*/
 	}else if (strcmp(operator->symbolValue,"quote")==0){
-	  /*eval if goes here*/
-	  return args->car;
+	  /*eval quote goes here*/
+	  return args->cons->car;
 	}else if (strcmp(operator->symbolValue,"let")==0){
 	  /*eval let goes here*/
+	  return evalLet(args, env);
+	}else if (envLookup(operator->symbolValue, env)){
+	  return envLookup(operator->symbolValue, env);
+	}else if (typeCheck(operator)==1 && !args){
+	    return operator;
 	}else{
 	  Value *evaledOperator = eval(operator, env);
 	  Value *evaledArgs = evalEach(args, env);
@@ -41,17 +51,25 @@ Value* eval(Value *expr, Environment * env){
       return expr;
     }
 }
+
+
+// We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs){
   if (function->type == primitiveType){
     return function->primitiveValue(actualArgs);
-  }else{
-    assert(function->type == closureType);
+  }else if (function->type == closureType){
     Value *formalArgs = function->closureValue->args;
+    eval(formalArgs, function->closureValue->parent);
     Environment *frame = createFrame(function->closureValue->parent);
     return eval(function->closureValue->body, frame);
+  }else{
+    printValue(function);
+    printValue(actualArgs);
+    return NULL;
   }
 }
 
+// look at the identifier.
 Value* envLookup(char* id, Environment* env){
   Value* returnValue = NULL;
   while (env){
@@ -66,7 +84,7 @@ Value* envLookup(char* id, Environment* env){
   return returnValue;
 }
 
-
+// group types into three main groups.
 int typeCheck(Value* value){
   if (value){
     switch (value->type)
@@ -90,9 +108,10 @@ int typeCheck(Value* value){
   }
   else{
     return -1;
-}
+  }
 }
 
+// Check special cases.
 int variableCheck(Value* value){
   if (value){
     if (value->type == symbolType){
@@ -121,65 +140,52 @@ int variableCheck(Value* value){
   }
 }	  
 
+      
 
 
-
-
+// This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
   if (args == NULL||args->cons->cdr== NULL){
-    printf ("syntax error: missing components here\n");
+    printf("syntax error: missing components here\n");
     return NULL;
   }
   
   //check if there are more than 2 values after define
-  if (cdr(cdr(cdr(args))) != NULL){
-    printf ("syntax error: multiple expressions after identifier\n");
+  if (cdr(cdr(args)) != NULL){
+    printf("syntax error: multiple expressions after identifier\n");
     return NULL;
   }
   //check if the variable is valid
-  if(variableCheck(car(args)) < 1){
+  if (variableCheck(car(args)) < 1){
     if (variableCheck(car(args)) < 0){
-      printf ("bad syntax\n");
+      printf("bad syntax\n");
       return NULL;
     }
     else{
       printf("cannot change constant variable\n");
       return NULL;
     }
-  }   
-  else{
+  }else{
     assert(args->type == cellType);
     assert(env!=NULL);
     assert(env->bindings->type == tableType);
     assert(args->cons->car->type == symbolType);
-    //if next value is a single definable expr, bind it to env. 
-    if (typeCheck(cdr(args)) == 1){
-      insertItem(env->bindings->tableValue, car(args)->symbolValue, cdr(args));
-      return NULL;
-    //if next value contains a higher level of parse tree (most likely function), eval it then bind it to env.
-    if (typeCheck(cdr(args)) == 2){
-      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args), env));
-      return NULL;
-    }
-    //if next value is a symbol, check if it is already existed in the env.
-    else if(typeCheck(cdr(args)) == 3){ 
-      if (envLookup(cdr(args)->symbolValue, env)){  // use envLookUp instead. // modify the value directly.
-	insertItem(env->bindings->tableValue, car(args)->symbolValue, envLookup(cdr(args)->symbolValue, env));
-	return NULL;
-      }
-      else{
+    if (cdr(args) && (cdr(args))->type == symbolType){
+      Value *value = eval(envLookup(cdr(args)->symbolValue, env), env);
+      if (value){
+	insertItem(env->bindings->tableValue, car(args)->symbolValue, value);
+      }else{
 	printf("syntax error: unknown identifier");
 	return NULL;
       }
+    }else{
+      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args), env));
     }
-    else{
-      printf("syntax error;the component is undefinable");
-      return NULL;
-    }	
-  }
-}
+	return NULL;
+  }  
 }
 
+// We have not finished this function yet.
 Value* evalEach(Value* args, Environment* env){
   Value *temp;
   while (args){
@@ -191,11 +197,11 @@ Value* evalEach(Value* args, Environment* env){
   }
   return args;
 }
-
+// not finished.
 Value* evalLet(Value* args, Environment* env){
   return NULL;
 }
-
+// This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   int count = listLength(args);
 
@@ -226,17 +232,19 @@ Value* evalIf(Value* args, Environment* env){
   }
 }
 
+// not finished yet.
 Value* evalLambda(Value* args, Environment* env){
   return NULL;
 }
 
+// 
 Value *makePrimitiveValue(Value* (*f)(Value *)){
   Value *resultValue = (Value *)malloc(sizeof(Value));
   resultValue->type = primitiveType;
   resultValue->primitiveValue = f;
   return resultValue;
 }
-
+// creates a top-level frame and binds the "built-in" functions.
 Environment *createTopFrame(){
   Environment *frame = createFrame(NULL);
   // bind("+", makePrimitiveValue(add), frame);
@@ -247,6 +255,7 @@ Environment *createTopFrame(){
   return frame;
 }
 
+// creates an environment.
 Environment *createFrame(Environment *parent){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
   frame->parent = parent;
@@ -258,10 +267,12 @@ Environment *createFrame(Environment *parent){
   return frame;
 }
 
+// not finished yet.
 Value *exponentiate(Value *args){
   return NULL;
 }
 
+// not tested yet.
 Value *add(Value *args){
   int intSum = 0;
   double dblSum = 0;
@@ -298,7 +309,7 @@ Value *add(Value *args){
   return value;
 }
  
-
+// not finished yet.
 Value *loadFunction(Value *args){
   return NULL;
 }

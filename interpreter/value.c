@@ -475,10 +475,70 @@ Value *cdr(Value *value) {
   }
 }
 
+void printValue(Value* curValue){
+  if (curValue){
+    switch (curValue->type)
+      {
+      case booleanType:
+	if(curValue->boolValue){
+	  printf("#t");
+	}
+	else{
+	  printf("#f");
+	}
+	break;
+      case integerType:
+	printf("%d",curValue->intValue);
+	break;
+      case floatType:
+	printf("%lf",curValue->dblValue);
+	break;
+      case stringType:
+	printf("%s",curValue->stringValue);
+	break;
+      case symbolType:
+	printf("%s",curValue->symbolValue);
+	break;
+      case openType:
+	printf("(");
+	break;
+      case closeType:
+	printf(")");
+	break;
+      case cellType:
+	printf("(");
+	printValue(curValue->cons->car);
+
+	
+	Value* current = curValue->cons->cdr;
+	while (current){
+	  printf(" ");
+	  if (current->type == cellType){
+	    printValue(current->cons->car);	  
+	    current = cdr(current);
+	
+	  }else{
+	    break;
+	  }
+	}
+	printf(")");
+	break;
+	case closureType:
+      case primitiveType:
+	printf("#<procedure>");
+	break;
+      case nullType:
+	printf("()");
+      default:
+	break;
+      }
+  } 
+}
+
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
-void printValue(Value* value){
+void printParseTree(Value* value){
   if (value && value->type == cellType){
     printf("(");
     Value *curValue = value;

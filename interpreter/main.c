@@ -29,12 +29,17 @@ int main() {
        
       } else {
        if (parseTree && parseTree->head){
-	 printValue(parseTree->head);
-	 printToken(eval(parseTree->head, topEnv));
+	 //printValue(parseTree->head);
+	 Value* current = parseTree->head;
+	 while (current){
+	   printValue(eval(current->cons->car,topEnv));
+	   current = cdr(current);
+	 }
+	 
 	 printf("\n");
 	 cleanup(leftoverTokens->head);
        }
-      }
+     }
   }
   if (leftoverTokens->head) {
     printf("syntax error. Too few close parentheses\n");   // Too few close parens at end of input. 

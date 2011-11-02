@@ -3,7 +3,7 @@
 */
 
 enum VALUE_TYPE{
-  tableType, cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
+  nullType, tableType, cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
 
@@ -161,3 +161,5 @@ int listLength(Value *value);
 List* getKeys(HashTable* table);
 
 List* getValues(HashTable* table);
+
+void printParseTree(Value* value);

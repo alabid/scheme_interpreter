@@ -44,6 +44,11 @@ List* parse(List* tokens, int* depth){
       // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
       if (*depth == 0 && !(tokens->head)){
 	pop(stack); // ignore the open parenthese.
+	if (!tempList->head){
+	  Value* value = (Value *)malloc(sizeof(Value));
+	  value->type = nullType;
+	  push(tempList, value);
+	}
 	push(stack, tempList->head);
 	tokens->head = stack->head;
 	free(stack);

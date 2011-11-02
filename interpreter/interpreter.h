@@ -29,4 +29,5 @@ Value *add(Value *args);
 
 Value *loadFunction(Value *args);
 
+int typeCheck(Value* value);
 
