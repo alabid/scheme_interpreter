@@ -1,1 +1,2 @@
-(define  x quote((if #f 3 4)))
+(define  x 6)
+(quote((if #f 3 4)))

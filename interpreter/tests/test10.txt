@@ -1,1 +1,3 @@
-(define (if #t var1 var2) 8)
+(define var1 5)
+(define var2 5)
+(if #t var1 var2)

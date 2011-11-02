@@ -1,1 +1,1 @@
-(if #f (quote 2) (define 3 8))
+(if #f (quote 2)  8)
