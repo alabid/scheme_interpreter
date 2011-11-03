@@ -149,7 +149,7 @@ Value *cdr (Value *value);
 void cleanupValue(Value* value);
 
 /*
-  This function accepts a Value that is the head of the list, and prints out the list.
+  This function is used to print the result after evaluation.
 */
 void printValue(Value* head);
 
@@ -158,8 +158,16 @@ give me the length of the list
 */
 int listLength(Value *value);
 
+/*
+  Returns all identifiers in the bindings as a linked list.
+*/
 List* getKeys(HashTable* table);
-
+/*
+  Returns all payloads in the hash table as a linked list.
+*/
 List* getValues(HashTable* table);
 
-void printParseTree(Value* value);
+/*
+  This function accepts a Value that is the head of the list, and prints out the list.
+*/
+void printList(Value* value);

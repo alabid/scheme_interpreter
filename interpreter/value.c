@@ -37,6 +37,8 @@ void printToken(Value* curValue){
       case closeType:
 	printf("):close\n");
 	break;
+      case nullType:
+	printf("()");
       default:
 	break;
       }
@@ -90,10 +92,14 @@ int hash(HashTable* table, char* id){
    where 2/3 is the load factor.
 */
 int insertItem(HashTable* table, char* id, Value* value){
+  if (!value){
+      return 0;
+  }
   if (table){
     if ((table->size) >= ((table->capacity)/2)){
       autoDouble(table);
     }
+    
     int key = hash(table, id);
     if (key == -1){
       return 0;
@@ -171,7 +177,7 @@ Value* deleteItem(HashTable* table, char* id){
 ConsCell* lookupEntry(HashTable* table, char* id){
   if (table){
     int key = hash(table, id);
-    if (key==-1 || (!(table->entries)[key].car)){
+    if (key==-1 || (!((table->entries)[key].car))){
       return NULL;
     }else{
       return (&((table->entries)[key]));
@@ -507,29 +513,11 @@ void printValue(Value* curValue){
 	printf(")");
 	break;
       case cellType:
-	if (curValue->cons->car->type == cellType){
-	  printf("(");
-	  printValue(curValue->cons->car);	
-	  Value* current = curValue->cons->cdr;
-	  while (current){
-	    printf(" ");
-	    if (current->type == cellType){
-	      printValue(current->cons->car);	  
-	      current = cdr(current);
-	      
-	    }else{
-	      break;
-	    }
-	  }
-	  printf(")");
-	}else{
-	  printValue(curValue->cons->car);
-	  printValue(curValue->cons->cdr);
-	}
+	printList(curValue);
 	break;
 	case closureType:
       case primitiveType:
-	printf("#<procedure>");
+	printf("#<procedure>\n");
 	break;
       case nullType:
 	printf("()");
@@ -540,9 +528,9 @@ void printValue(Value* curValue){
 }
 
 /*
-  This function accepts a Value that is the head of the list, and prints out the list.
+  This function accepts a Value that is the head of the parse tree, and prints out the list.
 */
-void printParseTree(Value* value){
+void printList(Value* value){
   if (value && value->type == cellType){
     printf("(");
     Value *curValue = value;
@@ -576,11 +564,7 @@ void printParseTree(Value* value){
 	  printf(")");
 	  break;
 	case cellType:
-	  printValue(curValue->cons->car);
-	  break;
-	case closureType:
-	case primitiveType:
-	  printf("#<procedure>");
+	  printList(curValue->cons->car);
 	  break;
 	default:
 	  break;

@@ -4,7 +4,19 @@
 #include <string.h>
 #include <assert.h>
 
-
+Value* evaluate(Value *expr, Environment *env){
+  if (!(expr && expr->type == cellType)){
+    return NULL;
+  }else if (car(expr) && (car(expr))->type == cellType){
+    return eval(expr,env);
+  }else{ 
+    printValue(eval(car(expr),env));
+    if (cdr(expr)){
+      return eval(cdr(expr),env);
+    }
+    return NULL;
+  }
+}
 // This function evaluates the parse tree given by expr within the given environment.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
@@ -15,13 +27,24 @@ Value* eval(Value *expr, Environment *env){
   switch (expr->type) 
     {
     case symbolType:
-      return envLookup(expr->symbolValue, env);
+      //printf("unknown identifier");
+      args = envLookup(expr->symbolValue, env);
+      if (args){
+	return args;
+      }else{
+	printf("syntax error: unknown identifier");
+	return NULL;
+      }
       break;
     case cellType:
       operator = car(expr);
       args = cdr(expr);
+      assert(args!=NULL);
       if (operator->type == symbolType){
-	if (strcmp(operator->symbolValue,"define")==0){
+	if (!args){
+	
+	  return envLookup(operator,env);
+	}else if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
 	}else if (strcmp(operator->symbolValue,"lambda")==0){
 	  /*eval lambda goes here*/
@@ -36,7 +59,8 @@ Value* eval(Value *expr, Environment *env){
 	  /*eval let goes here*/
 	  return evalLet(args, env);
 	}else if (envLookup(operator->symbolValue, env)){
-	  return envLookup(operator->symbolValue, env);
+	  printValue(envLookup(operator->symbolValue, env));
+	  return eval(operator,env);
 	}else{
 	  Value *evaledOperator = eval(operator, env);
 	  Value *evaledArgs = evalEach(args, env);
@@ -60,6 +84,7 @@ Value* apply(Value* function, Value* actualArgs){
     Environment *frame = createFrame(function->closureValue->parent);
     return eval(function->closureValue->body, frame);
   }else{
+    printf("Unknown identifier!");
     return NULL;
   }
 }
@@ -68,6 +93,7 @@ Value* apply(Value* function, Value* actualArgs){
 Value* envLookup(char* id, Environment* env){
   Value* returnValue = NULL;
   while (env){
+  
     assert(env->bindings->type == tableType);
     returnValue = lookup(env->bindings->tableValue, id);
     if (returnValue){
@@ -144,6 +170,7 @@ Value* evalDefine(Value* args, Environment* env){
     printf("syntax error: missing components here\n");
     return NULL;
   }
+  assert(args->type == cellType);
   
   //check if there are more than 2 values after define
   if (cdr(cdr(args)) != NULL){
@@ -161,14 +188,13 @@ Value* evalDefine(Value* args, Environment* env){
       return NULL;
     }
   }else{
-    assert(args->type == cellType);
     assert(env!=NULL);
     assert(env->bindings->type == tableType);
-    assert(args->cons->car->type == symbolType);
+    assert(car(args)->type == symbolType);
     if (cdr(args) && (cdr(args))->type == symbolType){
-      Value *value = eval(envLookup(cdr(args)->symbolValue, env), env);
+      Value *value = eval(envLookup((cdr(args))->symbolValue, env), env);
       if (value){
-	insertItem(env->bindings->tableValue, car(args)->symbolValue, value);
+	insertItem(env->bindings->tableValue, (car(args))->symbolValue, value);
       }else{
 	printf("syntax error: unknown identifier");
 	return NULL;
@@ -184,6 +210,7 @@ Value* evalDefine(Value* args, Environment* env){
 Value* evalEach(Value* args, Environment* env){
   Value *temp;
   while (args){
+    assert(args->type ==cellType);
     temp = args->cons->car;
     args->cons->car = eval(args->cons->car, env);
     // free memory?
@@ -214,17 +241,18 @@ Value* evalIf(Value* args, Environment* env){
  if (evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
-  if (count == 3) {
+   if (count == 3) {
+    
      return eval(car(cdr(cdr(args))), env);
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
-  else {
-
-    // else return eval(consequence)
-    return eval(car(cdr(args)), env); // return eval(alternate)
-  }
+ else {
+    
+   // else return eval(consequence)
+   return eval(car(cdr(args)), env); // return eval(alternate)
+ }
 }
 
 // not finished yet.
