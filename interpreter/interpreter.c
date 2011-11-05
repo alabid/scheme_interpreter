@@ -43,7 +43,7 @@ Value* eval(Value *expr, Environment *env){
       if (operator->type == symbolType){
 	if (!args){
 	
-	  return envLookup(operator,env);
+	  return envLookup(operator->symbolValue,env);
 	}else if (strcmp(operator->symbolValue,"define")==0){
 	  return evalDefine(args, env);
 	}else if (strcmp(operator->symbolValue,"lambda")==0){

@@ -1,0 +1,10 @@
+BUGS WE NEED TO FIX
+====================
+1. Newline issue:
+   On the tokenizer homework, the symbol-integer issue he was referring to
+   was because he did not terminate his test files with a newline.
+   We need to fix this enabling the tests to pass on EOF not just newline.
+2. (if () 2 3) evals to 3 but it should eval to 3 according to drracket.
+3. (45) should give an error but it instead gives 45.
+4. (if () 2 3) now produces some error because of an assertion:
+   args != ((void *) 0)
