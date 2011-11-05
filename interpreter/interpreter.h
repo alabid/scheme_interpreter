@@ -8,6 +8,7 @@ Value *envLookup(char *id, Environment *env);
 
 Value *evalDefine(Value *args, Environment *env);
 
+Value* evalQuote(Value* args);
 
 Value* evalLet(Value* args, Environment* env);
 
@@ -31,5 +32,5 @@ Value *loadFunction(Value *args);
 
 int typeCheck(Value* value);
 
-int isList(Value* value);
+void bind(char identifier, Value *function, Environment *env);
 

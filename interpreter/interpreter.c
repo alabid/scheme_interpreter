@@ -50,7 +50,8 @@ Value* eval(Value *expr, Environment *env){
 	    /*eval if goes here*/
 	  }else if (strcmp(operator->symbolValue,"quote")==0){
 	    /*eval quote goes here*/
-	    return args->cons->car;
+	    //printf("The length is %d\n",listLength(expr));
+	    return evalQuote(args);
 	  }else if (strcmp(operator->symbolValue,"let")==0){
 	    /*eval let goes here*/
 	    return evalLet(args, env);
@@ -71,6 +72,38 @@ Value* eval(Value *expr, Environment *env){
 	printf("\n");
 	
 	return evalEach(expr,env);
+      }else if (car(expr) && car(expr)->type == symbolType){
+	operator = car(expr);
+	Value *returnValue = envLookup(operator->symbolValue, env);
+	if (returnValue){
+	  return returnValue;
+	}else{
+	  if (strcmp(operator->symbolValue,"define")==0){
+	    printf("define: bad syntax in ");
+	    printValue(expr);
+	    printf("\n");
+	}else if (strcmp(operator->symbolValue,"lambda")==0){
+	     printf("lambda: bad syntax in ");
+	    printValue(expr);
+	    printf("\n");
+	  }else if (strcmp(operator->symbolValue,"if")==0){
+	    printf("if: bad syntax in ");
+	    printValue(expr);
+	    printf("\n");
+	  }else if (strcmp(operator->symbolValue,"quote")==0){
+	   printf("quote: bad syntax in ");
+	    printValue(expr);
+	    printf("\n");
+	  }else if (strcmp(operator->symbolValue,"let")==0){
+	    printf("let: bad syntax in ");
+	    printValue(expr);
+	    printf("\n");
+	  }else{
+	    printf("Unknown identifier %s.\n",car(expr)->symbolValue);
+	  }
+	  
+	  return NULL;
+	}
       }
     case closeType:
       return NULL;
@@ -80,6 +113,28 @@ Value* eval(Value *expr, Environment *env){
     }
 }
 
+Value* evalQuote(Value* args){
+  if (car(args) && (car(args))->type==closeType){
+    printf("quote: bad syntax (wrong number of parts) in: (quote)");
+    return NULL;
+    // since there is one argument list and one close parenthese, the listLength should return zero.
+  }else if (listLength(args)!=0){
+    //printf("The length is %d\n",listLength(args));
+    printf("quote: bad syntax (wrong number of parts) in: (quote ");
+    printValue(args);
+    printf("\n");
+    return NULL;
+  }else{
+    assert(car(cdr(args))!=NULL);
+    assert(car(cdr(args))->type==closeType);
+    Value *toRemove = cdr(args);
+    free(toRemove->cons->car);
+    free(toRemove->cons);
+    free(toRemove);
+    args->cons->cdr = NULL;
+    return args;
+  }
+}
 
 
 // We have not tested this function yet for part a.
@@ -314,6 +369,9 @@ Value *makePrimitiveValue(Value* (*f)(Value *)){
 Environment *createTopFrame(){
   Environment *frame = createFrame(NULL);
   // bind("+", makePrimitiveValue(add), frame);
+  // bind("+", makePrimitiveValue(subtract), frame);
+  // bind("+", makePrimitiveValue(multiply), frame);
+  // bind("+", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
   // bind("car", makePrimitiveValue(car), frame);
@@ -381,3 +439,6 @@ Value *loadFunction(Value *args){
 }
 
 
+void bind(char identifier, Value *function, Environment *env){
+  ;
+}
