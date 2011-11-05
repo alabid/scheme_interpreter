@@ -34,7 +34,7 @@ List* parse(List* tokens, int* depth){
       
       //printList(tempList->head);
       
-      if (stack->head && stack->head->cons->car->type==openType){
+      /*if (stack->head && stack->head->cons->car->type==openType){
 	Value* value = (Value *)malloc(sizeof(Value));
 	value->type = nullType;
 	cleanup(tempList->head);
@@ -42,7 +42,7 @@ List* parse(List* tokens, int* depth){
 	free(pop(stack));
 	push(tempList, value);
       }else{
-      
+      */
 	while (stack->head && stack->head->cons->car->type!=openType){
 	  push(tempList, pop(stack));
 	}
@@ -52,9 +52,9 @@ List* parse(List* tokens, int* depth){
 	  free(stack);
 	  return NULL;
 	} 
-	push(tempList,pop(stack)); // ignore the open parenthese.
+	// push(tempList,pop(stack)); // ignore the open parenthese.
 	
-      }
+	// }
       // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
       if (*depth == 0 && !(tokens->head)){
 	while (stack->head){

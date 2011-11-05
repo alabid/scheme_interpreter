@@ -14,7 +14,7 @@ Value* eval(Value *expr, Environment *env){
   if (!expr){
     return NULL;
   }
-  
+
   switch (expr->type) 
     {
     case symbolType:
@@ -28,6 +28,10 @@ Value* eval(Value *expr, Environment *env){
       }
       break;
     case cellType:
+      if (expr->cons->car->type == nullType) {
+	return expr->cons->car;
+      }
+
       operator = car(expr);
       args = cdr(expr);
 
@@ -322,9 +326,7 @@ Value* evalLet(Value* args, Environment* env){
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   int count = listLength(args);
-  printf("count: %d\n", count);
-  printToken(car(args));
-  printValue(args);
+
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
     return NULL;

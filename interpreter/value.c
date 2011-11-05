@@ -493,9 +493,7 @@ Value *cdr(Value *value) {
 
 // print value.
 void printValue(Value* curValue){
-  printf("about to printvalue\n");
   if (curValue){
-    printf("even deeper\n");
     switch (curValue->type)
       {
       case booleanType:
@@ -525,7 +523,6 @@ void printValue(Value* curValue){
 	printf(")");
 	break;
       case cellType:
-	printf("in print");
 	printList(curValue);
 	break;
 	case closureType:
@@ -545,7 +542,6 @@ void printValue(Value* curValue){
 */
 void printList(Value* value){
   if (value && value->type == cellType){
-    
     Value *curValue = value;
     while (curValue){
       switch (curValue->cons->car->type)

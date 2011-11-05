@@ -137,11 +137,17 @@ List *tokenize(char *expression) {
     // == GOING INTO THE SWITCH STATEMENT ==
     switch(expression[i]) { // these are for chars and strings
     case '(':
-      // === USE ME === OPEN PARENS
+      // === USE ME === OPEN PARENS	
       newValue = (Value *)malloc(sizeof(Value));
-      newValue->type = openType;
-      newValue->open = '(';
-      insertCell(list, newValue);
+      if (expression[i+1] == ')') {
+	i++;
+	newValue->type = nullType;
+	insertCell(list, newValue);
+      } else {
+	newValue->type = openType;
+	newValue->open = '(';
+	insertCell(list, newValue);
+      }
       break;
     case ')':
       // ======= USE ME ======== CLOSE PARENS
