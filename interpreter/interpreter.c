@@ -28,6 +28,7 @@ Value* eval(Value *expr, Environment *env){
       }
       break;
     case cellType:
+
       if (car(expr) && car(expr)->type==openType){
 	operator = car(cdr(expr));
 	args = cdr(cdr(expr));
@@ -53,17 +54,13 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"let")==0){
 	    /*eval let goes here*/
 	    return evalLet(args, env);
-	  }else if (envLookup(operator->symbolValue, env)){
-	    //printValue(envLookup(operator->symbolValue, env));
-	    return eval(operator,env);
 	  }
 	}else if (typeCheck(operator)==1){
 	  printf("A literal ");
 	  printValue(operator);
 	  printf(" cannot be a procedure.\n");
-	  return NULL;
+	  return NULL; 
 	}else{
-	 
 	  Value *evaledOperator = eval(operator, env);
 	  Value *evaledArgs = evalEach(args, env);
 	  return apply(evaledOperator, evaledArgs);
@@ -83,18 +80,7 @@ Value* eval(Value *expr, Environment *env){
     }
 }
 
-int isList(Value* value){
-  if (value){
-    if ((value->type==cellType && cdr(car(value))!=NULL) || value->type == nullType){
-      return 1;
-    }else{
-      return 0;
-    } 
 
-  }else{
-    return 0;
-  } 
-}
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs){
