@@ -31,3 +31,5 @@ Value *loadFunction(Value *args);
 
 int typeCheck(Value* value);
 
+int isList(Value* value);
+

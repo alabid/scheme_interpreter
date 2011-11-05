@@ -27,28 +27,42 @@ List* parse(List* tokens, int* depth){
 	push(stack, pop(tokens));
     }else if (tokens->head->cons->car->type == closeType){
       (*depth)--;
-      // ignore the close parent.
-      pop(tokens); 
+      // pop the close parent.
+      
       tempList->head = NULL;
-  
-      while (stack->head && stack->head->cons->car->type!=openType){
-	push(tempList, pop(stack));
-      }
-      if (!stack->head){
-	*depth = -1;
-	free(tempList);
-	free(stack);	
-	return NULL;
-      } 
-      pop(stack); // ignore the open parenthese.
-      if (!tempList->head){
+      push(tempList,pop(tokens));
+      
+      //printList(tempList->head);
+      
+      if (stack->head && stack->head->cons->car->type==openType){
 	Value* value = (Value *)malloc(sizeof(Value));
 	value->type = nullType;
+	cleanup(tempList->head);
+	tempList->head=NULL;
+	free(pop(stack));
 	push(tempList, value);
+      }else{
+      
+	while (stack->head && stack->head->cons->car->type!=openType){
+	  push(tempList, pop(stack));
+	}
+	if (!stack->head){
+	  *depth = -1;
+	  destroy(tempList);
+	  free(stack);
+	  return NULL;
+	} 
+	push(tempList,pop(stack)); // ignore the open parenthese.
+	
       }
       // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
       if (*depth == 0 && !(tokens->head)){
-	free(stack);
+	while (stack->head){
+	  push(tempList, pop(stack));
+	}
+	tokens->head=stack->head;
+	free(stack);	
+
 	return tempList;
       }
       push(stack, tempList->head);
@@ -60,12 +74,12 @@ List* parse(List* tokens, int* depth){
   tokens->head = stack->head;
   free(tempList);
   free(stack);
-  
+  reverse(tokens);
   return tokens;
 }
 
 /*
-  This function accepts the first list in the reverse order, and the second list in order. 
+  This function accepts the first list in order, and the second list in order. 
   It modifies the lists in place and returns list2 as the final list.
 */
 List* append(List* list1, List* list2){
@@ -75,6 +89,7 @@ List* append(List* list1, List* list2){
   if (!list2){
     list2 = initializeList();
   }
+  reverse(list1);
   while (list1->head){
     push(list2, pop(list1));
   }

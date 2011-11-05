@@ -3,7 +3,7 @@
 */
 
 enum VALUE_TYPE{
-  nullType, tableType, cellType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
+  nullType, tableType, cellType, listType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
 

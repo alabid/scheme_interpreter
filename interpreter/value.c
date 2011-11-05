@@ -532,7 +532,7 @@ void printValue(Value* curValue){
 */
 void printList(Value* value){
   if (value && value->type == cellType){
-    printf("(");
+    
     Value *curValue = value;
     while (curValue){
       switch (curValue->cons->car->type)
@@ -566,15 +566,17 @@ void printList(Value* value){
 	case cellType:
 	  printList(curValue->cons->car);
 	  break;
+	case nullType:
+	  printf("()");
+	  break;
 	default:
 	  break;
 	}
-      if (curValue->cons->cdr){
+      if (curValue->cons->cdr && car(cdr(curValue))->type!=closeType && car(curValue)->type!=openType){
 	printf(" ");
       } 
       curValue = curValue->cons->cdr;
     } 
-    printf(")");
   }
   else printf("This is not a value\n");
 }
@@ -582,6 +584,9 @@ void printList(Value* value){
 int listLength(Value *value) {
   if (!value) 
     return 0;
-  else
+  else if (value->cons->car && (value->cons->car->type==closeType)){
+    return -1;
+  }
+  else 
     return 1 + listLength(value->cons->cdr);
 }
