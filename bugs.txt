@@ -4,7 +4,16 @@ BUGS WE NEED TO FIX
    On the tokenizer homework, the symbol-integer issue he was referring to
    was because he did not terminate his test files with a newline.
    We need to fix this enabling the tests to pass on EOF not just newline.
-2. (if () 2 3) evals to 3 but it should eval to 3 according to drracket.
-3. (45) should give an error but it instead gives 45.
+2. (if () 2 3) evals to 3 but it should eval to 3 according to
+drracket. 
+	  -- I think it is now fixed.
+3. (45) should give an error but it instead gives 45. 
+     -- I think now it prints an error message, but still prints out
+     weird parens.
 4. (if () 2 3) now produces some error because of an assertion:
    args != ((void *) 0)
+    -- Maybe not.
+
+--Because we probably want to interact with the users later, we should
+  allow users to enter a number without parens. Unless we do something
+  fancy, we probably need parens back and I changed them back.
