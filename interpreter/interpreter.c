@@ -31,9 +31,9 @@ Value* eval(Value *expr, Environment *env){
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
       }
-
-      operator = car(expr);
-      args = cdr(expr);
+      if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
+	operator = car(expr);
+	args = cdr(expr);
 
       if (!operator){
 	printf("syntax error, missing components here");
@@ -54,12 +54,13 @@ Value* eval(Value *expr, Environment *env){
 	 }else if (strcmp(operator->symbolValue,"quote")==0){
 	   /*eval quote goes here*/
 	   //printf("The length is %d\n",listLength(expr));
-	   return evalQuote(args);
+	  printValue(evalQuote(args));
+	  return evalQuote(args);
 	 }else if (strcmp(operator->symbolValue,"let")==0){
 	   /*eval let goes here*/
 	   return evalLet(args, env);
 	 }
-      if (typeCheck(operator)==1){
+      } else if (typeCheck(operator)==1){
 	printf("A literal ");
 	printValue(operator);
 	printf(" cannot be a procedure.\n");
@@ -69,11 +70,11 @@ Value* eval(Value *expr, Environment *env){
 	Value *evaledArgs = evalEach(args, env);
 	return apply(evaledOperator, evaledArgs);
       }
-    }else if (typeCheck(expr->cons->car)==1){
+      } else if (typeCheck(getFirst(expr))==1){
 	printValue(expr);
 	printf("\n");
 	return evalEach(expr,env);
-    }else if (expr->cons->car && expr->cons->car->type == symbolType){
+	}else if (getFirst(expr) && getFirst(expr)->type == symbolType){
 	operator = car(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
 	if (returnValue){
@@ -100,7 +101,7 @@ Value* eval(Value *expr, Environment *env){
 	    printValue(expr);
 	    printf("\n");
 	  }else{
-	    printf("Unknown identifier %s.\n",car(expr)->symbolValue);
+	    printf("Unknown identifier %s.\n",getFirst(expr)->symbolValue);
 	  }
 	  
 	  return NULL;
@@ -109,23 +110,24 @@ Value* eval(Value *expr, Environment *env){
     case closeType:
       return NULL;
     default:
-      return expr;
-      
+      return expr;      
     }
 }
 
 Value* evalQuote(Value* args){
-  if (car(args) && (car(args))->type==closeType){
+  
+  if (car(args) && car(args)->type==closeType){
     printf("quote: bad syntax (wrong number of parts) in: (quote)");
     return NULL;
     // since there is one argument list and one close parenthese, the listLength should return zero.
-  }else if (listLength(args)!=0){
+  }else if (listLength(args) > 1){
     //printf("The length is %d\n",listLength(args));
     printf("quote: bad syntax (wrong number of parts) in: (quote ");
-    printValue(args);
+    printArgs(args, 1);
     printf("\n");
     return NULL;
-  }else{
+  }/*
+else{
     // assert(car(cdr(args))!=NULL);
     // assert(car(cdr(args))->type==closeType);
     Value *toRemove = cdr(args);
@@ -134,6 +136,9 @@ Value* evalQuote(Value* args){
     free(toRemove);
     args->cons->cdr = NULL;
     return args;
+    }*/
+  else {
+    return car(args);
   }
 }
 
@@ -325,7 +330,12 @@ Value* evalLet(Value* args, Environment* env){
 }
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
+  // args = evalEach(args,env);
+  
   int count = listLength(args);
+
+  // printValue(getTail(args));
+  // printValue(getTail(getTail(args)));
 
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
@@ -337,8 +347,10 @@ Value* evalIf(Value* args, Environment* env){
 
   Value *evalTest = eval(car(args), env);
   // Value *tempArgs;
+
+  // printf("result: %d", evalTest->type);
  
- if (evalTest->type == booleanType && !(evalTest->boolValue)) {
+ if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
    if (count == 3) {

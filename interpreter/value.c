@@ -45,6 +45,53 @@ void printToken(Value* curValue){
   } else printf("I'm nothing!\n");
 }
 
+void printArgs(Value *curValue, int withQuotes) {
+  if (curValue){
+    switch (curValue->type)
+      {
+      case booleanType:
+	if(curValue->boolValue){
+	  printf("#t");
+	}
+	else{
+	  printf("#f");
+	}
+	break;
+      case integerType:
+	printf("%d",curValue->intValue);
+	break;
+      case floatType:
+	printf("%lf",curValue->dblValue);
+	break;
+      case stringType:
+	printf("%s",curValue->stringValue);
+	break;
+      case symbolType:
+	printf("%s",curValue->symbolValue);
+	break;
+      case openType:
+	if (withQuotes)
+	  printf("(");
+	break;
+      case closeType:
+	if (withQuotes)
+	  printf(")");
+	break;
+      case cellType:
+	printList(curValue);
+	break;
+	case closureType:
+      case primitiveType:
+	printf("#<procedure>\n");
+	break;
+      case nullType:
+	printf("()");
+      default:
+	break;
+      }
+  } 
+}
+
 /* 
    This function initializes one hash table with size = capacity
    If capacity is less than or equal to zero, NULL is returned.
@@ -493,48 +540,7 @@ Value *cdr(Value *value) {
 
 // print value.
 void printValue(Value* curValue){
-  if (curValue){
-    switch (curValue->type)
-      {
-      case booleanType:
-	if(curValue->boolValue){
-	  printf("#t");
-	}
-	else{
-	  printf("#f");
-	}
-	break;
-      case integerType:
-	printf("%d",curValue->intValue);
-	break;
-      case floatType:
-	printf("%lf",curValue->dblValue);
-	break;
-      case stringType:
-	printf("%s",curValue->stringValue);
-	break;
-      case symbolType:
-	printf("%s",curValue->symbolValue);
-	break;
-      case openType:
-	printf("(");
-	break;
-      case closeType:
-	printf(")");
-	break;
-      case cellType:
-	printList(curValue);
-	break;
-	case closureType:
-      case primitiveType:
-	printf("#<procedure>\n");
-	break;
-      case nullType:
-	printf("()");
-      default:
-	break;
-      }
-  } 
+  printArgs(curValue, 1);
 }
 
 /*
@@ -592,13 +598,32 @@ void printList(Value* value){
   else printf("This is not a value\n");
 }
 
+Value *getFirst(Value *value) {
+  if (!value) return NULL;
+  else if (value->type == cellType) {
+    return value->cons->car;
+  } else return NULL;
+}
+
+Value *getTail(Value *value) {
+  if (!value) return NULL;
+  else if (value->type == cellType) {
+    return value->cons->cdr;
+  } else return NULL;
+}
+
 int listLength(Value *value) {
   return properListLength(value) - 2;
 }
 
 int properListLength(Value *value) {
+  
   if (!value) 
     return 0;
-  else 
+  else if (value->cons->car->type == cellType) {
+    return properListLength(value->cons->cdr);
+  }
+  else {
     return 1 + properListLength(value->cons->cdr);
+  }
 }

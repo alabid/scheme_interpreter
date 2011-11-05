@@ -177,3 +177,7 @@ Value *cdrFree(Value *value, int freeCar);
 int listLength(Value *value);
 
 int properListLength(Value *value);
+
+Value *getFirst(Value *value);
+
+Value *getTail(Value *value);
