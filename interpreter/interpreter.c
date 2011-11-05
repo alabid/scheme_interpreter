@@ -28,51 +28,48 @@ Value* eval(Value *expr, Environment *env){
       }
       break;
     case cellType:
+      operator = car(expr);
+      args = cdr(expr);
 
-      if (car(expr) && car(expr)->type==openType){
-	operator = car(cdr(expr));
-	args = cdr(cdr(expr));
-	if (!operator){
-	  printf("syntax error, missing components here");
-	  return NULL;
-	}
-	if (operator->type == symbolType){
-	  if (args  == NULL){
-	    return eval(operator,env);
-	  }else if (strcmp(operator->symbolValue,"define")==0){
-	    return evalDefine(args, env);
-	  }else if (strcmp(operator->symbolValue,"lambda")==0){
+      if (!operator){
+	printf("syntax error, missing components here");
+	return NULL;
+      }
+  
+      if (operator->type == symbolType){
+	if (args  == NULL){
+	   return eval(operator,env);
+	}else if (strcmp(operator->symbolValue,"define")==0){
+	   return evalDefine(args, env);
+	 }else if (strcmp(operator->symbolValue,"lambda")==0){
 	    /*eval lambda goes here*/
-	    return evalLambda(args, env);
-	  }else if (strcmp(operator->symbolValue,"if")==0){
-	    
-	    return evalIf(args, env);
-	    /*eval if goes here*/
-	  }else if (strcmp(operator->symbolValue,"quote")==0){
-	    /*eval quote goes here*/
-	    //printf("The length is %d\n",listLength(expr));
-	    return evalQuote(args);
-	  }else if (strcmp(operator->symbolValue,"let")==0){
-	    /*eval let goes here*/
-	    return evalLet(args, env);
-	  }
-	}else if (typeCheck(operator)==1){
-	  printf("A literal ");
-	  printValue(operator);
-	  printf(" cannot be a procedure.\n");
-	  return NULL; 
-	}else{
-	  Value *evaledOperator = eval(operator, env);
-	  Value *evaledArgs = evalEach(args, env);
-	  return apply(evaledOperator, evaledArgs);
-	  
-	}
-      }else if (typeCheck(car(expr))==1){
+	   return evalLambda(args, env);
+	}else if (strcmp(operator->symbolValue,"if")== 0){
+	   return evalIf(args, env);
+	   /*eval if goes here*/
+	 }else if (strcmp(operator->symbolValue,"quote")==0){
+	   /*eval quote goes here*/
+	   //printf("The length is %d\n",listLength(expr));
+	   return evalQuote(args);
+	 }else if (strcmp(operator->symbolValue,"let")==0){
+	   /*eval let goes here*/
+	   return evalLet(args, env);
+	 }
+      if (typeCheck(operator)==1){
+	printf("A literal ");
+	printValue(operator);
+	printf(" cannot be a procedure.\n");
+	return NULL; 
+      }else{
+	Value *evaledOperator = eval(operator, env);
+	Value *evaledArgs = evalEach(args, env);
+	return apply(evaledOperator, evaledArgs);
+      }
+    }else if (typeCheck(expr->cons->car)==1){
 	printValue(expr);
 	printf("\n");
-	
 	return evalEach(expr,env);
-      }else if (car(expr) && car(expr)->type == symbolType){
+    }else if (expr->cons->car && expr->cons->car->type == symbolType){
 	operator = car(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
 	if (returnValue){
@@ -125,8 +122,8 @@ Value* evalQuote(Value* args){
     printf("\n");
     return NULL;
   }else{
-    assert(car(cdr(args))!=NULL);
-    assert(car(cdr(args))->type==closeType);
+    // assert(car(cdr(args))!=NULL);
+    // assert(car(cdr(args))->type==closeType);
     Value *toRemove = cdr(args);
     free(toRemove->cons->car);
     free(toRemove->cons);
@@ -233,6 +230,7 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
+  printf("I'm in the evalDefine\n");
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -240,7 +238,7 @@ Value* evalDefine(Value* args, Environment* env){
   assert(args->type == cellType);
   
   //check if there are more than 2 values after define
-  if (cdr(cdr(cdr(args))) != NULL){
+  if (listLength(args) > 2){
     printf("syntax error: multiple expressions after identifier\n");
     return NULL;
   }
@@ -257,8 +255,8 @@ Value* evalDefine(Value* args, Environment* env){
   }else{
     assert(env!=NULL);
     assert(env->bindings->type == tableType);
-    assert(car(args)->type == symbolType);
-    if (cdr(args) && (cdr(args))->type == symbolType){
+    // assert(car(args)->type == symbolType);
+    if (args->cons->cdr && car(cdr(args))->type == symbolType){
       Value *value = eval(envLookup((cdr(args))->symbolValue, env), env);
       if (value){
 	insertItem(env->bindings->tableValue, (car(args))->symbolValue, value);
@@ -324,7 +322,9 @@ Value* evalLet(Value* args, Environment* env){
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   int count = listLength(args);
-  
+  printf("count: %d\n", count);
+  printToken(car(args));
+  printValue(args);
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
     return NULL;

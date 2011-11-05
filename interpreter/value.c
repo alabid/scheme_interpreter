@@ -462,9 +462,24 @@ Value *car(Value *value) {
     return NULL;
   }
   if (value->type == cellType){ 
-    return value->cons->car;
+    return value->cons->cdr->cons->car;
   }else{
     return NULL;
+  }
+}
+
+Value *cdrFree(Value *value, int freeCar) {
+  // Value *newValue = (Value *) malloc(sizeof(Value));
+  // we might need to create a new value
+
+  // Value *tempValue;
+
+  if (value->type == cellType && 
+      value->cons->cdr->type){
+    if (freeCar)
+      free(value->cons->cdr->cons->car);
+    value->cons->cdr = value->cons->cdr->cons->cdr;
+    return value;
   }
 }
 /*
@@ -473,17 +488,14 @@ Value *car(Value *value) {
 Value *cdr(Value *value) {
   if (!value){
     return NULL;
-  }
-  if (value->type == cellType){
-    return value->cons->cdr;
-  }else{ 
-    return NULL;
-  }
+  } else return cdrFree(value, 0);
 }
 
 // print value.
 void printValue(Value* curValue){
+  printf("about to printvalue\n");
   if (curValue){
+    printf("even deeper\n");
     switch (curValue->type)
       {
       case booleanType:
@@ -513,6 +525,7 @@ void printValue(Value* curValue){
 	printf(")");
 	break;
       case cellType:
+	printf("in print");
 	printList(curValue);
 	break;
 	case closureType:
@@ -572,9 +585,11 @@ void printList(Value* value){
 	default:
 	  break;
 	}
-      if (curValue->cons->cdr && car(cdr(curValue))->type!=closeType && car(curValue)->type!=openType){
+      if (curValue->cons->cdr &&
+	  curValue->cons->cdr->cons->car->type !=closeType &&
+	  curValue->cons->car->type!=openType){
 	printf(" ");
-      } 
+	 } 
       curValue = curValue->cons->cdr;
     } 
   }
@@ -582,11 +597,12 @@ void printList(Value* value){
 }
 
 int listLength(Value *value) {
+  return properListLength(value) - 2;
+}
+
+int properListLength(Value *value) {
   if (!value) 
     return 0;
-  else if (value->cons->car && (value->cons->car->type==closeType)){
-    return -1;
-  }
   else 
-    return 1 + listLength(value->cons->cdr);
+    return 1 + properListLength(value->cons->cdr);
 }
