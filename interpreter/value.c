@@ -78,7 +78,7 @@ void printArgs(Value *curValue, int withQuotes) {
 	  printf(")");
 	break;
       case cellType:
-	printList(curValue, withQuotes);
+	printList(curValue);
 	break;
 	case closureType:
       case primitiveType:
@@ -550,7 +550,7 @@ void printValue(Value* curValue){
 /*
   This function accepts a Value that is the head of the parse tree, and prints out the list.
 */
-void printList(Value* value, int withQuotes){
+void printList(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
@@ -577,15 +577,13 @@ void printList(Value* value, int withQuotes){
 	  printf("%s",curValue->cons->car->symbolValue);
 	  break;
 	case openType:
-	  if (withQuotes)
 	    printf("(");
 	  break;
 	case closeType:
-	  if (withQuotes)
 	    printf(")");
 	  break;
 	case cellType:
-	  printList(curValue->cons->car, withQuotes);
+	  printList(curValue->cons->car);
 	  break;
 	case nullType:
 	  printf("()");

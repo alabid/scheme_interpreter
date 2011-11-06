@@ -170,7 +170,7 @@ List* getValues(HashTable* table);
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
-void printList(Value* value, int withQuotes);
+void printList(Value* value);
 
 Value *cdrFree(Value *value, int freeCar);
 

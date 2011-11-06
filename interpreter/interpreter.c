@@ -4,12 +4,19 @@
 #include <string.h>
 #include <assert.h>
 
+/*
+Memory to free:
+follow execution starting from main.
+Have a table at the side where you keep track of memory allocated on the
+heap and then try to deal with each of them.
+One by one.
+*/
 
 // This function evaluates the parse tree given by expr within the given environment.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  //printValue(expr);
+
   //printf("\n");
 
   if (!expr){
@@ -40,7 +47,7 @@ Value* eval(Value *expr, Environment *env){
 	printf("syntax error, missing components here");
 	return NULL;
       }
-  
+
       if (operator->type == symbolType){
 	if (args  == NULL){
 	   return eval(operator,env);
@@ -115,7 +122,6 @@ Value* eval(Value *expr, Environment *env){
 }
 
 Value* evalQuote(Value* args){
-  
   if (car(args) && car(args)->type==closeType){
     printf("quote: bad syntax (wrong number of parts) in: (quote)");
     return NULL;
@@ -138,7 +144,11 @@ else{
     return args;
     }*/
   else {
-    return car(args);
+    if (car(args)->type == openType) {
+      return cdr(args);
+    }
+    else
+      return car(args);
   }
 }
 
@@ -239,7 +249,6 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
-  printf("I'm in the evalDefine\n");
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -331,7 +340,6 @@ Value* evalLet(Value* args, Environment* env){
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
-  
   int count = listLength(args);
 
   // printValue(getTail(args));
@@ -344,24 +352,20 @@ Value* evalIf(Value* args, Environment* env){
       printf("syntax error: too many arguments in if statement\n");
       return NULL;
   }
+  Value *evalTest;
 
-  Value *evalTest = eval(car(args), env);
+  evalTest = eval(car(args), env);
   // Value *tempArgs;
-
-  // printf("result: %d", evalTest->type);
- 
  if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
    if (count == 3) {
-    
      return eval(car(cdr(cdr(args))), env);
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
  else {
-    
    // else return eval(consequence)
    return eval(car(cdr(args)), env); // return eval(alternate)
  }
@@ -449,6 +453,39 @@ Value *add(Value *args){
  
 // not finished yet.
 Value *loadFunction(Value *args){
+  // read in the lines of a file one at a time
+  // eval each line line by line
+  char *expression = (char *)malloc(256 * sizeof(char));
+  int count = listLength(args);
+
+  if (count > 1) {
+    printf("load: load one file at a time\n");
+    free(expression);
+    cleanup(args);
+    return NULL;
+  } else if (count < 1) {
+    printf("load: you must enter the name of a file to load\n");
+    free(expression);
+    cleanup(args);
+    return NULL;
+  }
+  FILE *fp;
+  if (car(args)->type == stringType) {
+    fp = fopen(car(args)->stringValue, "r");
+
+    while (fgets(expression, 256, fp)) {
+      fputs(expression, stdin);
+    } 
+    free(expression);
+    fclose(fp);
+    cleanup(args);
+  }  else {
+    free(expression);
+    cleanup(args);
+    return NULL;
+  }
+  free(expression);
+  cleanup(args);
   return NULL;
 }
 
