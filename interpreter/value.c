@@ -609,11 +609,17 @@ void printList(Value* value){
 	  printf("%s",curValue->cons->car->symbolValue);
 	  break;
 	case openType:
+<<<<<<< HEAD
 	  //if (withQuotes)
 	    printf("(");
 	  break;
 	case closeType:
 	  //if (withQuotes)
+=======
+	    printf("(");
+	  break;
+	case closeType:
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
 	    printf(")");
 	  break;
 	case cellType:

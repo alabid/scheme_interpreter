@@ -13,6 +13,14 @@ drracket.
 4. (if () 2 3) now produces some error because of an assertion:
    args != ((void *) 0)
     -- Maybe not.
+5. (let x 3) does not produce anything.
+
+6. (define x 3) produces "A literal 3 cannot be a procedure."
+
+7. It doesn't eval symbols appropriately. 
+   For example,
+   x
+    gives seg. fault.
 
 --Because we probably want to interact with the users later, we should
   allow users to enter a number without parens. Unless we do something

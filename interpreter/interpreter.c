@@ -4,12 +4,19 @@
 #include <string.h>
 #include <assert.h>
 
+/*
+Memory to free:
+follow execution starting from main.
+Have a table at the side where you keep track of memory allocated on the
+heap and then try to deal with each of them.
+One by one.
+*/
 
 // This function evaluates the parse tree given by expr within the given environment.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  //printValue(expr);
+
   //printf("\n");
 
   if (!expr){
@@ -34,6 +41,7 @@ Value* eval(Value *expr, Environment *env){
       }
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = car(expr);
+<<<<<<< HEAD
 	args = getTail(getTail(expr));
 	
 	if (!operator){
@@ -47,6 +55,21 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"define")==0){
 	    return evalDefine(args, env);
 	  }else if (strcmp(operator->symbolValue,"lambda")==0){
+=======
+	args = cdr(expr);
+
+      if (!operator){
+	printf("syntax error, missing components here");
+	return NULL;
+      }
+
+      if (operator->type == symbolType){
+	if (args  == NULL){
+	   return eval(operator,env);
+	}else if (strcmp(operator->symbolValue,"define")==0){
+	   return evalDefine(args, env);
+	 }else if (strcmp(operator->symbolValue,"lambda")==0){
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
 	    /*eval lambda goes here*/
 	    return evalLambda(args, env);
 	  }else if (strcmp(operator->symbolValue,"if")== 0){
@@ -132,7 +155,11 @@ Value* eval(Value *expr, Environment *env){
   Quote function works well.
 */
 Value* evalQuote(Value* args){
+<<<<<<< HEAD
   if (getFirst(args) && getFirst(args)->type==closeType){
+=======
+  if (car(args) && car(args)->type==closeType){
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
     printf("quote: bad syntax (wrong number of parts) in: (quote)");
     return NULL;
     // since there is one argument list and one close parenthese, the listLength should return zero.
@@ -151,6 +178,16 @@ Value* evalQuote(Value* args){
     free(toRemove);
     args->cons->cdr = NULL;
     return args;
+<<<<<<< HEAD
+=======
+    }*/
+  else {
+    if (car(args)->type == openType) {
+      return cdr(args);
+    }
+    else
+      return car(args);
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   }
 }
 
@@ -251,7 +288,10 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
+<<<<<<< HEAD
   //printf("I'm in the evalDefine\n");
+=======
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -376,7 +416,6 @@ Value* evalLet(Value* args, Environment* env){
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
-  
   int count = listLength(args);
   printf("count = %d \n",count);
   // printValue(getTail(args));
@@ -389,24 +428,29 @@ Value* evalIf(Value* args, Environment* env){
       printf("syntax error: too many arguments in if statement\n");
       return NULL;
   }
+  Value *evalTest;
 
+<<<<<<< HEAD
   Value *evalTest = eval(getFirst(args), env);
+=======
+  evalTest = eval(car(args), env);
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   // Value *tempArgs;
-
-  // printf("result: %d", evalTest->type);
- 
  if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
    if (count == 3) {
+<<<<<<< HEAD
     
      return eval(getFirst(getTail(getTail(args))), env);
+=======
+     return eval(car(cdr(cdr(args))), env);
+>>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
  else {
-    
    // else return eval(consequence)
    return eval(getFirst(getTail(args)), env); // return eval(alternate)
  }
@@ -499,6 +543,39 @@ Value *add(Value *args){
  
 // not finished yet.
 Value *loadFunction(Value *args){
+  // read in the lines of a file one at a time
+  // eval each line line by line
+  char *expression = (char *)malloc(256 * sizeof(char));
+  int count = listLength(args);
+
+  if (count > 1) {
+    printf("load: load one file at a time\n");
+    free(expression);
+    cleanup(args);
+    return NULL;
+  } else if (count < 1) {
+    printf("load: you must enter the name of a file to load\n");
+    free(expression);
+    cleanup(args);
+    return NULL;
+  }
+  FILE *fp;
+  if (car(args)->type == stringType) {
+    fp = fopen(car(args)->stringValue, "r");
+
+    while (fgets(expression, 256, fp)) {
+      fputs(expression, stdin);
+    } 
+    free(expression);
+    fclose(fp);
+    cleanup(args);
+  }  else {
+    free(expression);
+    cleanup(args);
+    return NULL;
+  }
+  free(expression);
+  cleanup(args);
   return NULL;
 }
 
