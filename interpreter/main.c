@@ -9,14 +9,8 @@ int main(int argc, char *argv[]) {
   Environment *topEnv = createTopFrame();
   int depth = 0;
   char *expression = (char *)malloc(256 * sizeof(char));
-<<<<<<< HEAD
   Value* temp;
   while (fgets(expression, 256, stdin)) {
-=======
-
-  
-while (fgets(expression, 256, stdin)) {
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
     
      tokens = append(leftoverTokens, tokenize(expression)); 
      

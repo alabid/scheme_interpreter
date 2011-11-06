@@ -11,12 +11,15 @@ Have a table at the side where you keep track of memory allocated on the
 heap and then try to deal with each of them.
 One by one.
 */
+// I have made quote, if, define, literal work well with our changes.
+// I also implement freeValue() function which can help determine which parts of memory need to be freed.
 
 // This function evaluates the parse tree given by expr within the given environment.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-
+  //printf("Here is expression:  ");
+  //printValue(expr);
   //printf("\n");
 
   if (!expr){
@@ -39,9 +42,12 @@ Value* eval(Value *expr, Environment *env){
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
       }
+      //printf("Here is expression:  ");
+      //printValue(getFirst(expr));
+      //printf("\n");
+      
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = car(expr);
-<<<<<<< HEAD
 	args = getTail(getTail(expr));
 	
 	if (!operator){
@@ -49,39 +55,25 @@ Value* eval(Value *expr, Environment *env){
 	  return NULL;
 	}
 	
-	if (operator->type == symbolType){
-	  if (args  == NULL){
+	 if (operator->type == symbolType){
+	   if (args  == NULL){
 	    return eval(operator,env);
-	  }else if (strcmp(operator->symbolValue,"define")==0){
-	    return evalDefine(args, env);
-	  }else if (strcmp(operator->symbolValue,"lambda")==0){
-=======
-	args = cdr(expr);
-
-      if (!operator){
-	printf("syntax error, missing components here");
-	return NULL;
-      }
-
-      if (operator->type == symbolType){
-	if (args  == NULL){
-	   return eval(operator,env);
-	}else if (strcmp(operator->symbolValue,"define")==0){
-	   return evalDefine(args, env);
-	 }else if (strcmp(operator->symbolValue,"lambda")==0){
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
-	    /*eval lambda goes here*/
-	    return evalLambda(args, env);
-	  }else if (strcmp(operator->symbolValue,"if")== 0){
-	    return evalIf(args, env);
-	    /*eval if goes here*/
-	  }else if (strcmp(operator->symbolValue,"quote")==0){
-	    /*eval quote goes here*/
-	    return evalQuote(args);
-	  }else if (strcmp(operator->symbolValue,"let")==0){
-	    /*eval let goes here*/
-	    return evalLet(args, env);
-	  }
+	   }else if (strcmp(operator->symbolValue,"define")==0){
+	     return evalDefine(args, env);
+	   }else if (strcmp(operator->symbolValue,"lambda")==0){
+	     /*eval lambda goes here*/
+	     return evalLambda(args, env);
+	   }else if (strcmp(operator->symbolValue,"if")== 0){
+	    
+	     return evalIf(args, env);
+	     /*eval if goes here*/
+	   }else if (strcmp(operator->symbolValue,"quote")==0){
+	     /*eval quote goes here*/
+	     return evalQuote(args);
+	   }else if (strcmp(operator->symbolValue,"let")==0){
+	     /*eval let goes here*/
+	     return evalLet(args, env);
+	   }
 	}else if (typeCheck(operator)==1){
 	  printf("A literal ");
 	  printValue(operator);
@@ -92,43 +84,47 @@ Value* eval(Value *expr, Environment *env){
 	  Value *evaledArgs = evalEach(args, env);
 	  return apply(evaledOperator, evaledArgs);
 	}
-      } else if (typeCheck(getFirst(expr))==1){
+       } else if (typeCheck(getFirst(expr))==1){
 	//printValue(expr);
 	//printf("\n");
 	return evalEach(expr,env);
-      }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
-	operator = getFirst(expr);
-	Value *returnValue = envLookup(operator->symbolValue, env);
-	if (returnValue){
-	  return returnValue;
-	}else{
-	  if (strcmp(operator->symbolValue,"define")==0){
-	    printf("define: bad syntax in ");
-	    printValue(expr);
-	    printf("\n");
-	}else if (strcmp(operator->symbolValue,"lambda")==0){
-	    printf("lambda: bad syntax in ");
-	    printValue(expr);
-	    printf("\n");
-	  }else if (strcmp(operator->symbolValue,"if")==0){
-	    printf("if: bad syntax in ");
-	    printValue(expr);
-	    printf("\n");
-	  }else if (strcmp(operator->symbolValue,"quote")==0){
-	    printf("quote: bad syntax in ");
-	    printValue(expr);
-	    printf("\n");
-	  }else if (strcmp(operator->symbolValue,"let")==0){
-	    printf("let: bad syntax in ");
-	    printValue(expr);
-	    printf("\n");
-	  }else{
+      }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
+	  return eval(getFirst(expr),env);
+       }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
+	 operator = getFirst(expr);
+	 Value *returnValue = envLookup(operator->symbolValue, env);
+	 if (returnValue){
+	   
+	   return returnValue;
+	 }else{
+	   if (strcmp(operator->symbolValue,"define")==0){
+	     printf("define: bad syntax in ");
+	     printValue(expr);
+	     printf("\n");
+	   }else if (strcmp(operator->symbolValue,"lambda")==0){
+	     printf("lambda: bad syntax in ");
+	     printValue(expr);
+	     printf("\n");
+	   }else if (strcmp(operator->symbolValue,"if")==0){
+	     printf("if: bad syntax in ");
+	     printValue(expr);
+	     printf("\n");
+	   }else if (strcmp(operator->symbolValue,"quote")==0){
+	     printf("quote: bad syntax in ");
+	     printValue(expr);
+	     printf("\n");
+	   }else if (strcmp(operator->symbolValue,"let")==0){
+	     printf("let: bad syntax in ");
+	     printValue(expr);
+	     printf("\n");
+	   }else{
 	    printf("Unknown identifier %s.\n",getFirst(expr)->symbolValue);
-	  }
+	   }
 	  
-	  return NULL;
-	}
-      }
+	   return NULL;
+	 }
+       }
+       
     case closeType:
       //printValue(expr);
       //printf("\n");
@@ -155,11 +151,7 @@ Value* eval(Value *expr, Environment *env){
   Quote function works well.
 */
 Value* evalQuote(Value* args){
-<<<<<<< HEAD
   if (getFirst(args) && getFirst(args)->type==closeType){
-=======
-  if (car(args) && car(args)->type==closeType){
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
     printf("quote: bad syntax (wrong number of parts) in: (quote)");
     return NULL;
     // since there is one argument list and one close parenthese, the listLength should return zero.
@@ -178,16 +170,6 @@ Value* evalQuote(Value* args){
     free(toRemove);
     args->cons->cdr = NULL;
     return args;
-<<<<<<< HEAD
-=======
-    }*/
-  else {
-    if (car(args)->type == openType) {
-      return cdr(args);
-    }
-    else
-      return car(args);
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   }
 }
 
@@ -288,10 +270,7 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
-<<<<<<< HEAD
   //printf("I'm in the evalDefine\n");
-=======
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -338,8 +317,10 @@ Value* evalDefine(Value* args, Environment* env){
       assert(getFirst(args)->type==symbolType);
       assert(env->bindings->tableValue!=NULL);
       assert(getFirst(args)->symbolValue);
-      
-      insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getTail(args), env));
+      //printf("printing out value");
+      //printValue(eval(getTail(args),env));
+      //printf("\n");
+      insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getFirst(getTail(args)), env));
       
     }
     return NULL;
@@ -378,7 +359,7 @@ Value* evalEach(Value* args, Environment* env){
       temp = deepCopy(eval(args->cons->car, env));
     
       if (temp==NULL){ 
-	//   printf("NOPE");
+	//printf("NOPE");
 	cleanup(tail);
 	args->cons->cdr = NULL;
 	freeValue(args->cons->car);
@@ -416,11 +397,12 @@ Value* evalLet(Value* args, Environment* env){
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
+  
   int count = listLength(args);
-  printf("count = %d \n",count);
+  //printf("count = %d \n",count);
   // printValue(getTail(args));
   // printValue(getTail(getTail(args)));
-
+  
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
     return NULL;
@@ -428,29 +410,24 @@ Value* evalIf(Value* args, Environment* env){
       printf("syntax error: too many arguments in if statement\n");
       return NULL;
   }
-  Value *evalTest;
 
-<<<<<<< HEAD
   Value *evalTest = eval(getFirst(args), env);
-=======
-  evalTest = eval(car(args), env);
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
   // Value *tempArgs;
+
+  // printf("result: %d", evalTest->type);
+ 
  if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
     // if no alternate, just returns NULL
    if (count == 3) {
-<<<<<<< HEAD
     
      return eval(getFirst(getTail(getTail(args))), env);
-=======
-     return eval(car(cdr(cdr(args))), env);
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
  else {
+    
    // else return eval(consequence)
    return eval(getFirst(getTail(args)), env); // return eval(alternate)
  }
@@ -540,7 +517,7 @@ Value *add(Value *args){
   args->cons->cdr = NULL;
   return args;
 }
- 
+
 // not finished yet.
 Value *loadFunction(Value *args){
   // read in the lines of a file one at a time
@@ -578,7 +555,6 @@ Value *loadFunction(Value *args){
   cleanup(args);
   return NULL;
 }
-
 
 void bind(char identifier, Value *function, Environment *env){
   ;

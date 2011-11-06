@@ -115,7 +115,7 @@ int hash(HashTable* table, char* id){
   if (table){
     int key = 0,index=0, startingPoint;
     while (id[index]!='\0'){
-      key += id[index++] * index;
+      key += (id[index++]) * index;
     }
     startingPoint = key;
     Value* current = ((table->entries)[key%(table->capacity)]).car;
@@ -609,17 +609,11 @@ void printList(Value* value){
 	  printf("%s",curValue->cons->car->symbolValue);
 	  break;
 	case openType:
-<<<<<<< HEAD
 	  //if (withQuotes)
 	    printf("(");
 	  break;
 	case closeType:
 	  //if (withQuotes)
-=======
-	    printf("(");
-	  break;
-	case closeType:
->>>>>>> 65acc69650eb927aee49620049fbf7c4f7f25415
 	    printf(")");
 	  break;
 	case cellType:
