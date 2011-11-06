@@ -45,7 +45,7 @@ void printToken(Value* curValue){
   } else printf("I'm nothing!\n");
 }
 
-void printArgs(Value *curValue, int withQuotes) {
+void printValue(Value *curValue) {
   if (curValue){
     switch (curValue->type)
       {
@@ -70,15 +70,15 @@ void printArgs(Value *curValue, int withQuotes) {
 	printf("%s",curValue->symbolValue);
 	break;
       case openType:
-	if (withQuotes)
+	//if (withQuotes)
 	  printf("(");
 	break;
       case closeType:
-	if (withQuotes)
+	//if (withQuotes)
 	  printf(")");
 	break;
       case cellType:
-	printList(curValue, withQuotes);
+	printList(curValue);
 	break;
 	case closureType:
       case primitiveType:
@@ -115,7 +115,7 @@ int hash(HashTable* table, char* id){
   if (table){
     int key = 0,index=0, startingPoint;
     while (id[index]!='\0'){
-      key += id[index++];
+      key += id[index++] * index;
     }
     startingPoint = key;
     Value* current = ((table->entries)[key%(table->capacity)]).car;
@@ -164,7 +164,7 @@ int insertItem(HashTable* table, char* id, Value* value){
     keyVal->symbolValue = copiedID;
     
     (table->entries)[key].car = keyVal;
-    (table->entries)[key].cdr = value;
+    (table->entries)[key].cdr = deepCopy(value);
     (table->size)++;
     return 1;
   }
@@ -203,19 +203,21 @@ int autoDouble(HashTable* table){
   This function does not free the payload since we did not malloc memory 
   inside the insertItem function for payload.
 */
-Value* deleteItem(HashTable* table, char* id){
+int deleteItem(HashTable* table, char* id){
   ConsCell* entry = lookupEntry(table, id);
   if (entry){
     if (entry->car && entry->car->type == symbolType){
       free(entry->car->symbolValue); 
       free(entry->car);
+      freeValue(entry->cdr);
      }
      entry->car = NULL;
+     entry->cdr = NULL;
      (table->size)--;
      
-    return entry->cdr;
+    return 1;
   }
-  return NULL;
+  return 0;
 }
 
 /*
@@ -255,6 +257,7 @@ void cleanupTable(HashTable* table){
 	  free(table->entries[i].car->symbolValue);
 	}
 	free(table->entries[i].car);
+	freeValue(table->entries[i].cdr);
       }
     }
     table->size = 0;
@@ -445,6 +448,32 @@ void cleanup(Value* head){
     }
   }    
 }
+
+void freeValue(Value *value){
+  if (!value){
+    return;
+  }
+  if (value->type == stringType){
+    free(value->stringValue);
+    free(value);
+  }else if (value->type == symbolType){
+    free(value->symbolValue);
+    free(value);
+  }else if (value->type == cellType){
+    cleanup(value);
+  }else if (value->type == primitiveType){
+    free(value);
+  }else if (value->type == closureType){
+    free(value->closureValue);
+    free(value);
+  }else if (value->type == tableType){
+    destroyTable(value->tableValue);
+    free(value);
+  }else{
+    free(value);
+  }
+   
+}
 // This function frees its cons cells and also frees the list.
 void destroy(List* list){
   if (list){
@@ -516,22 +545,25 @@ Value *car(Value *value) {
 }
 
 Value *cdrFree(Value *value, int freeCar) {
-  List *newList = (List *)malloc(sizeof(List));
-  Value *newValue;
-  // we might need to create a new value
+  if (!value){
+    return NULL;
+  }
   Value *openParen = (Value *) malloc(sizeof(Value));
   openParen->type = openType;
   openParen->open = '(';
-  insertCell(newList, openParen);
-  newValue = newList->head;
-
-  if (value->type == cellType && 
-      value->cons->cdr->type){
-    if (freeCar)
+  
+  Value *newValue = (Value* )malloc(sizeof(Value));
+  newValue->type = cellType;
+  newValue->cons->car = openParen;
+  
+  if (value->type == cellType && value->cons->cdr && value->cons->cdr->type==cellType){
+    if (freeCar){
       free(value->cons->cdr->cons->car);
+    }
     newValue->cons->cdr = value->cons->cdr->cons->cdr;
     return newValue;
   }
+  return NULL;
 }
 /*
   This returns the cdr of a value (that is a list)
@@ -543,14 +575,14 @@ Value *cdr(Value *value) {
 }
 
 // print value.
-void printValue(Value* curValue){
-  printArgs(curValue, 1);
-}
+//void printValue(Value* curValue){
+//printArgs(curValue, 1);
+//}
 
 /*
   This function accepts a Value that is the head of the parse tree, and prints out the list.
 */
-void printList(Value* value, int withQuotes){
+void printList(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
@@ -577,15 +609,15 @@ void printList(Value* value, int withQuotes){
 	  printf("%s",curValue->cons->car->symbolValue);
 	  break;
 	case openType:
-	  if (withQuotes)
+	  //if (withQuotes)
 	    printf("(");
 	  break;
 	case closeType:
-	  if (withQuotes)
+	  //if (withQuotes)
 	    printf(")");
 	  break;
 	case cellType:
-	  printList(curValue->cons->car, withQuotes);
+	  printList(curValue->cons->car);
 	  break;
 	case nullType:
 	  printf("()");
@@ -605,31 +637,176 @@ void printList(Value* value, int withQuotes){
 }
 
 Value *getFirst(Value *value) {
-  if (!value) return NULL;
+  if (!value)
+    return NULL;
   else if (value->type == cellType) {
     return value->cons->car;
-  } else return NULL;
+  }else 
+    return NULL;
 }
 
 Value *getTail(Value *value) {
-  if (!value) return NULL;
+  if (!value) 
+    return NULL;
   else if (value->type == cellType) {
     return value->cons->cdr;
-  } else return NULL;
+  }else 
+    return NULL;
 }
 
 int listLength(Value *value) {
-  return properListLength(value) - 2;
+  return properListLength(value);
 }
 
 int properListLength(Value *value) {
-  
   if (!value) 
     return 0;
-  else if (value->cons->car->type == cellType) {
+  else if (value->cons->car->type == openType) {
     return properListLength(value->cons->cdr);
+  }else if (value->cons->car->type == closeType){
+    return 0;
   }
   else {
     return 1 + properListLength(value->cons->cdr);
   }
+}
+
+Value *deepCopyList(Value *value){
+  Value *head = value;
+  Value *newValue = NULL;
+  List *newList = initializeList();
+  while (head && head->type == cellType) {   
+    newValue = (Value *) malloc(sizeof(Value));
+    if (!getFirst(head)){
+      break;
+    }
+    switch (head->cons->car->type) 
+      {
+      case booleanType:
+        newValue->type = booleanType;
+        newValue->boolValue = head->cons->car->boolValue;
+	break;
+      case integerType:
+	newValue->type = integerType;
+	newValue->intValue = head->cons->car->intValue;
+	break;
+      case floatType:
+	newValue->type = floatType;
+	newValue->dblValue = head->cons->car->dblValue;
+	break;
+      case stringType:
+	newValue->type = stringType;
+	newValue->stringValue = (char *)malloc(sizeof(char)*(strlen(head->cons->car->stringValue)+1));
+	strcpy(newValue->stringValue, head->cons->car->stringValue);
+	break;
+      case symbolType:
+	newValue->type = symbolType;
+	newValue->symbolValue = (char *)malloc(sizeof(char)*(strlen(head->cons->car->symbolValue)+1));
+	strcpy(newValue->symbolValue,head->cons->car->symbolValue);
+	break;
+      case openType:
+	newValue->type = openType;
+	newValue->open = head->cons->car->open;
+	break;
+      case closeType:
+	newValue->type = closeType;
+	newValue->close = head->cons->car->close;
+	break;
+      case cellType:
+	free(newValue);
+	newValue = deepCopyList(head->cons->car);
+	break;
+      case nullType:
+	newValue->type = nullType;
+	break;
+      case primitiveType:
+      case closureType:
+	free(newValue);
+	newValue = deepCopyFun(head->cons->car);
+	break;
+      default:
+	break;
+      }
+    push(newList, newValue);
+    head = head->cons->cdr;
+  }
+  
+  reverse(newList);
+  head = newList->head;
+  free(newList);
+  return head;
+}
+
+// limited deep copy since we don't want recursively copy stuff.
+Value* deepCopyFun(Value *function){
+  if (function){
+    Value *value = (Value *)malloc(sizeof(Value));
+    if (function->type = primitiveType){
+      value->type = primitiveType;
+      value->primitiveValue = function->primitiveValue;
+      return value;
+    }else if (function->type = closureType){
+      value->type=closureType;
+      value->closureValue = (Closure *)malloc(sizeof(Closure));
+      value->closureValue->body = function->closureValue->body;
+      value->closureValue->args = function->closureValue->args;
+      value->closureValue->bindings = function->closureValue->bindings;
+      value->closureValue->parent = function->closureValue->parent;
+      return value;
+    }else{
+      free(value);
+    } 
+  }
+  return NULL;
+}
+Value* deepCopy(Value *value){
+
+  if (value){   
+    Value *newValue = (Value *) malloc(sizeof(Value));
+    switch (value->type) 
+      {
+      case booleanType:
+        newValue->type = booleanType;
+        newValue->boolValue = value->boolValue;
+	break;
+      case integerType:
+	newValue->type = integerType;
+	newValue->intValue = value->intValue;
+	break;
+      case floatType:
+	newValue->type = floatType;
+	newValue->dblValue = value->dblValue;
+	break;
+      case stringType:
+	newValue->type = stringType;
+	newValue->stringValue = (char *)malloc(sizeof(char)*(strlen(value->stringValue)+1));
+	strcpy(newValue->stringValue, value->stringValue);
+	break;
+      case symbolType:
+	newValue->type = symbolType;
+	newValue->symbolValue = (char *)malloc(sizeof(char)*(strlen(value->symbolValue)+1));
+	strcpy(newValue->symbolValue,value->symbolValue);
+	break;
+      case openType:
+	newValue->type = openType;
+	newValue->open = value->open;
+	break;
+      case closeType:
+	newValue->type = closeType;
+	newValue->close = value->close;
+	break;
+      case cellType:
+	free(newValue);
+	newValue = deepCopyList(value);
+	break;
+      case nullType:
+	newValue->type = nullType;
+	break;
+      default:
+	return NULL;
+	break;
+      }
+    return newValue;
+  }
+  return NULL;
 }

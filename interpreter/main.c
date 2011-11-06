@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
   Environment *topEnv = createTopFrame();
   int depth = 0;
   char *expression = (char *)malloc(256 * sizeof(char));
- 
+  Value* temp;
   while (fgets(expression, 256, stdin)) {
     
      tokens = append(leftoverTokens, tokenize(expression)); 
@@ -34,11 +34,23 @@ int main(int argc, char *argv[]) {
        
       } else {
        if (parseTree && parseTree->head){
-	 printValue(eval(parseTree->head,topEnv));
-	 printf("\n");
-	 cleanup(leftoverTokens->head);
+	 //printf("going to print parse tree: ");
+	 //printValue(parseTree->head);
+	 //printf("\n");
+	 //printf("going to print parse tree again: ");
+	 //printValue(deepCopyList(parseTree->head));
+	 //printf("\n");
+	 temp = eval(parseTree->head,topEnv);
+	 if (temp){
+	   printValue(temp);
+	   printf("\n");
+	 }
+	 
+	 //leftoverTokens->head = tokens->head;
+	 free(parseTree);
+	 // cleanup(leftoverTokens->head);
        }
-      }
+     }
   }
   if (leftoverTokens->head) {
     printf("syntax error. Too few close parentheses\n");   // Too few close parens at end of input. 

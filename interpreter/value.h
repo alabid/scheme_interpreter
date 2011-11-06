@@ -69,6 +69,7 @@ typedef struct __Environment{
 typedef struct __Closure{
   Value* body;
   Value* args;
+  Value* bindings;
   Environment* parent;
 }Closure;
 
@@ -120,7 +121,7 @@ Value* lookup(HashTable* table, char* id);
   This function does not free the payload since we did not malloc memory 
   inside the insertItem function for payload.
 */
-Value* deleteItem(HashTable* table, char* id);
+int deleteItem(HashTable* table, char* id);
 
 // cleanupTable only cleans the cons cells and keys.
 void cleanupTable(HashTable* table);
@@ -170,7 +171,7 @@ List* getValues(HashTable* table);
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
-void printList(Value* value, int withQuotes);
+void printList(Value* value);
 
 Value *cdrFree(Value *value, int freeCar);
 
@@ -182,6 +183,14 @@ Value *getFirst(Value *value);
 
 Value *getTail(Value *value);
 
-void printArgs(Value *curValue, int withQuotes);
+Value *deepCopy(Value *value);
 
-Value *deepCopy(Value *listToCopy);
+Value *deepCopyList(Value *value);
+
+void freeValue(Value *value);
+
+Value* deepCopyFun(Value *function);
+
+//void printArgs(Value *curValue, int withQuotes);
+
+

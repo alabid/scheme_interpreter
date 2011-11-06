@@ -34,48 +34,47 @@ Value* eval(Value *expr, Environment *env){
       }
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = car(expr);
-	args = cdr(expr);
-
-      if (!operator){
-	printf("syntax error, missing components here");
-	return NULL;
-      }
-  
-      if (operator->type == symbolType){
-	if (args  == NULL){
-	   return eval(operator,env);
-	}else if (strcmp(operator->symbolValue,"define")==0){
-	   return evalDefine(args, env);
-	 }else if (strcmp(operator->symbolValue,"lambda")==0){
+	args = getTail(getTail(expr));
+	
+	if (!operator){
+	  printf("syntax error, missing components here");
+	  return NULL;
+	}
+	
+	if (operator->type == symbolType){
+	  if (args  == NULL){
+	    return eval(operator,env);
+	  }else if (strcmp(operator->symbolValue,"define")==0){
+	    return evalDefine(args, env);
+	  }else if (strcmp(operator->symbolValue,"lambda")==0){
 	    /*eval lambda goes here*/
-	   return evalLambda(args, env);
-	}else if (strcmp(operator->symbolValue,"if")== 0){
-	   return evalIf(args, env);
-	   /*eval if goes here*/
-	 }else if (strcmp(operator->symbolValue,"quote")==0){
-	   /*eval quote goes here*/
-	   //printf("The length is %d\n",listLength(expr));
-	  return evalQuote(args);
-	 }else if (strcmp(operator->symbolValue,"let")==0){
-	   /*eval let goes here*/
-	   return evalLet(args, env);
-	 }
-      } else if (typeCheck(operator)==1){
-	printf("A literal ");
-	printValue(operator);
-	printf(" cannot be a procedure.\n");
-	return NULL; 
-      }else{
-	Value *evaledOperator = eval(operator, env);
-	Value *evaledArgs = evalEach(args, env);
-	return apply(evaledOperator, evaledArgs);
-      }
+	    return evalLambda(args, env);
+	  }else if (strcmp(operator->symbolValue,"if")== 0){
+	    return evalIf(args, env);
+	    /*eval if goes here*/
+	  }else if (strcmp(operator->symbolValue,"quote")==0){
+	    /*eval quote goes here*/
+	    return evalQuote(args);
+	  }else if (strcmp(operator->symbolValue,"let")==0){
+	    /*eval let goes here*/
+	    return evalLet(args, env);
+	  }
+	}else if (typeCheck(operator)==1){
+	  printf("A literal ");
+	  printValue(operator);
+	  printf(" cannot be a procedure.\n");
+	  return NULL; 
+	}else{
+	  Value *evaledOperator = eval(operator, env);
+	  Value *evaledArgs = evalEach(args, env);
+	  return apply(evaledOperator, evaledArgs);
+	}
       } else if (typeCheck(getFirst(expr))==1){
-	printValue(expr);
-	printf("\n");
+	//printValue(expr);
+	//printf("\n");
 	return evalEach(expr,env);
-	}else if (getFirst(expr) && getFirst(expr)->type == symbolType){
-	operator = car(expr);
+      }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
+	operator = getFirst(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
 	if (returnValue){
 	  return returnValue;
@@ -85,7 +84,7 @@ Value* eval(Value *expr, Environment *env){
 	    printValue(expr);
 	    printf("\n");
 	}else if (strcmp(operator->symbolValue,"lambda")==0){
-	     printf("lambda: bad syntax in ");
+	    printf("lambda: bad syntax in ");
 	    printValue(expr);
 	    printf("\n");
 	  }else if (strcmp(operator->symbolValue,"if")==0){
@@ -93,7 +92,7 @@ Value* eval(Value *expr, Environment *env){
 	    printValue(expr);
 	    printf("\n");
 	  }else if (strcmp(operator->symbolValue,"quote")==0){
-	   printf("quote: bad syntax in ");
+	    printf("quote: bad syntax in ");
 	    printValue(expr);
 	    printf("\n");
 	  }else if (strcmp(operator->symbolValue,"let")==0){
@@ -108,37 +107,50 @@ Value* eval(Value *expr, Environment *env){
 	}
       }
     case closeType:
+      //printValue(expr);
+      //printf("\n");
       return NULL;
+      break;
     default:
+      //printValue(expr);
+      //printf("\n");
+      if (getTail(expr)){
+	assert(getFirst(getTail(expr))!=NULL);
+	assert(getFirst(getTail(expr))->type==closeType);
+	Value *toRemove = getTail(expr);
+	free(toRemove->cons->car);
+	free(toRemove->cons);
+	free(toRemove);
+	expr->cons->cdr = NULL;
+	assert(1==2);
+      }
       return expr;      
     }
 }
 
+/*
+  Quote function works well.
+*/
 Value* evalQuote(Value* args){
-  
-  if (car(args) && car(args)->type==closeType){
+  if (getFirst(args) && getFirst(args)->type==closeType){
     printf("quote: bad syntax (wrong number of parts) in: (quote)");
     return NULL;
     // since there is one argument list and one close parenthese, the listLength should return zero.
-  }else if (listLength(args) > 1){
-    //printf("The length is %d\n",listLength(args));
+  }else if (listLength(args) != 1){
     printf("quote: bad syntax (wrong number of parts) in: (quote ");
-    printArgs(args, 0);
-    printf(")\n");
+    printValue(args);
+    printf("\n");
     return NULL;
-  }/*
-else{
-    // assert(car(cdr(args))!=NULL);
-    // assert(car(cdr(args))->type==closeType);
-    Value *toRemove = cdr(args);
+  }
+  else{
+    assert(getFirst(getTail(args))!=NULL);
+    assert(getFirst(getTail(args))->type==closeType);
+    Value *toRemove = getTail(args);
     free(toRemove->cons->car);
     free(toRemove->cons);
     free(toRemove);
     args->cons->cdr = NULL;
     return args;
-    }*/
-  else {
-    return car(args);
   }
 }
 
@@ -239,7 +251,7 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
-  printf("I'm in the evalDefine\n");
+  //printf("I'm in the evalDefine\n");
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -252,8 +264,8 @@ Value* evalDefine(Value* args, Environment* env){
     return NULL;
   }
   //check if the variable is valid
-  if (variableCheck(car(args)) < 1){
-    if (variableCheck(car(args)) < 0){
+  if (variableCheck(getFirst(args)) < 1){
+    if (variableCheck(getFirst(args)) < 0){
       printf("bad syntax\n");
       return NULL;
     }
@@ -262,66 +274,99 @@ Value* evalDefine(Value* args, Environment* env){
       return NULL;
     }
   }else{
+    // now it has correct number of arguments and the identifier is valid.
+    // eval the second argument and put (1st, 2nd) as key-value pair in the hash table. 
+    
     assert(env!=NULL);
     assert(env->bindings->type == tableType);
-    // assert(car(args)->type == symbolType);
-    if (args->cons->cdr && car(cdr(args))->type == symbolType){
-      Value *value = eval(envLookup((cdr(args))->symbolValue, env), env);
+    
+    assert(args->type==cellType);
+    assert(getFirst(args)!=NULL);
+    assert(getFirst(args)->type == symbolType);
+    
+    if (getFirst(getTail(args)) && getFirst(getTail(args))->type == symbolType){
+      Value *value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
       if (value){
-	insertItem(env->bindings->tableValue, (car(args))->symbolValue, value);
+	insertItem(env->bindings->tableValue, (getFirst(args))->symbolValue, value);
       }else{
-	printf("syntax error: unknown identifier");
+	printf("syntax error: unknown identifier\n");
 	return NULL;
       }
     }else{
-      insertItem(env->bindings->tableValue, car(args)->symbolValue, eval(cdr(args), env));
+      
+      assert(getFirst(args)!=NULL);
+      assert(getFirst(args)->type==symbolType);
+      assert(env->bindings->tableValue!=NULL);
+      assert(getFirst(args)->symbolValue);
+      
+      insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getTail(args), env));
+      
     }
-	return NULL;
+    return NULL;
   }  
 }
 
 // We have not finished this function yet.
 Value* evalEach(Value* args, Environment* env){
-  Value *temp, *toClean;
+  Value *temp, *toClean, *tail, *previous = args;
   Value *head = args;
-
+  
   while (args){ 
     assert(args->type==cellType);    
     //temp = args->cons->car;
-    if (car(args) && (car(args))->type==openType){
-      temp =  eval(args, env);
-      if (temp){
-	assert(args->type==cellType);
+    if (getFirst(args) && (getFirst(args))->type==cellType){
+      tail = getTail(args);
+      temp =  deepCopy(eval(getFirst(args), env));
+      
+      assert(getFirst(getFirst(args))!=NULL);
+      assert(getFirst(getFirst(args))->type==openType);
+      //if (temp){
+	//assert(args->type==cellType);
+      cleanup(getTail(getFirst(args)));
+      free(getFirst(args)->cons);
+      freeValue(args->cons->car);
+      args->cons->car = temp;
+      args = tail;
+      //}
+      
+    }else{
+    
+      tail = getTail(args);
+      //printf("start to print:  ");
+      //printValue(eval(args->cons->car, env));
+      //printf("\n");
+      temp = deepCopy(eval(args->cons->car, env));
+    
+      if (temp==NULL){ 
+	//   printf("NOPE");
+	cleanup(tail);
+	args->cons->cdr = NULL;
+	freeValue(args->cons->car);
+	free(args->cons);
+	free(args);
+	if (args!=previous){
+	  previous->cons->cdr = NULL;
+	}else{
+	  return NULL;
+	}
+	break;
+      }else{
+	//printValue(temp);
+	//printf("\n");
+	
+	freeValue(args->cons->car);
+	
 	args->cons->car = temp;
-	args = cdr(args);
-      }
-      while (car(args) && car(args)->type!=closeType){
-      //args->cons->car = temp;
+	
       //printValue(temp);
       //printf("\n");
-	toClean = cdr(args);
- 	free(car(args));
-	assert(args->type==cellType);
-	//free(args->cons);
-	//free(args);
-	args = toClean;
-      }if (car(args)){
-	free(car(args));
+	previous = args;
+	args = tail;
       }
-      break;
-    }else{
-      temp =  eval(args->cons->car, env);
-      if (temp){
-	args->cons->car = temp;
-	//printValue(temp);
-	printf("\n");
-      }
-    // free memory?
-    // cleanup(temp);
-      args = cdr(args);
     }
+    
   } 
-  
+ 
   return head;
 }
 // not finished.
@@ -333,7 +378,7 @@ Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
   
   int count = listLength(args);
-
+  printf("count = %d \n",count);
   // printValue(getTail(args));
   // printValue(getTail(getTail(args)));
 
@@ -345,7 +390,7 @@ Value* evalIf(Value* args, Environment* env){
       return NULL;
   }
 
-  Value *evalTest = eval(car(args), env);
+  Value *evalTest = eval(getFirst(args), env);
   // Value *tempArgs;
 
   // printf("result: %d", evalTest->type);
@@ -355,7 +400,7 @@ Value* evalIf(Value* args, Environment* env){
     // if no alternate, just returns NULL
    if (count == 3) {
     
-     return eval(car(cdr(cdr(args))), env);
+     return eval(getFirst(getTail(getTail(args))), env);
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
@@ -363,7 +408,7 @@ Value* evalIf(Value* args, Environment* env){
  else {
     
    // else return eval(consequence)
-   return eval(car(cdr(args)), env); // return eval(alternate)
+   return eval(getFirst(getTail(args)), env); // return eval(alternate)
  }
 }
 
@@ -415,36 +460,41 @@ Value *add(Value *args){
   int intSum = 0;
   double dblSum = 0;
   int isFloat = 0;
-  while (args){
-    if (args->type == integerType){
+  Value  *result;
+  while (args && args->type == cellType){
+    if (getFirst(args)->type == integerType){
       if (!isFloat){
-	intSum += args->intValue;
+	intSum += getFirst(args)->intValue;
       }else{
-	dblSum += args->dblValue;
+	dblSum += getFirst(args)->dblValue;
       }
-    }else{ 
-      if (args->type == floatType){
-	if (!isFloat){
-	  isFloat = 1;
-	  dblSum +=intSum;
-	}
-	dblSum += args->dblValue;	
-      }else{
-	  printf("+: expects type <number> as arguments");
-	  return NULL;
+    }else if (getFirst(args)->type == floatType){
+      if (!isFloat){
+	isFloat = 1;
+	dblSum +=intSum;
       }
+      dblSum += getFirst(args)->dblValue;	
+    }else if (getFirst(args)->type == closeType){
+      break;
+    }else{
+      printf("+: expects type <number> as arguments");
+      return NULL;
     }
-    args = cdr(args);
+    args = getTail(args);
   }
   Value *value = (Value*) malloc(sizeof(Value));
+  
+  cleanup(getTail(args));
+  result = getFirst(args);
   if (isFloat){
-    value->type = floatType;
-    value->dblValue = dblSum; 
+    result->type = floatType;
+    result->dblValue = dblSum; 
   }else{
-    value->type = integerType;
-    value->intValue = intSum; 
+    result->type = integerType;
+    result->intValue = intSum; 
   }
-  return value;
+  args->cons->cdr = NULL;
+  return args;
 }
  
 // not finished yet.

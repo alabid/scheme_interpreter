@@ -36,12 +36,12 @@ List *tokenize(char *expression) {
   List *list = initializeList();
   // now while loop that does main work
 
-  while (expression[i] != '\n') {
+  while (expression[i] != '\n' && expression[i]!=EOF) {
     if (isspace(expression[i])) {
       i++; 
       continue;
     }
-
+    
     if (expression[i] == ';') {
       break; // comment so get out
     }
