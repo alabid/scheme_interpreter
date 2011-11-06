@@ -170,7 +170,7 @@ List* getValues(HashTable* table);
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
-void printList(Value* value);
+void printList(Value* value, int withQuotes);
 
 Value *cdrFree(Value *value, int freeCar);
 
@@ -181,3 +181,7 @@ int properListLength(Value *value);
 Value *getFirst(Value *value);
 
 Value *getTail(Value *value);
+
+void printArgs(Value *curValue, int withQuotes);
+
+Value *deepCopy(Value *listToCopy);

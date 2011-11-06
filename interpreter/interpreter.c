@@ -11,6 +11,7 @@ Value* eval(Value *expr, Environment *env){
   Value* args;
   //printValue(expr);
   //printf("\n");
+
   if (!expr){
     return NULL;
   }
@@ -54,7 +55,6 @@ Value* eval(Value *expr, Environment *env){
 	 }else if (strcmp(operator->symbolValue,"quote")==0){
 	   /*eval quote goes here*/
 	   //printf("The length is %d\n",listLength(expr));
-	  printValue(evalQuote(args));
 	  return evalQuote(args);
 	 }else if (strcmp(operator->symbolValue,"let")==0){
 	   /*eval let goes here*/
@@ -123,8 +123,8 @@ Value* evalQuote(Value* args){
   }else if (listLength(args) > 1){
     //printf("The length is %d\n",listLength(args));
     printf("quote: bad syntax (wrong number of parts) in: (quote ");
-    printArgs(args, 1);
-    printf("\n");
+    printArgs(args, 0);
+    printf(")\n");
     return NULL;
   }/*
 else{

@@ -78,7 +78,7 @@ void printArgs(Value *curValue, int withQuotes) {
 	  printf(")");
 	break;
       case cellType:
-	printList(curValue);
+	printList(curValue, withQuotes);
 	break;
 	case closureType:
       case primitiveType:
@@ -516,17 +516,21 @@ Value *car(Value *value) {
 }
 
 Value *cdrFree(Value *value, int freeCar) {
-  // Value *newValue = (Value *) malloc(sizeof(Value));
+  List *newList = (List *)malloc(sizeof(List));
+  Value *newValue;
   // we might need to create a new value
-
-  // Value *tempValue;
+  Value *openParen = (Value *) malloc(sizeof(Value));
+  openParen->type = openType;
+  openParen->open = '(';
+  insertCell(newList, openParen);
+  newValue = newList->head;
 
   if (value->type == cellType && 
       value->cons->cdr->type){
     if (freeCar)
       free(value->cons->cdr->cons->car);
-    value->cons->cdr = value->cons->cdr->cons->cdr;
-    return value;
+    newValue->cons->cdr = value->cons->cdr->cons->cdr;
+    return newValue;
   }
 }
 /*
@@ -546,7 +550,7 @@ void printValue(Value* curValue){
 /*
   This function accepts a Value that is the head of the parse tree, and prints out the list.
 */
-void printList(Value* value){
+void printList(Value* value, int withQuotes){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
@@ -573,13 +577,15 @@ void printList(Value* value){
 	  printf("%s",curValue->cons->car->symbolValue);
 	  break;
 	case openType:
-	  printf("(");
+	  if (withQuotes)
+	    printf("(");
 	  break;
 	case closeType:
-	  printf(")");
+	  if (withQuotes)
+	    printf(")");
 	  break;
 	case cellType:
-	  printList(curValue->cons->car);
+	  printList(curValue->cons->car, withQuotes);
 	  break;
 	case nullType:
 	  printf("()");
