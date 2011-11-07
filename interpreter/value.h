@@ -141,6 +141,7 @@ int deleteItem(HashTable* table, char* id);
 // cleanupTable only cleans the cons cells and keys.
 void cleanupTable(HashTable* table);
 
+void cleanupEnvironment(Environment *env);
 /* 
    Destroy the table by freeing the cons cells, keys and hash table itself.
    This function cannot free any payloads.
