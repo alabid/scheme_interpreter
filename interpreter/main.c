@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
      if (!tokens) {
        leftoverTokens->head = NULL;
        continue;
-       }
+     }
     
      parseTree = parse(tokens,&depth);   
      

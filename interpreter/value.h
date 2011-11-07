@@ -68,10 +68,20 @@ typedef struct __Environment{
 
 typedef struct __Closure{
   Value* body;
-  Value* args;
-  Value* bindings;
+  List* args; 
   Environment* parent;
 }Closure;
+
+
+// initialize a closure by mallocating memory for body, args.
+// args is a "linked list" so this function also mallocates hash table.
+Closure *initializeClosure(Environment* env);
+
+// cleanup frees the contents of the closure, but does not free closure itself.
+void cleanupClosure(Closure *closure);
+
+// destroy frees the contents of the closure and closure itself.
+void destroyClosure(Closure *closure);
 
 typedef struct __HashTable{
   struct __ConsCell* entries;
@@ -190,6 +200,8 @@ Value *deepCopyList(Value *value);
 void freeValue(Value *value);
 
 Value* deepCopyFun(Value *function);
+
+void removeLast(Value* value);
 
 //void printArgs(Value *curValue, int withQuotes);
 
