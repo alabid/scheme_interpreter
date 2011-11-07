@@ -392,7 +392,64 @@ Value* evalEach(Value* args, Environment* env){
 }
 // not finished.
 Value* evalLet(Value* args, Environment* env){
-  return NULL;
+  int count = listLength(args);
+  if (count < 2){
+    printf("sytax error: bad syntax");
+    return NULL;
+  }
+  if (getFirst(args)-> type != cellType){
+    printf("sytax error:not a sequence of indentifier");
+    return NULL;
+  }else{
+    if (getFirst(getFirst(args))-> type != cellType){
+      printf("sytax error: not an indentifier for bindings");
+      return NULL;
+    } 
+    if (getFirst(getFirst(getFirst(args))) -> type !=symbolType){
+      printf("bad syntax not an indentifier");
+      return NULL;
+    }else{
+      Environment* newenv = creatFrame(env);
+      Value* listofBinds = getFirst(args);
+      while(listofBinds){
+	  Value* toBind = eval(getTail(getFirst(listofBinds)), newenv);
+	  if (typeCheck(toBind) == 1 ||toBind ->type == closureType){
+	    insertItem(newenv->bindings->tableValue, (getFirst(getFirst(listofBinds)))->symbolValue, toBind);
+	  }else if(toBind->type == symbolType){
+	    Value *value = eval(envLookup(toBind->symbolValue, newenv), env);
+	    if (value){
+	      insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
+	    }else{
+	      printf("syntax error: unknown identifier\n");
+	      free(toBind);
+	      free(value);
+	      return NULL;
+	    }
+	  }else{
+	    printf("sytax error");
+	  }
+	  listofBinds = getTail(listofBinds);
+      }
+      Value* listofExpressions = getTail(args);
+      while(listofExpressions){
+	Value* toReturn = eval(getFirst(listofExpressions), newenv);
+	if(typeCheck(toReturn) != 3){
+	  if(getTail(listofExpression)){
+	    listofExpressions = getTail(listofExpressions);
+	  }else{
+	    return toReturn;
+	  }
+	}else{
+	  
+	  
+	
+      }
+      
+  
+    
+	  
+    
+    
 }
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
@@ -435,9 +492,9 @@ Value *makePrimitiveValue(Value* (*f)(Value *)){
 Environment *createTopFrame(){
   Environment *frame = createFrame(NULL);
   // bind("+", makePrimitiveValue(add), frame);
-  // bind("+", makePrimitiveValue(subtract), frame);
-  // bind("+", makePrimitiveValue(multiply), frame);
-  // bind("+", makePrimitiveValue(divide), frame);
+  // bind("-", makePrimitiveValue(subtract), frame);
+  // bind("*", makePrimitiveValue(multiply), frame);
+  // bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
   // bind("car", makePrimitiveValue(car), frame);
@@ -542,6 +599,9 @@ Value *loadFunction(Value *args){
   return NULL;
 }
 
-void bind(char identifier, Value *function, Environment *env){
+void bind(char *identifier, Value *function, Environment *env){
   ;
 }
+
+
+
