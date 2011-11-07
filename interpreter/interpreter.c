@@ -396,12 +396,7 @@ Value* evalLet(Value* args, Environment* env){
 }
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
-  // args = evalEach(args,env);
-  
   int count = listLength(args);
-  //printf("count = %d \n",count);
-  // printValue(getTail(args));
-  // printValue(getTail(getTail(args)));
   
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
@@ -410,26 +405,17 @@ Value* evalIf(Value* args, Environment* env){
       printf("syntax error: too many arguments in if statement\n");
       return NULL;
   }
-
   Value *evalTest = eval(getFirst(args), env);
-  // Value *tempArgs;
-
-  // printf("result: %d", evalTest->type);
- 
+  
  if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
-    // if evalTest is false, then return eval(alternate)
-    // if no alternate, just returns NULL
-   if (count == 3) {
-    
-     return eval(getFirst(getTail(getTail(args))), env);
+    if (count == 3) {
+      return eval(getFirst(getTail(getTail(args))), env);
    }
    else 
      return  NULL; // DRracket doesn't return a '(), it returns nothing (NULL)
  }
  else {
-    
-   // else return eval(consequence)
-   return eval(getFirst(getTail(args)), env); // return eval(alternate)
+    return eval(getFirst(getTail(args)), env); // return eval(alternate)
  }
 }
 
