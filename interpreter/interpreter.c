@@ -980,9 +980,9 @@ Value *loadFunction(Value *args){
       return NULL;
     }
 
-    while (fgets(expression, 256, fp)) {
-      printf("line: %s\n", expression);
-    } 
+    //while (fgets(expression, 256, fp)) {
+    //printf("line: %s\n", expression);
+    //} 
     loadFromFile(fp);
     free(expression);
 
@@ -1035,6 +1035,7 @@ int loadFromFile(FILE *file) {
 	 //printf("going to print parse tree again: ");
 	 //printValue(deepCopyList(parseTree->head));
 	 //printf("\n");
+	 printf("I'm reading from a file\n");
 	 temp = eval(parseTree->head,topEnv);
 	 if (temp){
 	   printValue(temp);
