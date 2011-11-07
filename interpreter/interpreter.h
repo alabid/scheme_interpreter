@@ -1,3 +1,4 @@
+# include <stdio.h>
 #include "parser.h"
 
 Value *eval(Value *expr, Environment *env);
@@ -39,3 +40,5 @@ int validateArgs(Value *value, Environment *env);
 Value *subtract(Value *args);
 
 Value *multiply(Value *args);
+
+int loadFromFile(FILE *file);
