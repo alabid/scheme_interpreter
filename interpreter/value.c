@@ -247,6 +247,19 @@ Value* lookup(HashTable* table, char* id){
   }
 }
 
+void cleanupEnvironment(Environment *env) {
+  if (env) {
+    while (env) {
+      if (env->bindings->type == tableType) {
+	cleanupTable(env->bindings->tableValue);
+	free(env->bindings);
+      }
+      env = env->parent;
+    }
+  }
+  free(env);
+}
+
 // cleanupTable only cleans the cons cells and keys.
 void cleanupTable(HashTable* table){
   if (table){
