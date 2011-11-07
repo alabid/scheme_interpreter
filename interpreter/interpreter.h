@@ -1,4 +1,5 @@
-#include "parser.h"
+# include <stdio.h>
+# include "parser.h"
 
 Value *eval(Value *expr, Environment *env);
 
@@ -30,7 +31,7 @@ Value *exponentiate(Value *args);
 
 Value *add(Value *args);
 
-Value *loadFunction(Value *args);
+Value *loadFunction(Value *args, Environment *env);
 
 int typeCheck(Value* value);
 
@@ -43,3 +44,5 @@ Value *subtract(Value *args);
 Value *multiply(Value *args);
 
 Value *divide(Value *args);
+
+int loadFromFile(FILE *file, Environment *env);

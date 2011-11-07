@@ -3,8 +3,11 @@
 #include "interpreter.h"
 
 
+
 int main(int argc, char*argv[]) {
-  loadFromFile(stdin);
+  Environment *topEnv = createTopFrame();
+
+  loadFromFile(stdin, topEnv);
 
   return -1;
 }

@@ -1,0 +1,7 @@
+(define x 3)
+(define y 20)
+(define func 
+  (lambda (x)
+   (+ x y)))
+(let ((a 2))
+  a)

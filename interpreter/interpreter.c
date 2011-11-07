@@ -90,8 +90,9 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"letrec")==0){
 	    /*eval let goes here*/
 	    return evalLetrec(args, env);
-	  }
-	  else{
+	  } else if(strcmp(operator->symbolValue, "load") == 0) {
+	    return loadFunction(args, env);
+	  } else{
 	    //printf("validation result is shown: %d\n",validateArgs(args, env));
 	    if (validateArgs(args, env)==-1){
 	      printf("Syntax error! Invalid arguments for the procedure: ");
@@ -755,7 +756,7 @@ Environment *createTopFrame(){
   bind("*", makePrimitiveValue(multiply), frame);
   bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
-  bind("load", makePrimitiveValue(loadFunction), frame);
+  // bind("load", makePrimitiveValue(loadFunction), frame);
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);
   return frame;
@@ -1110,7 +1111,7 @@ Value *divide(Value *args){
 
 
 // not finished yet.
-Value *loadFunction(Value *args){
+Value *loadFunction(Value *args, Environment *env){
   // read in the lines of a file one at a time
   // eval each line line by line
   char *expression = (char *)malloc(256 * sizeof(char));
@@ -1127,25 +1128,101 @@ Value *loadFunction(Value *args){
     cleanup(args);
     return NULL;
   }
-  FILE *fp;
-  if (car(args)->type == stringType) {
-    fp = fopen(car(args)->stringValue, "r");
+  
+  if (getFirst(args)->type == stringType) {
+    FILE *fp;
+    char *fileName = getFirst(args)->stringValue;
+    char *realName = NULL;
+    int i;
 
-    while (fgets(expression, 256, fp)) {
-      fputs(expression, stdin);
-    } 
+    // remove quotes around fileName
+    fileName++;
+    fileName[strlen(fileName) -1] = '\0';
+
+    fp = fopen(fileName, "r");
+    if (!fp) {
+      fprintf(stderr, "load: cannot open %s\n", fileName);
+      return NULL;
+    }
+
+    //while (fgets(expression, 256, fp)) {
+    //printf("line: %s\n", expression);
+    //} 
+    // somehow do it for the current environment
+    loadFromFile(fp, env);
     free(expression);
-    fclose(fp);
+    // then close file somehow
     cleanup(args);
+    return NULL;
   }  else {
     free(expression);
     cleanup(args);
     return NULL;
   }
-  free(expression);
-  cleanup(args);
   return NULL;
 }
+
+
+int loadFromFile(FILE *file, Environment *env) {
+  List *tokens, *parseTree, *leftoverTokens = NULL;
+  leftoverTokens = initializeList();
+  int depth = 0;
+  char *expression = (char *)malloc(256 * sizeof(char));
+  Value* temp;
+  while (fgets(expression, 256, file)) {
+    
+     tokens = append(leftoverTokens, tokenize(expression)); 
+     
+     if (!tokens) {
+       leftoverTokens->head = NULL;
+       continue;
+     }
+    
+     parseTree = parse(tokens,&depth);   
+     
+     if (depth < 0) {
+       printf("syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
+       cleanup(tokens->head);
+       //free(parseTree);
+       free(leftoverTokens);
+       free(tokens);
+       return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
+     } else if (depth > 0) {
+       // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
+       leftoverTokens->head = tokens->head;
+       
+      } else {
+       if (parseTree && parseTree->head){
+	 //printf("going to print parse tree: ");
+	 //printValue(parseTree->head);
+	 //printf("\n");
+	 //printf("going to print parse tree again: ");
+	 //printValue(deepCopyList(parseTree->head));
+	 //printf("\n");
+	 temp = eval(parseTree->head,env);
+	 if (temp){
+	   printValue(temp);
+	   printf("\n");
+	 }
+	 
+	 //leftoverTokens->head = tokens->head;
+	 free(parseTree);
+	 // cleanup(leftoverTokens->head);
+       }
+     }
+  }
+  if (leftoverTokens->head) {
+    printf("syntax error. Too few close parentheses\n");   // Too few close parens at end of input. 
+    destroy(leftoverTokens);   
+    free(tokens);
+    return SYNTAX_ERROR_UNTERMINATED_INPUT;
+  }
+  // clean up memory 
+  destroy(leftoverTokens);
+  free(tokens);
+  free(expression); 
+}
+
 
 void bind(char identifier[], Value *function, Environment *env){
   if (!env || !function){
