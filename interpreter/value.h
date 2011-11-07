@@ -65,6 +65,11 @@ typedef struct __Environment{
   struct __Environment* parent;
 }Environment;
 
+// destroy environment
+void destroyEnvironment(Environment *env);
+
+
+
 
 typedef struct __Closure{
   Value* body;

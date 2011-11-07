@@ -46,3 +46,23 @@ Value *multiply(Value *args);
 Value *divide(Value *args);
 
 int loadFromFile(FILE *file, Environment *env);
+
+Value *evalAnd(Value *args, Environment *env);
+
+Value *evalCond(Value *args, Environment *env);
+
+Value *evalOr(Value *args, Environment *env);
+
+Value *evalSetShirek(Value *args, Environment *env);
+
+Value *evalLetStar(Value *args, Environment *env);
+
+Value *consFunction(Value *args);
+
+Value *lessOrEqualThan(Value *args);
+
+Value *bigOrEqualThan(Value *args);
+
+Value *arithmeticEqual(Value *args);
+
+Value *checkEqual(Value *args);

@@ -98,9 +98,15 @@ Value* eval(Value *expr, Environment *env){
 	    /*eval let goes here*/
 	    return evalLet(args, env);
 	  }else if (strcmp(operator->symbolValue,"letrec")==0){
-	    /*eval let goes here*/
+	    /*eval letrec goes here*/
 	    return evalLetrec(args, env);
+	  }else if (strcmp(operator->symbolValue,"let*")==0){
+	    /*eval let* goes here*/
+	    return evalLetStar(args, env);
 	  } else if(strcmp(operator->symbolValue, "load") == 0) {
+	    while (env && env->parent){
+	      env = env->parent;
+	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
 	    //printf("validation result is shown: %d\n",validateArgs(args, env));
@@ -213,8 +219,7 @@ int validateArgs(Value *value, Environment* env){
   
     Value *toCheck = getFirst(value);
     if (toCheck){
-      
-      //printf("I'm here to validate args\n\n\n\n");
+   
       switch (toCheck->type)
 	{
 	case cellType:
@@ -223,9 +228,7 @@ int validateArgs(Value *value, Environment* env){
 	  break;
 	case symbolType:
 	  toCheck = eval(toCheck,env);
-	  //printf("validation intermediate: ");
-	  //printValue(toCheck);
-	  //printf("\n");
+	  
 	  if (toCheck && (toCheck->type==primitiveType || toCheck->type == closureType)){
 	    return -1;
 	  }else{
@@ -309,7 +312,9 @@ Value* apply(Value* function, Value* actualArgs){
       return NULL;
     }
     
-    return eval(function->closureValue->body, frame);
+    Value *returnValue = eval(function->closureValue->body, frame);
+    destroyEnvironment(frame);
+    return returnValue;
   }else{
     printf("Unknown identifier!");
     return NULL;
@@ -1064,7 +1069,7 @@ Value *subtract(Value *args){
   int intDiff = 0;
   double dblDiff = 0;
   int isFloat = 0;
-  Value  *head = args;
+  Value  *head;
   if (args && args->type ==cellType && args->cons->car){
     if (args->cons->car->type == integerType){
       intDiff = args->cons->car->intValue; 
@@ -1076,11 +1081,18 @@ Value *subtract(Value *args){
       return NULL;
     }
     args = getTail(args);
+    if (!args){
+      if (isFloat){
+	dblDiff = 0 - dblDiff;
+      }else{
+	intDiff = 0 - intDiff;
+      }
+    }
   }else{
       printf("Invalid input for <#procedure:->\n");
       return NULL;
   }
- 
+  head = args;
   if (head){
     while (args && args->type == cellType){
       if (getFirst(args)== NULL){
@@ -1207,7 +1219,10 @@ Value *multiply(Value *args){
   return value;
 }
 
-
+/* 
+   arithmetic division. We do not allow zero division 
+   even though it is allowed in DrRacket that (/ 5 0.0)=>+inf.0
+*/
 Value *divide(Value *args){
   int intQuot = 1;
   double dblQuot = 1.0;
@@ -1266,13 +1281,12 @@ Value *divide(Value *args){
 	    intQuot /= getFirst(args)->intValue;
 	  }else{
 	    isFloat = 1;
-	    dblQuot /= getFirst(args)->intValue;
+	    dblQuot = (double)intQuot/ getFirst(args)->intValue;
 	  }
 	}else{
-	  printf("The intermediate result: %f\n",dblQuot);
-	  printf("And times: %d\n", (getFirst(args)->intValue));
+	  
 	  dblQuot /= (getFirst(args)->intValue);
-	  printf("The intermediate result: %f\n",dblQuot);
+	 
 	}
       }else if (getFirst(args)->type == floatType){
 	if (getFirst(args)->dblValue == 0){
@@ -1283,10 +1297,9 @@ Value *divide(Value *args){
 	  isFloat = 1;
 	  dblQuot = intQuot;
 	}
-	printf("The intermediate result: %f\n",dblQuot);
-	printf("And times: %f\n", (getFirst(args)->dblValue));
+	
 	dblQuot /= getFirst(args)->dblValue;	
-	printf("The intermediate result: %f\n",dblQuot);
+	
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
@@ -1296,13 +1309,10 @@ Value *divide(Value *args){
       args = getTail(args);
     }
     
-    printf("this is the head before dividing: ");
-    printValue(head);
-    printf("\n");
     cleanup(getTail(head));
   }
   Value *value = (Value*) malloc(sizeof(Value));
-  //result = getFirst(head);
+  
   if (isFloat){
     value->type = floatType;
     value->dblValue = dblQuot; 
@@ -1316,15 +1326,12 @@ Value *divide(Value *args){
     
     head->cons->car = value;
     head->cons->cdr = NULL;
-    printf("this is the head after dividing: ");
-    printValue(head);
-    printf("\n");
   }
   return value;
 }
 
 
-// not finished yet.
+// Load function.
 Value *loadFunction(Value *args, Environment *env){
   // read in the lines of a file one at a time
   // eval each line line by line
@@ -1438,19 +1445,148 @@ int loadFromFile(FILE *file, Environment *env) {
 }
 
 
+// bind primitive functions to the top-level environment.
 void bind(char identifier[], Value *function, Environment *env){
   if (!env || !function){
     return;
   }
   char *variable = (char *)malloc(sizeof(char)*(strlen(identifier)+1));
-  //printf("the length of variable is %zd.\n",strlen(identifier)+1);
   strcpy(variable, identifier);
- 
   variable[strlen(identifier)]='\0';
-  
-  //printf("the variable is %s.\n",variable);
   insertItem(env->bindings->tableValue, variable, function);
-  //printf("checking the variable:  ");
-  //printValue(lookup(env->bindings->tableValue,identifier));
-  //printf("\n");
 }
+
+
+// To implement in round 2
+Value *evalAnd(Value *args, Environment *env){
+  return NULL;
+}
+
+Value *evalCond(Value *args, Environment *env){
+  return NULL;
+}
+Value *evalOr(Value *args, Environment *env){
+  return NULL;
+}
+
+Value *evalSetShirek(Value *args, Environment *env){
+  return NULL;
+}
+
+Value *evalLetStar(Value *args, Environment *env){
+ Value *toCheck;
+  
+  int count = listLength(args);
+  if (count < 2){
+    printf("let*: bad syntax in: (letrec ");
+    printValue(args);
+    printf("\n");
+    return NULL;
+  }
+  if (getFirst(args)->type== nullType){
+    return eval(getTail(args), env);
+  }
+ 
+  if (getFirst(args)-> type != cellType){
+    printf("syntax error in let*: not a sequence of indentifier\n");
+    return NULL;
+  }else{
+    if (!getFirst(getTail(getFirst(args)))){
+      printf("syntax error in let*: missing components\n");
+      return NULL;
+    } else if (getFirst(getTail(getFirst(args)))-> type != cellType){
+      printf("syntax error in let*: not an indentifier for bindings\n");
+      return NULL;
+    } 
+    toCheck = getTail(getFirst(args));
+    
+    removeLast(toCheck);
+    
+    if (getFirst(getTail(getFirst(toCheck))) -> type !=symbolType){
+      printf("bad syntax in let*: not an indentifier\n");
+      return NULL;
+    }else{
+      Environment* newEnv = createFrame(env);
+      Value* listofBinds = toCheck;
+      
+      while (listofBinds){
+	insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, NULL);
+	listofBinds = getTail(listofBinds);
+      }
+     
+      listofBinds = toCheck;
+      while (listofBinds){
+	
+	removeLast(getTail(getFirst(listofBinds)));
+	
+	Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), newEnv);
+	
+	if (toBind){
+	  if (toBind->type == cellType){
+	    if (getTail(toBind)){
+	      printf("syntax error in let*: too many values for single identifier.\n");
+	    }else{
+	      toBind = getFirst(toBind);
+	    }
+	  }
+	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
+	  
+	}else{ 
+	  printf("syntax error in let*\n");
+	  return NULL;
+	}
+		
+	listofBinds = getTail(listofBinds);
+
+      }
+      Value* listofExpressions = getTail(args);
+      
+      removeLast(listofExpressions);
+      
+      if (!listofExpressions){
+	printf(" let*: bad syntax.\n ");
+	return NULL;
+      }
+      while(listofExpressions){
+	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
+
+	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
+	  if(getTail(listofExpressions)){
+	    
+	    listofExpressions = getTail(listofExpressions);
+	  
+	  }else{
+	    return toReturn;
+	  }
+	}else{
+	  listofExpressions = getTail(listofExpressions);
+	}	
+      }
+      printf(" let*: bad syntax\n");
+
+      return NULL;
+    }
+  }
+  return NULL;
+}
+
+Value *consFunction(Value *args){
+  return NULL;
+}
+
+Value *lessOrEqualThan(Value *args){
+  return NULL;
+}
+
+Value *bigOrEqualThan(Value *args){
+  return NULL;
+}
+
+Value *arithmeticEqual(Value *args){
+  return NULL;
+}
+
+Value *checkEqual(Value *args){
+  return NULL;
+}
+

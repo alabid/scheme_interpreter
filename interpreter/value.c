@@ -897,3 +897,13 @@ void removeLast(Value* value){
     previous->cons->cdr = NULL;
   } 
 }
+
+void destroyEnvironment(Environment *env){
+  if (env){
+    assert(env->bindings!=NULL);
+    assert(env->bindings->type==tableType);
+    destroyTable(env->bindings->tableValue);
+    free(env->bindings);
+    free(env);
+  }
+}
