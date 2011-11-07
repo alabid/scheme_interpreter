@@ -545,7 +545,7 @@ Value* evalLet(Value* args, Environment* env){
 	  if (typeCheck(toBind) == 1 ||toBind ->type == closureType){
 	    insertItem(newenv->bindings->tableValue, (getFirst(getFirst(listofBinds)))->symbolValue, toBind);
 	  }else if(toBind->type == symbolType){
-	    Value *value = eval(envLookup(toBind->symbolValue, newenv), env);
+	    Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
 	    if (value){
 	      insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
 	    }else{
@@ -556,24 +556,38 @@ Value* evalLet(Value* args, Environment* env){
 	    }
 	  }else{
 	    printf("sytax error");
+	    return NULL;
 	  }
 	  listofBinds = getTail(listofBinds);
       }
       Value* listofExpressions = getTail(args);
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newenv);
-	if(typeCheck(toReturn) != 3){
+	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
 	    listofExpressions = getTail(listofExpressions);
 	  }else{
 	    return toReturn;
 	  }
+	}else if(typeCheck(toReturn) == 3){
+	  Value* known = envlookup(toReturn, newenv);
+	  if (known){
+	    if(getTail(listofExpressions)){
+	      listofExpressions = getTail(listofExpressions);
+	    }else{
+	      return known;
+	    }
+	  }else{
+	    printf("sytaxerror unknown identifier");
+	    return NULL;
+	    }
 	}else{
-	  
-	  ; 
-	
-      }
-	;  
+	  printf("bad syntax");
+	  return NULL;
+	}    	
+      }	
+    }
+  }
 }
 
 // This function evaluates if statement.
