@@ -455,43 +455,53 @@ void freeValue(Value *value){
   }
  
   if (value->type == stringType){
-    free(value->stringValue);
-    free(value);
+  
+    //free(value->stringValue);
+    //free(value);
+    
   }else if (value->type == symbolType){
-    free(value->symbolValue);
-    free(value);
+
+    //free(value->symbolValue);
+    //free(value);
   }else if (value->type == cellType){
     printf("going to free: ");
     
     printValue(value);
 
     printf("\n");
- 
+    //assert(1==6);
     assert(value->cons!=NULL);
 
     assert(value->cons->cdr!=NULL);
- 
-    assert(value->cons->cdr->type==cellType);
- 
-    assert(value->cons->cdr->cons->car!=NULL);
-    //printf("car is not null\n");
-    //assert(value->cons->cdr->cons->car->type==symbolType);
+    assert(value->cons->car!=NULL);
+    //assert(value->cons->cdr->type==cellType);
+    //assert(value->cons->car->type!=cellType);
+    //assert(value->cons->cdr->cons->car!=NULL);
+    //assert(value->cons->cdr->cons->cdr!=NULL);
+  
+    
     //assert(1==2);   
     //assert(value->cons->cdr->cons->car->type==symbolType);
    
-    cleanup(value);
+    //cleanup(value);
     
 
   }else if (value->type == primitiveType){
+ 
     free(value);
   }else if (value->type == closureType){
-    free(value->closureValue);
+ 
+    //free(value->closureValue);
     free(value);
   }else if (value->type == tableType){
-    destroyTable(value->tableValue);
+  
+    //destroyTable(value->tableValue);
     free(value);
   }else{
+    printValue(value);
     free(value);
+  
+    //  assert(1==10);
   }
    
 }
@@ -607,7 +617,7 @@ void printList(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
-      if (!curValue->cons->car){
+      if (!curValue->type == cellType && !curValue->cons->car){	
 	return;
       }
       switch (curValue->cons->car->type)
@@ -649,11 +659,12 @@ void printList(Value* value){
 	default:
 	  break;
 	}
-      if (curValue->cons->cdr &&
+      if (curValue->cons->cdr && 
 	  curValue->cons->cdr->cons->car->type !=closeType &&
+	  curValue->cons->car &&
 	  curValue->cons->car->type!=openType){
 	printf(" ");
-	 } 
+	} 
       curValue = curValue->cons->cdr;
     } 
   }

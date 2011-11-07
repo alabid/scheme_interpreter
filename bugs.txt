@@ -7,5 +7,16 @@ BUGS WE NEED TO FIX
    
 2. We cannot handle execution of closures and functions well.
    eg. ((lambda (x) x)) does not produce the correct result.
+   -- Now it can handle cases like:
+      	  ((lambda () (+ 5 ((lambda () (+ ((lambda () 5)) 5))))))  =>15
+	  
 
-3. MEMOORRRRRRRRRRRRRRYYYYYYYYYYY LLLLLLLLLLLEAAAAAAAAAKKKKKKKKK!!
+3. letrec should evaluate things simutaneously.
+   (letrec ((x y) (y 5)) x)  => 5 but now it throws an error.
+
+4. car/cdr do not work well.
+     (car (quote (5 6)))   => 5 but now it gives a segmentation fault.
+
+
+   
+5. MEMOORRRRRRRRRRRRRRYYYYYYYYYYY LLLLLLLLLLLEAAAAAAAAAKKKKKKKKK!!
