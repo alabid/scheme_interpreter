@@ -32,5 +32,10 @@ Value *loadFunction(Value *args);
 
 int typeCheck(Value* value);
 
-void bind(char identifier, Value *function, Environment *env);
+void bind(char identifier[], Value *function, Environment *env);
 
+int validateArgs(Value *value, Environment *env);
+
+Value *subtract(Value *args);
+
+Value *multiply(Value *args);

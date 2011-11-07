@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <assert.h>
 // This function prints a given token.
 void printToken(Value* curValue){
   if (curValue){
@@ -80,7 +80,7 @@ void printValue(Value *curValue) {
       case cellType:
 	printList(curValue);
 	break;
-	case closureType:
+      case closureType:
       case primitiveType:
 	printf("#<procedure>\n");
 	break;
@@ -164,7 +164,7 @@ int insertItem(HashTable* table, char* id, Value* value){
     keyVal->symbolValue = copiedID;
     
     (table->entries)[key].car = keyVal;
-    (table->entries)[key].cdr = deepCopy(value);
+    (table->entries)[key].cdr = value;
     (table->size)++;
     return 1;
   }
@@ -209,10 +209,10 @@ int deleteItem(HashTable* table, char* id){
     if (entry->car && entry->car->type == symbolType){
       free(entry->car->symbolValue); 
       free(entry->car);
-      freeValue(entry->cdr);
+      //freeValue(entry->cdr);
      }
      entry->car = NULL;
-     entry->cdr = NULL;
+     //entry->cdr = NULL;
      (table->size)--;
      
     return 1;
@@ -453,6 +453,7 @@ void freeValue(Value *value){
   if (!value){
     return;
   }
+ 
   if (value->type == stringType){
     free(value->stringValue);
     free(value);
@@ -460,7 +461,27 @@ void freeValue(Value *value){
     free(value->symbolValue);
     free(value);
   }else if (value->type == cellType){
+    printf("going to free: ");
+    
+    printValue(value);
+
+    printf("\n");
+ 
+    assert(value->cons!=NULL);
+
+    assert(value->cons->cdr!=NULL);
+ 
+    assert(value->cons->cdr->type==cellType);
+ 
+    assert(value->cons->cdr->cons->car!=NULL);
+    //printf("car is not null\n");
+    //assert(value->cons->cdr->cons->car->type==symbolType);
+    //assert(1==2);   
+    //assert(value->cons->cdr->cons->car->type==symbolType);
+   
     cleanup(value);
+    
+
   }else if (value->type == primitiveType){
     free(value);
   }else if (value->type == closureType){
@@ -586,6 +607,9 @@ void printList(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
     while (curValue){
+      if (!curValue->cons->car){
+	return;
+      }
       switch (curValue->cons->car->type)
 	{
 	case booleanType:
@@ -750,7 +774,6 @@ Value* deepCopyFun(Value *function){
       value->closureValue = (Closure *)malloc(sizeof(Closure));
       value->closureValue->body = function->closureValue->body;
       value->closureValue->args = function->closureValue->args;
-      value->closureValue->bindings = function->closureValue->bindings;
       value->closureValue->parent = function->closureValue->parent;
       return value;
     }else{
@@ -809,4 +832,57 @@ Value* deepCopy(Value *value){
     return newValue;
   }
   return NULL;
+}
+
+
+Closure *initializeClosure(Environment* env){
+  Closure *closure = (Closure *)malloc(sizeof(Closure));
+  closure->parent = env;
+  closure->args = initializeList();
+  //closure->body = (Value *)malloc(sizeof(Value));
+  //closure->body->type = cellType;
+  return closure;
+}
+
+
+// cleanup frees the contents of the closure, but does not free closure itself.
+void cleanupClosure(Closure *closure){
+  if (closure && closure->args && closure->body){
+    cleanup(closure->args->head);
+    free(closure->args); 
+    //free(closure->body);
+  }
+}
+
+// destroy frees the contents of the closure and closure itself.
+void destroyClosure(Closure *closure){
+  if (closure){
+    cleanupClosure(closure);
+    free(closure);
+  }
+}
+
+// remove the last thing in the list, typically the close parenthesis.
+// If the list is empty or only has one element, nothing will happen.
+void removeLast(Value* value){
+  if (!value || value->type!=cellType){
+    return;
+  }
+  Value *previous = NULL;
+  Value *current = value;
+  Value *next = getTail(value);
+  while (next){
+    previous = current;
+    current = next;
+    next = getTail(next);
+  }
+  if (!previous){
+    return;
+  }else{
+    assert(current->type == cellType);
+    free(current->cons->car);
+    free(current->cons);
+    free(current);
+    previous->cons->cdr = NULL;
+  } 
 }
