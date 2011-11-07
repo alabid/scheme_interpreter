@@ -409,7 +409,7 @@ Value* evalLet(Value* args, Environment* env){
       printf("bad syntax not an indentifier");
       return NULL;
     }else{
-      Environment* newenv = creatFrame(env);
+      Environment* newenv = createFrame(env);
       Value* listofBinds = getFirst(args);
       while(listofBinds){
 	  Value* toBind = eval(getTail(getFirst(listofBinds)), newenv);
@@ -434,22 +434,17 @@ Value* evalLet(Value* args, Environment* env){
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newenv);
 	if(typeCheck(toReturn) != 3){
-	  if(getTail(listofExpression)){
+	  if(getTail(listofExpressions)){
 	    listofExpressions = getTail(listofExpressions);
 	  }else{
 	    return toReturn;
 	  }
 	}else{
 	  
-	  
+	  ; 
 	
       }
-      
-  
-    
-	  
-    
-    
+	;  
 }
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
