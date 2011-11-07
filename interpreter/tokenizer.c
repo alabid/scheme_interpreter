@@ -137,7 +137,10 @@ List *tokenize(char *expression) {
     // == GOING INTO THE SWITCH STATEMENT ==
     switch(expression[i]) { // these are for chars and strings
     case '(':
-      // === USE ME === OPEN PARENS	
+      // === USE ME === OPEN PARENS
+      while (isspace(expression[i+1])){
+	i++;
+      }
       newValue = (Value *)malloc(sizeof(Value));
       if (expression[i+1] == ')') {
 	i++;

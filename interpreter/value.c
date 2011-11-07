@@ -17,7 +17,7 @@ void printToken(Value* curValue){
 	}
 	break;
       case cellType:
-	printf("Cell type");
+	printf("Cell type\n");
 	break;
       case integerType:
 	printf("%d:integer\n",curValue->intValue);
@@ -456,23 +456,23 @@ void freeValue(Value *value){
  
   if (value->type == stringType){
   
-    //free(value->stringValue);
-    //free(value);
+    free(value->stringValue);
+    free(value);
     
   }else if (value->type == symbolType){
 
-    //free(value->symbolValue);
-    //free(value);
+    free(value->symbolValue);
+    free(value);
   }else if (value->type == cellType){
-    printf("going to free: ");
+    //printf("going to free: ");
     
-    printValue(value);
+    //printValue(value);
 
-    printf("\n");
-    //assert(1==6);
+    //printf("\n");
+
     assert(value->cons!=NULL);
 
-    assert(value->cons->cdr!=NULL);
+    //assert(value->cons->cdr!=NULL);
     assert(value->cons->car!=NULL);
     //assert(value->cons->cdr->type==cellType);
     //assert(value->cons->car->type!=cellType);
@@ -491,17 +491,16 @@ void freeValue(Value *value){
     free(value);
   }else if (value->type == closureType){
  
-    //free(value->closureValue);
+    free(value->closureValue);
     free(value);
   }else if (value->type == tableType){
-  
-    //destroyTable(value->tableValue);
+    destroyTable(value->tableValue);
     free(value);
   }else{
-    printValue(value);
+
     free(value);
   
-    //  assert(1==10);
+
   }
    
 }
@@ -513,54 +512,7 @@ void destroy(List* list){
   }
 }
 
-/*
-// We haven't finish this function yet. 
-// We will not need this function until we want to destroy all the things after interpreting. 
-void cleanupValue(Value* value){
-  if (value){
-    switch  (value->type)
-      {
-      case cellType:
-	cleanupValue(car(value));
-	cleanupValue(cdr(value));
-	free(value->cons);
-	break;
-      case tableType:
-	if (value->tableValue){
-	  cleanupTable(value->tableValue);
-	  free(value->tableValue);
-	}
-	break;
-      case envType:
-	if (value->envValue){
-	  cleanupValue(value->envValue->bindings);
-	  free(value->envValue);
-	}
-	break;
-      case closureType:
-	if (value->closureValue){
-	  cleanupValue(value->closureValue->body);
-	  cleanupValue(value->closureValue->args);
-	  if (value->closureValue->parent){
-	    if (value->closureValue->parent->bindings){
-	      cleanupValue(value->closureValue->parent->bindings);
-	    }
-	    free(value->closureValue->parent);
-	  }
-	}
-      case stringType:
-	free(value->stringValue);
-	break;
-      case symbolType:
-	free(value->symbolValue);
 
-      }
-    
-    free(value);   
-    
-  }
-}
-*/
 /*
   This returns the car of a value (that is a list)
  */

@@ -53,7 +53,7 @@ Value *evalCond(Value *args, Environment *env);
 
 Value *evalOr(Value *args, Environment *env);
 
-Value *evalSetShirek(Value *args, Environment *env);
+Value *evalSetBang(Value *args, Environment *env);
 
 Value *evalLetStar(Value *args, Environment *env);
 

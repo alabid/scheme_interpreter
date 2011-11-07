@@ -18,9 +18,7 @@ One by one.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  //printf("Here is expression:  ");
-  //printValue(expr);
-  //printf("\n");
+  
   
   if (!expr){
     return NULL;
@@ -29,12 +27,9 @@ Value* eval(Value *expr, Environment *env){
   switch (expr->type) 
     {
     case symbolType:
-      //printf("unknown identifier");
+      
       args = envLookup(expr->symbolValue, env);
       if (args){
-	//printf("going here\n");
-	//printValue(expr);
-	//printf("\nending here\n");
 	return args;
       }
       else{
@@ -46,31 +41,19 @@ Value* eval(Value *expr, Environment *env){
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
       }
-      //printf("See my expression:  ");
       
-      //printValue(expr);
-      //printf("\n");
-      // if (getFirst(expr)->type ==cellType){
-      //printf("yeah!\n");
-      //}else{printf("no!\n");}
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = car(expr);
 	args = getTail(getTail(expr));
-	//printf("Here is operator:  ");
-	//printValue(expr);
-	//printf("\n");
+
 	if (!operator){
 	  printf("syntax error, missing components here");
 	  return NULL;
 	}
 	while (operator->type == cellType){
-	  //printf("Here is operator:  ");
-	  //printValue(operator);
-	  //printf("\n");
+	 
 	  operator = eval(operator, env);
-	  //printf("Here is new operator:  ");
-	  //printValue(operator);
-	  //printf("\n");
+
 	  if (!operator){
 	    printf("Invalid procedure!\n");
 	    return NULL;
@@ -79,10 +62,7 @@ Value* eval(Value *expr, Environment *env){
 	}
 	if (operator->type == symbolType){
 	  
-	  printf("checking args?: ");
-	  printValue(args);
-	  printf("\n"); //if (args  == NULL){
-	  //return eval(operator,env); //	  }else 
+	 
 	  if (strcmp(operator->symbolValue,"define")==0){
 	    return evalDefine(args, env);
 	  }else if (strcmp(operator->symbolValue,"lambda")==0){
@@ -109,7 +89,7 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	    //printf("validation result is shown: %d\n",validateArgs(args, env));
+	  
 	    if (validateArgs(args, env)==-1){
 	      printf("Syntax error! Invalid arguments for the procedure: ");
 	      printValue(operator);
@@ -123,8 +103,7 @@ Value* eval(Value *expr, Environment *env){
 	      printValue(operator);
 	      printf("\n");
 	    }
-	    //printValue(evaledArgs);
-	    //printf("\n");
+	    
 	    return apply(evaledOperator, evaledArgs);
 	  } 
 	}else if (typeCheck(operator)==1){
@@ -133,7 +112,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf(" cannot be a procedure.\n");
 	  return NULL; 
 	}else if (typeCheck(operator)==2){
-	  printf("Argument list is ");
+	  //printf("Argument list is ");
 	  Value *evaledArgs;
 	  if (args &&  getFirst(args) && getFirst(args)->type ==closeType){
 	    free(getFirst(args));
@@ -141,22 +120,20 @@ Value* eval(Value *expr, Environment *env){
 	    free(args);
 	    getTail(expr)->cons->cdr = NULL;
 	    evaledArgs = NULL;
-	    printf(" .\n");
+
 	  }else{
-	    printValue(args);
-	    printf(" .\n");
+	    
 	    evaledArgs = evalEach(args, env);
 	  }
 	  return apply(operator, evaledArgs);	  
 	}
       }else if (typeCheck(getFirst(expr))==1){
-	//printValue(expr);
-	  //printf("\n");
-	  return evalEach(expr,env);
-	}else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
+	
+	return evalEach(expr,env);
+      }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
 	return eval(getFirst(expr),env);
-	}else if (getFirst(expr) && getFirst(expr)->type == symbolType){
-	  operator = getFirst(expr);
+      }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
+	operator = getFirst(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
 	
 	if (returnValue){
@@ -179,26 +156,24 @@ Value* eval(Value *expr, Environment *env){
 	     printValue(expr);
 	     printf("\n");
 	  }else if (strcmp(operator->symbolValue,"let")==0){
-	     printf("let: bad syntax in ");
+	    printf("let: bad syntax in ");
 	     printValue(expr);
 	     printf("\n");
 	  }else{
-	     
+	    
 	    printf("Unknown identifier %s.\n",operator->symbolValue);
-	   }
+	  }
 	  
-	   return NULL;
-	 }
-       }
-       
+	  return NULL;
+	}
+      }
+      
     case closeType:
-      //printValue(expr);
-      //printf("\n");
+      
       return NULL;
       break;
     default:
-      //printValue(expr);
-      //printf("\n");
+      
       if (getTail(expr)){
 	assert(getFirst(getTail(expr))!=NULL);
 	assert(getFirst(getTail(expr))->type==closeType);
@@ -207,7 +182,7 @@ Value* eval(Value *expr, Environment *env){
 	free(toRemove->cons);
 	free(toRemove);
 	expr->cons->cdr = NULL;
-	//assert(1==2);
+	
       }
       return expr;      
     }
@@ -293,15 +268,15 @@ Value* apply(Value* function, Value* actualArgs){
     Value *curValue = actualArgs;
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
-      printf("the binding: ");
-      printValue(getFirst(curArg));
-      printf(" => ");
-      printValue(getFirst(curValue));
+      //printf("the binding: ");
+      //printValue(getFirst(curArg));
+      //printf(" => ");
+      //printValue(getFirst(curValue));
 
       insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
-      printf("  and find it =>");
-      printValue(lookup(frame->bindings->tableValue, getFirst(curArg)->symbolValue));
-      printf("\n");
+      //printf("  and find it =>");
+      //printValue(lookup(frame->bindings->tableValue, getFirst(curArg)->symbolValue));
+      //printf("\n");
       curArg = getTail(curArg);
       curValue = getTail(curValue);
       
@@ -463,30 +438,22 @@ Value* evalDefine(Value* args, Environment* env){
 Value* evalEach(Value* args, Environment* env){
   Value *temp, *toClean, *tail, *previous = args;
   Value *head = args, *openParen;
-  int i=0;
-  //printf("before eval each: ");
-  //printValue(args);
-  //printf("\n");
-  
   while (args){ 
-    i++;
+
     assert(args->type==cellType);    
     //temp = args->cons->car;
     if (getFirst(args) && (getFirst(args))->type==cellType){
       tail = getTail(args);
-      
-      //printf("before eval each 2: ");
-      //printValue(getFirst(args));
-      //printf("\n");
+   
       openParen = getFirst(getFirst(args));
   
       if (openParen && openParen->type == openType){
 
 	temp =  deepCopy(eval(getFirst(args), env));
 
-	printf("printing temp:");
-	printValue(temp);
-	printf("\n");
+	//printf("printing temp:");
+	//printValue(temp);
+	//printf("\n");
 	//assert(getFirst(getFirst(args))!=NULL);
 	//assert(getFirst(getFirst(args))->type==openType);
 	assert(args!=NULL);
@@ -495,8 +462,6 @@ Value* evalEach(Value* args, Environment* env){
 	//assert(args->cons->car->type ==integerType);
 	//free(args->cons->car);
 	freeValue(args->cons->car);
-
-	//	assert(1==43);
 	
 	args->cons->car = temp;
 	if (!temp){
@@ -567,20 +532,6 @@ Value* evalEach(Value* args, Environment* env){
     }
     
   }
-  /*
-    printf("before going back ");
-    assert(head!=NULL);
-    assert(head->type==cellType);
-    assert(head->cons!=NULL);
-    assert(head->cons->car!=NULL);
-    printf("this position is: ");
-    printValue(head->cons->car);
-    printf("\n");
-  
-    printValue(head);
-    
-    printf("\n");
-  */
   return head;
 }
 
@@ -596,6 +547,10 @@ Value* evalLetrec(Value* args, Environment* env){
     return NULL;
   }
   if (getFirst(args)->type== nullType){
+    while (getTail(getTail(getTail(args)))){
+      eval(getTail(args),env);
+      args = getTail(args);
+    }
     return eval(getTail(args), env);
   }
   printf("in let: ");
@@ -728,7 +683,7 @@ Value* evalLetrec(Value* args, Environment* env){
 }
 Value* evalLet(Value* args, Environment* env){
   Value *toCheck;
-  //removeLast(args);
+ 
   int count = listLength(args);
   if (count < 2){
     printf("let: bad syntax in: (let ");
@@ -737,11 +692,13 @@ Value* evalLet(Value* args, Environment* env){
     return NULL;
   }
   if (getFirst(args)->type== nullType){
+    while (getTail(getTail(getTail(args)))){
+	eval(getTail(args),env);
+	args = getTail(args);
+    }
     return eval(getTail(args), env);
   }
-  printf("in let: ");
-  printValue(getFirst(getTail(getFirst(getTail(getFirst(args))))));
-  printf("\n");
+  
   if (getFirst(args)-> type != cellType){
     printf("syntax error in let: not a sequence of indentifier\n");
     return NULL;
@@ -754,11 +711,9 @@ Value* evalLet(Value* args, Environment* env){
       return NULL;
     } 
     toCheck = getTail(getFirst(args));
-    printf("in let 2: ");
+    
     removeLast(toCheck);
-    printValue(toCheck);
    
-    printf("\n");
     if (getFirst(getTail(getFirst(toCheck))) -> type !=symbolType){
       printf("bad syntax in let: not an indentifier\n");
       return NULL;
@@ -766,23 +721,13 @@ Value* evalLet(Value* args, Environment* env){
       Environment* newEnv = createFrame(env);
       Value* listofBinds = toCheck;
       while(listofBinds){
-	printf("in let 3: ");
-	printValue((getFirst(listofBinds)));
-	
-	printf("\n");
-	printf("in let 4: ");
+
 	removeLast(getTail(getFirst(listofBinds)));
-	printValue(getTail(getFirst(listofBinds)));
-	
-	printf("\n");
+
 	Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), env);
 	
 	if (toBind){
-	  printf("in let 4.5: ");
-	  //removeLast(getTail(getFirst(listofBinds)));
-	  printValue(toBind);
-	  printf("  and the type of it is: %d\n",toBind->type);
-	  printf("\n");
+	 
 	  if (toBind->type == cellType){
 	    if (getTail(toBind)){
 	      printf("syntax error in let: too many values for single identifier.\n");
@@ -791,55 +736,32 @@ Value* evalLet(Value* args, Environment* env){
 	    }
 	  }
 	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
-	  //}else if(toBind->type == symbolType){
-	  //Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
-	  //if (value){
-	  //  insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
-	  //}else{
-	  //printf("syntax error: unknown identifier\n");
-	  //free(toBind);
-	  //free(value);
-	  //return NULL;
-	  //}
+	  
 	}else{
 	  printf("syntax error");
 	  return NULL;
 	}
 	
 	listofBinds = getTail(listofBinds);
-	printValue(listofBinds);
-	printf("\n");
+	
       }
       Value* listofExpressions = getTail(args);
-      printf("in let 5: ");
+     
       removeLast(listofExpressions);
-      printValue(listofExpressions);
-      printf("  and the type of it is: %d\n",getFirst(listofExpressions)->type);
-      printf("\n");
+     
       if (!listofExpressions){
 	printf("syntax error in let: bad syntax.\n ");
 	return NULL;
       }
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
-	printf("in let 6: ");
-      //removeLast(getTail(getFirst(listofBinds)));
-	
-	printValue(toReturn);
-	if (toReturn)
-	  printf("  and the type of it is: %d\n",toReturn->type);
-	printf("\n");
+
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
-	    printf("in let 7: ");
-	    //removeLast(getTail(getFirst(listofBinds)));
-	    
-	    printValue(getTail(listofExpressions));
-	    if (getTail(listofExpressions))
-	      printf("  and the type of it is: %d\n",getTail(listofExpressions)->type);
-	    printf("\n");
+	  
+	  
 	    listofExpressions = getTail(listofExpressions);
-	    //printf("hello world");
+	   
 	  }else{
 	    return toReturn;
 	  }
@@ -901,9 +823,9 @@ Value* evalLambda(Value* args, Environment* env){
   }
   assert(args->type = cellType);
   Value *toCheck = getFirst(args);
-  printf("start printing for lambda: ");
-  printValue(toCheck);
-  printf("\n");
+  //printf("start printing for lambda: ");
+  //printValue(toCheck);
+  //printf("\n");
   if (getFirst(toCheck) && getFirst(toCheck)->type == openType){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
@@ -928,10 +850,10 @@ Value* evalLambda(Value* args, Environment* env){
       destroyClosure(closure);
       return NULL;
     }
-    // removeLast(toCheck);
-    printf("Show me the parse tree: ");
-    printValue(getFirst(toCheck));
-    printf("\n");
+   
+    //printf("Show me the parse tree: ");
+    //printValue(getFirst(toCheck));
+    //printf("\n");
     closure->body = getFirst(toCheck);
     returnValue->closureValue = closure;
  
@@ -945,12 +867,12 @@ Value* evalLambda(Value* args, Environment* env){
     //removeLast(toCheck);
     closure->body = getFirst(toCheck);
     returnValue->closureValue = closure;
-    printf("Show me the parse tree: ");
-    printValue(getFirst(toCheck));
-    printf("\n");
+    // printf("Show me the parse tree: ");
+    //printValue(getFirst(toCheck));
+    //printf("\n");
     return returnValue; 
   }else{
-    //printValue();
+    
     printf("Syntax error for lambda! Missing parameters.\n");
     return NULL;
   }
@@ -1035,13 +957,11 @@ Value *add(Value *args){
       args = getTail(args);
     }
     
-    printf("this is the head before adding: ");
-    printValue(head);
-    printf("\n");
+    
     cleanup(getTail(head));
   }
   Value *value = (Value*) malloc(sizeof(Value));
-  //result = getFirst(head);
+ 
   if (isFloat){
     value->type = floatType;
       value->dblValue = dblSum; 
@@ -1055,9 +975,7 @@ Value *add(Value *args){
     
     head->cons->car = value;
     head->cons->cdr = NULL;
-    printf("this is the head after adding: ");
-    printValue(head);
-    printf("\n");
+   
   }
   return value;
 }
@@ -1123,13 +1041,11 @@ Value *subtract(Value *args){
       args = getTail(args);
     }
     
-    printf("this is the head before subing: ");
-    printValue(head);
-    printf("\n");
+    
     cleanup(getTail(head));
   }
   Value *value = (Value*) malloc(sizeof(Value));
-  //result = getFirst(head);
+
   if (isFloat){
     value->type = floatType;
       value->dblValue = dblDiff; 
@@ -1143,9 +1059,7 @@ Value *subtract(Value *args){
     
     head->cons->car = value;
     head->cons->cdr = NULL;
-    printf("this is the head after adding: ");
-    printValue(head);
-    printf("\n");
+   
   }
   return value;
 }
@@ -1169,20 +1083,18 @@ Value *multiply(Value *args){
 	if (!isFloat){
 	  intProd *= getFirst(args)->intValue;
 	}else{
-	  printf("The intermediate result: %f\n",dblProd);
-	  printf("And times: %d\n", (getFirst(args)->intValue));
+	
 	  dblProd = dblProd * (getFirst(args)->intValue);
-	  printf("The intermediate result: %f\n",dblProd);
+	
 	}
       }else if (getFirst(args)->type == floatType){
 	if (!isFloat){
 	  isFloat = 1;
 	  dblProd = intProd;
 	}
-	printf("The intermediate result: %f\n",dblProd);
-	printf("And times: %f\n", (getFirst(args)->dblValue));
+
 	dblProd *= getFirst(args)->dblValue;	
-	printf("The intermediate result: %f\n",dblProd);
+
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
@@ -1192,9 +1104,7 @@ Value *multiply(Value *args){
       args = getTail(args);
     }
     
-    printf("this is the head before multiplying: ");
-    printValue(head);
-    printf("\n");
+   
     cleanup(getTail(head));
   }
   Value *value = (Value*) malloc(sizeof(Value));
@@ -1212,9 +1122,7 @@ Value *multiply(Value *args){
     
     head->cons->car = value;
     head->cons->cdr = NULL;
-    printf("this is the head after multiplying: ");
-    printValue(head);
-    printf("\n");
+ 
   }
   return value;
 }
@@ -1469,7 +1377,7 @@ Value *evalOr(Value *args, Environment *env){
   return NULL;
 }
 
-Value *evalSetShirek(Value *args, Environment *env){
+Value *evalSetBang(Value *args, Environment *env){
   return NULL;
 }
 
@@ -1483,9 +1391,13 @@ Value *evalLetStar(Value *args, Environment *env){
     printf("\n");
     return NULL;
   }
-  if (getFirst(args)->type== nullType){
+   if (getFirst(args)->type== nullType){
+    while (getTail(getTail(getTail(args)))){
+	eval(getTail(args),env);
+	args = getTail(args);
+    }
     return eval(getTail(args), env);
-  }
+   }
  
   if (getFirst(args)-> type != cellType){
     printf("syntax error in let*: not a sequence of indentifier\n");
