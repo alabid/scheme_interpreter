@@ -521,6 +521,9 @@ Value* evalEach(Value* args, Environment* env){
 }
 // not finished.
 Value* evalLet(Value* args, Environment* env){
+  return NULL;
+}
+/*
   int count = listLength(args);
   if (count < 2){
     printf("sytax error: bad syntax");
@@ -575,6 +578,7 @@ Value* evalLet(Value* args, Environment* env){
       }
 	;  
 }
+*/
 
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
@@ -933,7 +937,7 @@ Value *loadFunction(Value *args){
   // eval each line line by line
   char *expression = (char *)malloc(256 * sizeof(char));
   int count = listLength(args);
-
+  
   if (count > 1) {
     printf("load: load one file at a time\n");
     free(expression);
@@ -945,11 +949,24 @@ Value *loadFunction(Value *args){
     cleanup(args);
     return NULL;
   }
-  FILE *fp;
-  if (car(args)->type == stringType) {
-    fp = fopen(car(args)->stringValue, "r");
 
+  if (getFirst(args)->type == stringType) {
+    FILE *fp;
+    char *fileName = getFirst(args)->stringValue;
+    char *realName = NULL;
+    int i;
+
+    // remove quotes around fileName
+    fileName++;
+    fileName[strlen(fileName) -1] = '\0';
+
+    fp = fopen(fileName, "r");
+    if (!fp) {
+      fprintf(stderr, "load: cannot open %s\n", fileName);
+      return NULL;
+    }
     while (fgets(expression, 256, fp)) {
+      printf("line: %s\n", expression);
       fputs(expression, stdin);
     } 
     free(expression);
