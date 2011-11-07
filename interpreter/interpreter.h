@@ -10,6 +10,8 @@ Value *evalDefine(Value *args, Environment *env);
 
 Value* evalQuote(Value* args);
 
+Value* evalLetrec(Value* args, Environment* env);
+
 Value* evalLet(Value* args, Environment* env);
 
 Value* evalIf(Value* args, Environment* env);
@@ -39,3 +41,5 @@ int validateArgs(Value *value, Environment *env);
 Value *subtract(Value *args);
 
 Value *multiply(Value *args);
+
+Value *divide(Value *args);

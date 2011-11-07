@@ -18,9 +18,9 @@ One by one.
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  //printf("Here is expression:  ");
-  //printValue(expr);
-  //printf("\n");
+  printf("Here is expression:  ");
+  printValue(expr);
+  printf("\n");
   
   if (!expr){
     return NULL;
@@ -46,10 +46,13 @@ Value* eval(Value *expr, Environment *env){
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
       }
-      //printf("Here is expression:  ");
-      //printValue(getFirst(expr));
-      //printf("\n");
+      //printf("See my expression:  ");
       
+      //printValue(expr);
+      //printf("\n");
+      // if (getFirst(expr)->type ==cellType){
+      //printf("yeah!\n");
+      //}else{printf("no!\n");}
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = car(expr);
 
@@ -59,13 +62,16 @@ Value* eval(Value *expr, Environment *env){
 	}
 	if (operator->type == cellType){
 	  operator = eval(operator, env);
+	  if (!operator){
+	    printf("Invalid procedure!\n");
+	    return NULL;
+	  }
 	}
-	
 	if (operator->type == symbolType){
 	  args = getTail(getTail(expr));
-	  //printf("checking args?: ");
-	  //printValue(args);
-	  //printf("\n"); //if (args  == NULL){
+	  printf("checking args?: ");
+	  printValue(args);
+	  printf("\n"); //if (args  == NULL){
 	  //return eval(operator,env); //	  }else 
 	  if (strcmp(operator->symbolValue,"define")==0){
 	    return evalDefine(args, env);
@@ -81,7 +87,11 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"let")==0){
 	    /*eval let goes here*/
 	    return evalLet(args, env);
-	  }else{
+	  }else if (strcmp(operator->symbolValue,"letrec")==0){
+	    /*eval let goes here*/
+	    return evalLetrec(args, env);
+	  }
+	  else{
 	    //printf("validation result is shown: %d\n",validateArgs(args, env));
 	    if (validateArgs(args, env)==-1){
 	      printf("Syntax error! Invalid arguments for the procedure: ");
@@ -253,9 +263,18 @@ Value* apply(Value* function, Value* actualArgs){
     Value *curValue = actualArgs;
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
+      printf("the binding: ");
+      printValue(getFirst(curArg));
+      printf(" => ");
+      printValue(getFirst(curValue));
+
       insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
+      printf("  and find it =>");
+      printValue(lookup(frame->bindings->tableValue, getFirst(curArg)->symbolValue));
+      printf("\n");
       curArg = getTail(curArg);
       curValue = getTail(curValue);
+      
     }
     if (curArg || curValue){
       printf("Wrong number of parameters for the procedure.\n");
@@ -383,6 +402,7 @@ Value* evalDefine(Value* args, Environment* env){
     
     if (getFirst(getTail(args)) && getFirst(getTail(args))->type == symbolType){
       Value *value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
+  
       if (value){
 	insertItem(env->bindings->tableValue, (getFirst(args))->symbolValue, value);
       }else{
@@ -394,7 +414,7 @@ Value* evalDefine(Value* args, Environment* env){
       assert(getFirst(args)!=NULL);
       assert(getFirst(args)->type==symbolType);
       assert(env->bindings->tableValue!=NULL);
-      assert(getFirst(args)->symbolValue);
+      //assert(getFirst(args)->symbolValue);
       //printf("printing out value");
       //printValue(eval(getTail(args),env));
       //printf("\n");
@@ -410,9 +430,9 @@ Value* evalEach(Value* args, Environment* env){
   Value *temp, *toClean, *tail, *previous = args;
   Value *head = args, *openParen;
   int i=0;
-  //printf("before eval each: ");
-  //printValue(args);
-  //printf("\n");
+  printf("before eval each: ");
+  printValue(args);
+  printf("\n");
   while (args){ 
     i++;
     assert(args->type==cellType);    
@@ -519,68 +539,101 @@ Value* evalEach(Value* args, Environment* env){
   */
   return head;
 }
-// not finished.
+
+
+Value* evalLetrec(Value* args, Environment* env){
+  return NULL;
+}
 Value* evalLet(Value* args, Environment* env){
+  Value *toCheck;
+  removeLast(args);
   int count = listLength(args);
   if (count < 2){
     printf("sytax error: bad syntax");
     return NULL;
   }
+  printf("in let: ");
+  printValue(getFirst(getTail(getFirst(getTail(getFirst(args))))));
+  printf("\n");
   if (getFirst(args)-> type != cellType){
     printf("sytax error:not a sequence of indentifier");
     return NULL;
   }else{
-    if (getFirst(getFirst(args))-> type != cellType){
+    if (getFirst(getTail(getFirst(args)))-> type != cellType){
       printf("sytax error: not an indentifier for bindings");
       return NULL;
     } 
-    if (getFirst(getFirst(getFirst(args))) -> type !=symbolType){
+    toCheck = getTail(getFirst(args));
+    printf("in let 2: ");
+    removeLast(toCheck);
+    printValue(toCheck);
+   
+    printf("\n");
+    if (getFirst(getTail(getFirst(toCheck))) -> type !=symbolType){
       printf("bad syntax not an indentifier");
       return NULL;
     }else{
-      Environment* newenv = creatFrame(env);
-      Value* listofBinds = getFirst(args);
+      Environment* newenv = createFrame(env);
+      Value* listofBinds = toCheck;
       while(listofBinds){
-	  Value* toBind = eval(getTail(getFirst(listofBinds)), newenv);
-	  if (typeCheck(toBind) == 1 ||toBind ->type == closureType){
-	    insertItem(newenv->bindings->tableValue, (getFirst(getFirst(listofBinds)))->symbolValue, toBind);
-	  }else if(toBind->type == symbolType){
-	    Value *value = eval(envLookup(toBind->symbolValue, newenv), env);
-	    if (value){
-	      insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
-	    }else{
-	      printf("syntax error: unknown identifier\n");
-	      free(toBind);
-	      free(value);
-	      return NULL;
-	    }
-	  }else{
-	    printf("sytax error");
-	  }
-	  listofBinds = getTail(listofBinds);
+	printf("in let 3: ");
+	removeLast(toCheck);
+	printValue((getFirst(listofBinds)));
+	
+	printf("\n");
+	printf("in let 4: ");
+	removeLast(toCheck);
+	printValue(getTail(getFirst(listofBinds)));
+	
+	printf("\n");
+	Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), env);
+	if (toBind){
+	  insertItem(newenv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
+	  //}else if(toBind->type == symbolType){
+	  //Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
+	  //if (value){
+	  //  insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
+	  //}else{
+	  //printf("syntax error: unknown identifier\n");
+	  //free(toBind);
+	  //free(value);
+	  //return NULL;
+	  //}
+	}else{
+	  printf("syntax error");
+	  return NULL;
+	}
+	listofBinds = getTail(listofBinds);
       }
-      Value* listofExpressions = getTail(args);
-      while(listofExpressions){
-	Value* toReturn = eval(getFirst(listofExpressions), newenv);
-	if(typeCheck(toReturn) != 3){
-	  if(getTail(listofExpression)){
+    Value* listofExpressions = getTail(args);
+    while(listofExpressions){
+      Value* toReturn = eval(getFirst(listofExpressions), newenv);
+	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
+	  if(getTail(listofExpressions)){
 	    listofExpressions = getTail(listofExpressions);
 	  }else{
 	    return toReturn;
 	  }
+	}else if(typeCheck(toReturn) == 3){
+	  Value* known = envLookup(toReturn->symbolValue, newenv);
+	  if (known){
+	    if(getTail(listofExpressions)){
+	      listofExpressions = getTail(listofExpressions);
+	    }else{
+	      return known;
+	    }
+	  }else{
+	    printf("sytaxerror unknown identifier");
+	    return NULL;
+	  }
 	}else{
-	  
-	  
-	
-      }
-      
-  
-    
-	  
-    
-    
+	  printf("bad syntax");
+	  return NULL;
+	}    	
+      }	
+    }
+  }
 }
-
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
@@ -655,23 +708,25 @@ Value* evalLambda(Value* args, Environment* env){
       destroyClosure(closure);
       return NULL;
     }
-    removeLast(toCheck);
+    // removeLast(toCheck);
     printf("Show me the parse tree: ");
-    printValue(toCheck);
+    printValue(getFirst(toCheck));
     printf("\n");
-    closure->body = toCheck;
+    closure->body = getFirst(toCheck);
     returnValue->closureValue = closure;
+ 
     return returnValue; 
   }else if (toCheck && toCheck->type==nullType){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
     Closure *closure = initializeClosure(env);
     toCheck = getTail(args);
-    removeLast(toCheck);
-    closure->body = toCheck;
+    
+    //removeLast(toCheck);
+    closure->body = getFirst(toCheck);
     returnValue->closureValue = closure;
     printf("Show me the parse tree: ");
-    printValue(toCheck);
+    printValue(getFirst(toCheck));
     printf("\n");
     return returnValue; 
   }else{
@@ -680,7 +735,7 @@ Value* evalLambda(Value* args, Environment* env){
     return NULL;
   }
 
-  
+
 
 }
 
@@ -698,7 +753,7 @@ Environment *createTopFrame(){
   bind("+", makePrimitiveValue(add), frame);
   bind("-", makePrimitiveValue(subtract), frame);
   bind("*", makePrimitiveValue(multiply), frame);
-  // bind("/", makePrimitiveValue(divide), frame);
+  bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   bind("load", makePrimitiveValue(loadFunction), frame);
   bind("car", makePrimitiveValue(car), frame);
@@ -870,7 +925,7 @@ Value *subtract(Value *args){
 
 Value *multiply(Value *args){
   int intProd = 1;
-  double dblProd = 1;
+  double dblProd = 1.0;
   int isFloat = 0;
   Value  *head;
   head = args;
@@ -887,14 +942,20 @@ Value *multiply(Value *args){
 	if (!isFloat){
 	  intProd *= getFirst(args)->intValue;
 	}else{
-	  dblProd *= getFirst(args)->dblValue;
+	  printf("The intermediate result: %f\n",dblProd);
+	  printf("And times: %d\n", (getFirst(args)->intValue));
+	  dblProd = dblProd * (getFirst(args)->intValue);
+	  printf("The intermediate result: %f\n",dblProd);
 	}
       }else if (getFirst(args)->type == floatType){
 	if (!isFloat){
 	  isFloat = 1;
-	  dblProd *=intProd;
+	  dblProd = intProd;
 	}
+	printf("The intermediate result: %f\n",dblProd);
+	printf("And times: %f\n", (getFirst(args)->dblValue));
 	dblProd *= getFirst(args)->dblValue;	
+	printf("The intermediate result: %f\n",dblProd);
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
@@ -904,7 +965,7 @@ Value *multiply(Value *args){
       args = getTail(args);
     }
     
-    printf("this is the head before adding: ");
+    printf("this is the head before multiplying: ");
     printValue(head);
     printf("\n");
     cleanup(getTail(head));
@@ -925,6 +986,122 @@ Value *multiply(Value *args){
     head->cons->car = value;
     head->cons->cdr = NULL;
     printf("this is the head after multiplying: ");
+    printValue(head);
+    printf("\n");
+  }
+  return value;
+}
+
+
+Value *divide(Value *args){
+  int intQuot = 1;
+  double dblQuot = 1.0;
+  int isFloat = 0;
+  Value  *head;
+
+ 
+  if (args && args->type == cellType && args->cons->car){
+    if (args->cons->car->type == integerType){
+      intQuot = args->cons->car->intValue; 
+    }else if (args->cons->car->type == floatType){
+      dblQuot = args->cons->car->dblValue; 
+      isFloat = 1;
+    }else{
+      printf("/: expects type <number> as arguments\n");
+      return NULL;
+    }
+    args = getTail(args);
+    if (!args){
+      if (isFloat){
+	if (dblQuot == 0){
+	  printf("/: division by zero\n");
+	  return NULL;
+	}
+	dblQuot = 1.0 / dblQuot;
+      }else{
+	if (intQuot == 0){
+	  printf("/: division by zero\n");
+	  return NULL;
+	}
+	isFloat = 1;
+	dblQuot = 1.0 /intQuot;
+      }
+    }
+  }else{
+    printf("Invalid input for <#procedure:->\n");
+    return NULL;
+  }
+  head = args;
+  if (head){
+    while (args && args->type == cellType){
+      if (getFirst(args)== NULL){
+	if (getTail(args)==NULL){
+	  break;
+	}else{
+	  printf("Invalid input for <#procedure:*>\n");
+	  return NULL;
+	}
+      }else if (getFirst(args)->type == integerType){
+	if (getFirst(args)->intValue == 0){
+	  printf("/: division by zero\n");
+	  return NULL;
+	}
+	if (!isFloat){
+	  if (intQuot % getFirst(args)->intValue ==0){
+	    intQuot /= getFirst(args)->intValue;
+	  }else{
+	    isFloat = 1;
+	    dblQuot /= getFirst(args)->intValue;
+	  }
+	}else{
+	  printf("The intermediate result: %f\n",dblQuot);
+	  printf("And times: %d\n", (getFirst(args)->intValue));
+	  dblQuot /= (getFirst(args)->intValue);
+	  printf("The intermediate result: %f\n",dblQuot);
+	}
+      }else if (getFirst(args)->type == floatType){
+	if (getFirst(args)->dblValue == 0){
+	  printf("/: division by zero\n");
+	  return NULL;
+	}
+	if (!isFloat){
+	  isFloat = 1;
+	  dblQuot = intQuot;
+	}
+	printf("The intermediate result: %f\n",dblQuot);
+	printf("And times: %f\n", (getFirst(args)->dblValue));
+	dblQuot /= getFirst(args)->dblValue;	
+	printf("The intermediate result: %f\n",dblQuot);
+      }else if (getFirst(args)->type == closeType){
+	break;
+      }else{
+	printf("*: expects type <number> as arguments");
+	return NULL;
+      }
+      args = getTail(args);
+    }
+    
+    printf("this is the head before dividing: ");
+    printValue(head);
+    printf("\n");
+    cleanup(getTail(head));
+  }
+  Value *value = (Value*) malloc(sizeof(Value));
+  //result = getFirst(head);
+  if (isFloat){
+    value->type = floatType;
+    value->dblValue = dblQuot; 
+  }else{
+    
+    value->type = integerType;
+    value->intValue = intQuot; 
+  }
+  if (head){
+    freeValue(head->cons->car);
+    
+    head->cons->car = value;
+    head->cons->cdr = NULL;
+    printf("this is the head after dividing: ");
     printValue(head);
     printf("\n");
   }
