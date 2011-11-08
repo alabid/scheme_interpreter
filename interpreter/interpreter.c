@@ -33,7 +33,7 @@ Value* eval(Value *expr, Environment *env){
 	return args;
       }
       else{
-	printf("syntax error: unknown identifier");
+	printf("syntax error: unknown identifier\n");
 	return NULL;
       }
       break;
@@ -47,7 +47,7 @@ Value* eval(Value *expr, Environment *env){
 	args = getTail(getTail(expr));
 
 	if (!operator){
-	  printf("syntax error, missing components here");
+	  printf("syntax error, missing components here\n");
 	  return NULL;
 	}
 	while (operator->type == cellType){
@@ -738,7 +738,7 @@ Value* evalLet(Value* args, Environment* env){
 	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
 	  
 	}else{
-	  printf("syntax error");
+	  printf("syntax error\n");
 	  return NULL;
 	}
 	
@@ -781,7 +781,7 @@ Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
   
   int count = listLength(args);
-  //printf("count = %d \n",count);
+  // printf("count = %d \n",count);
   // printValue(getTail(args));
   // printValue(getTail(getTail(args)));
   
@@ -794,9 +794,12 @@ Value* evalIf(Value* args, Environment* env){
   }
 
   Value *evalTest = eval(getFirst(args), env);
-  // Value *tempArgs;
-
-  // printf("result: %d", evalTest->type);
+  if (!evalTest){
+    printf("Unknown identifier in ");
+    printValue(getFirst(args));
+    printf("\n");
+    return NULL;
+  }
  
  if (evalTest && evalTest->type == booleanType && !(evalTest->boolValue)) {
     // if evalTest is false, then return eval(alternate)
@@ -903,6 +906,28 @@ Environment *createTopFrame(){
   return frame;
 }
 
+void freeTopFrame(Environment *env){
+  if (env){
+    while (env->parent){
+      env = env->parent;  // find the top-level environment;
+    }
+    assert(env->bindings!=NULL);
+    assert(env->bindings->type==tableType);
+    HashTable *table = env->bindings->tableValue;
+    int i;
+    for (i = 0; i<table->capacity; i++){
+      if ((table->entries[i]).car != NULL){
+	if ((table->entries[i]).cdr  && ((table->entries[i]).cdr)->type == primitiveType){
+	  free((table->entries[i]).cdr);
+	  (table->entries[i]).cdr = NULL;
+	}
+      }
+    }
+    destroyTable(table);
+    free(env->bindings);
+    free(env);
+  }
+}
 // creates an environment.
 Environment *createFrame(Environment *parent){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
@@ -915,12 +940,9 @@ Environment *createFrame(Environment *parent){
   return frame;
 }
 
-// not finished yet.
-Value *exponentiate(Value *args){
-  return NULL;
-}
 
-// not tested yet.
+
+// Arithmetic addition function.
 Value *add(Value *args){
   int intSum = 0;
   double dblSum = 0;
@@ -982,7 +1004,7 @@ Value *add(Value *args){
 
 
 
-
+// Arithmetic subtraction.
 Value *subtract(Value *args){
   int intDiff = 0;
   double dblDiff = 0;
@@ -1064,6 +1086,7 @@ Value *subtract(Value *args){
   return value;
 }
 
+// Arithmetic mutiplication.
 Value *multiply(Value *args){
   int intProd = 1;
   double dblProd = 1.0;
@@ -1128,7 +1151,7 @@ Value *multiply(Value *args){
 }
 
 /* 
-   arithmetic division. We do not allow zero division 
+   Arithmetic division. We do not allow zero division 
    even though it is allowed in DrRacket that (/ 5 0.0)=>+inf.0
 */
 Value *divide(Value *args){
@@ -1502,3 +1525,7 @@ Value *checkEqual(Value *args){
   return NULL;
 }
 
+// not finished yet.
+Value *exponentiate(Value *args){
+  return NULL;
+}
