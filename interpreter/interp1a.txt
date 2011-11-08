@@ -1,2 +1,0 @@
-We implemented literal, define, if and quote. 
-We also implemented some basic units. Due to the time limits, we haven't tested all the cases and we are pretty sure there will be memory leak. We will fix them in the next submission.
