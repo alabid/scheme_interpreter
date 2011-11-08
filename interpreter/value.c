@@ -569,14 +569,14 @@ Value *cdrFree(Value *value, int freeCar) {
    return NULL;
   
   // PROBLEMATIC BLOCK OF CODE
-  /*openParen = (Value *) malloc(sizeof(Value));
+  openParen = (Value *) malloc(sizeof(Value));
   openParen->type = openType;
   openParen->open = '(';
   
   newValue = (Value* )malloc(sizeof(Value));
   newValue->type = cellType;
   newValue->cons->car = openParen;
-  */
+  
   
   int count = listLength(value);
   
@@ -604,9 +604,9 @@ Value *cdrFree(Value *value, int freeCar) {
       free(value->cons->car->cons->car);
       free(value->cons->car);
     }
-    return getTail(content);
-    //  newValue->cons->cdr = content->cons->cdr->cons->cdr;
-
+    // return getTail(content);
+    newValue->cons->cdr = getTail(content);
+    return newValue;
   }
   return NULL;
 }
