@@ -48,6 +48,8 @@ Value* pop(List *list);
 // This function reverses the linked list.
 int reverse(List *list);
 
+List* deepCopyLinkedList(List* list);
+
 // This function frees cons cells of the linked list.
 void cleanup(Value* head);
 

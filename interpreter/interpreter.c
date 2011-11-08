@@ -427,6 +427,7 @@ Value* evalDefine(Value* args, Environment* env){
       //printf("printing out value");
       //printValue(eval(getTail(args),env));
       //printf("\n");
+      
       insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getFirst(getTail(args)), env));
       
     }
@@ -571,7 +572,7 @@ Value* evalLetrec(Value* args, Environment* env){
     printf("in let 2: ");
     removeLast(toCheck);
     printValue(toCheck);
-   
+    
     printf("\n");
     if (getFirst(getTail(getFirst(toCheck))) -> type !=symbolType){
       printf("bad syntax in letrec: not an indentifier\n");
@@ -584,9 +585,12 @@ Value* evalLetrec(Value* args, Environment* env){
 	insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, NULL);
 	listofBinds = getTail(listofBinds);
       }
+      //printTable(newEnv->bindings->tableValue);
+      //printf("\n");
+   
       //int i;
       // for (i=0;i<2;i++){
-      //	if (i==1 && !unknown){
+      // if (i==1 && !unknown){
       //  break;
       //}
       listofBinds = toCheck;
@@ -596,47 +600,77 @@ Value* evalLetrec(Value* args, Environment* env){
 	//if (i==0){
 	removeLast(getTail(getFirst(listofBinds)));
 	//}
+	
 	printf("\n");
 	printf("in let 4: ");
 	printValue(getTail(getFirst(listofBinds)));
 	printf("\n");
-	Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), newEnv);
-	
+	Value* toBind = getTail(getTail(getFirst(listofBinds)));
+	if (typeCheck(toBind) > 0 && typeCheck(toBind)!=3){
+	  Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), newEnv);
+	}else{
+	  toBind = NULL;
+	}
+	//if (toBind){
+	printf("in let 4.5: ");
+	printValue(toBind);
+	printf("  and the type of it is: %d\n",toBind->type);
+	printf("\n");
 	if (toBind){
-	  printf("in let 4.5: ");
-	  printValue(toBind);
-	  printf("  and the type of it is: %d\n",toBind->type);
-	  printf("\n");
 	  if (toBind->type == cellType){
 	    if (getTail(toBind)){
 	      printf("syntax error in letrec: too many values for single identifier.\n");
-	      }else{
+	    }else{
 	      toBind = getFirst(toBind);
 	    }
 	  }
-	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
-	  //}else if(toBind->type == symbolType){
-	  //Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
-	  //if (value){
-	  //  insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
-	    //}else{
-	    //printf("syntax error: unknown identifier\n");
-	    //free(toBind);
-	    //free(value);
-	    //return NULL;
-	    //}
-	}else{ 
-	    printf("syntax error in letrec\n");
-	    return NULL;
-	}//else{
+	}
+	insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
+	//}else if(toBind->type == symbolType){
+	//Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
+	//if (value){
+	//  insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
+	//}else{
+	//printf("syntax error: unknown identifier\n");
+	//free(toBind);
+	//free(value);
+	//return NULL;
+	//}
+	//}else{ 
+	//printf("syntax error in letrec\n");
+	//return NULL;
+	
+	//}else{
 	// listofBinds = getTail(listofBinds);
 	//}
-	
-	
-	listofBinds = getTail(listofBinds);
-	printValue(listofBinds);
-	printf("\n");
+        listofBinds = getTail(listofBinds);
+        printValue(listofBinds);
+        printf("\n");
       }
+      listofBinds = toCheck;
+      while(listofBinds){
+	removeLast(getTail(getFirst(listofBinds)));
+	assert(getFirst(getTail(getFirst(listofBinds)))->type == symbolType);
+	if (envLookup(getFirst(getTail(getFirst(listofBinds)))->symbolValue, newEnv) == NULL){
+	  Value* checkBind = (getTail(getFirst(getTail(getFirst(listofBinds)))));
+	  printf("in let 4.75: ");
+ 
+	  printValue(checkBind);
+	  printf("  and the type of it is: %d\n",checkBind->type);
+	  printf("\n");
+	  if (checkBind->type == symbolType){
+	    if(envLookup(checkBind->symbolValue, newEnv) != NULL){
+	      insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, checkBind);
+	    }else{
+	      printf("syntax eror: unknown identifier");
+	    }
+	  }else{
+	    printf("syntax error: expr not allowed in this expression");
+	  }
+	}
+        listofBinds = getTail(listofBinds);
+      }
+      
       Value* listofExpressions = getTail(args);
       printf("in let 5: ");
       removeLast(listofExpressions);
@@ -650,8 +684,7 @@ Value* evalLetrec(Value* args, Environment* env){
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
 	printf("in let 6: ");
-      //removeLast(getTail(getFirst(listofBinds)));
-	
+	//removeLast(getTail(getFirst(listofBinds)));
 	printValue(toReturn);
 	if (toReturn)
 	  printf("  and the type of it is: %d\n",toReturn->type);
@@ -672,7 +705,7 @@ Value* evalLetrec(Value* args, Environment* env){
 	  }
 	}else{
 	  listofExpressions = getTail(listofExpressions);
-	}	
+	}
       }
       printf(" letrec: bad syntax\n");
 
@@ -681,6 +714,8 @@ Value* evalLetrec(Value* args, Environment* env){
   }
   return NULL;
 }
+
+
 Value* evalLet(Value* args, Environment* env){
   Value *toCheck;
  
@@ -731,6 +766,8 @@ Value* evalLet(Value* args, Environment* env){
 	  if (toBind->type == cellType){
 	    if (getTail(toBind)){
 	      printf("syntax error in let: too many values for single identifier.\n");
+	      destroyEnvironment(newEnv);
+	      return NULL;
 	    }else{
 	      toBind = getFirst(toBind);
 	    }
@@ -739,6 +776,7 @@ Value* evalLet(Value* args, Environment* env){
 	  
 	}else{
 	  printf("syntax error\n");
+	  destroyEnvironment(newEnv);
 	  return NULL;
 	}
 	
@@ -751,6 +789,7 @@ Value* evalLet(Value* args, Environment* env){
      
       if (!listofExpressions){
 	printf("syntax error in let: bad syntax.\n ");
+	destroyEnvironment(newEnv);
 	return NULL;
       }
       while(listofExpressions){
@@ -763,6 +802,7 @@ Value* evalLet(Value* args, Environment* env){
 	    listofExpressions = getTail(listofExpressions);
 	   
 	  }else{
+	    destroyEnvironment(newEnv);
 	    return toReturn;
 	  }
 	}else{
@@ -770,7 +810,7 @@ Value* evalLet(Value* args, Environment* env){
 	}	
       }
       printf("let: bad syntax\n");
-
+      destroyEnvironment(newEnv);
       return NULL;
     }
   }
@@ -857,7 +897,7 @@ Value* evalLambda(Value* args, Environment* env){
     //printf("Show me the parse tree: ");
     //printValue(getFirst(toCheck));
     //printf("\n");
-    closure->body = getFirst(toCheck);
+    closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
  
     return returnValue; 
@@ -868,7 +908,7 @@ Value* evalLambda(Value* args, Environment* env){
     toCheck = getTail(args);
     
     //removeLast(toCheck);
-    closure->body = getFirst(toCheck);
+    closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
     // printf("Show me the parse tree: ");
     //printValue(getFirst(toCheck));
@@ -1359,7 +1399,7 @@ int loadFromFile(FILE *file, Environment *env) {
 	 }
 	 
 	 //leftoverTokens->head = tokens->head;
-	 free(parseTree);
+	 destroy(parseTree);
 	 // cleanup(leftoverTokens->head);
        }
      }

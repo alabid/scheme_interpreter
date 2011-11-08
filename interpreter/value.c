@@ -139,9 +139,7 @@ int hash(HashTable* table, char* id){
    where 2/3 is the load factor.
 */
 int insertItem(HashTable* table, char* id, Value* value){
-  if (!value){
-      return 0;
-  }
+  
   if (table){
     if ((table->size) >= ((table->capacity)/2)){
       autoDouble(table);
@@ -163,8 +161,11 @@ int insertItem(HashTable* table, char* id, Value* value){
     keyVal->type = symbolType;
     keyVal->symbolValue = copiedID;
     
+    if ((table->entries)[key].cdr){
+      freeValue((table->entries)[key].cdr);
+    }
     (table->entries)[key].car = keyVal;
-    (table->entries)[key].cdr = value;
+    (table->entries)[key].cdr = deepCopy(value);
     (table->size)++;
     return 1;
   }
@@ -209,7 +210,7 @@ int deleteItem(HashTable* table, char* id){
     if (entry->car && entry->car->type == symbolType){
       free(entry->car->symbolValue); 
       free(entry->car);
-      //freeValue(entry->cdr);
+      freeValue(entry->cdr);
      }
      entry->car = NULL;
      //entry->cdr = NULL;
@@ -737,19 +738,32 @@ Value *deepCopyList(Value *value){
   return head;
 }
 
-// limited deep copy since we don't want recursively copy stuff.
+
+// deep copy as a linked list.
+List* deepCopyLinkedList(List* list){
+  if (list){
+ 
+    List *returnList = initializeList();
+    Value *head = deepCopyList(list->head);
+    returnList->head = head;
+    return returnList;
+  }
+  return NULL;
+}
+
+//  deep copy the things in parse tree
 Value* deepCopyFun(Value *function){
   if (function){
     Value *value = (Value *)malloc(sizeof(Value));
-    if (function->type = primitiveType){
+    if (function->type == primitiveType){
       value->type = primitiveType;
       value->primitiveValue = function->primitiveValue;
       return value;
-    }else if (function->type = closureType){
+    }else if (function->type == closureType){
       value->type=closureType;
       value->closureValue = (Closure *)malloc(sizeof(Closure));
-      value->closureValue->body = function->closureValue->body;
-      value->closureValue->args = function->closureValue->args;
+      value->closureValue->body = deepCopy(function->closureValue->body);
+      value->closureValue->args = deepCopyLinkedList(function->closureValue->args);
       value->closureValue->parent = function->closureValue->parent;
       return value;
     }else{
@@ -800,6 +814,11 @@ Value* deepCopy(Value *value){
 	break;
       case nullType:
 	newValue->type = nullType;
+	break;
+      case primitiveType:
+      case closureType:
+	free(newValue);
+	newValue = deepCopyFun(value);
 	break;
       default:
 	return NULL;
