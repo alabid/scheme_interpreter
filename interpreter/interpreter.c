@@ -1221,20 +1221,18 @@ Value *divide(Value *args){
 
 // Load function.
 Value *loadFunction(Value *args, Environment *env){
-  // read in the lines of a file one at a time
-  // eval each line line by line
-  //char *expression = (char *)malloc(256 * sizeof(char));
+ 
+  
   int count = listLength(args);
 
   if (count > 1) {
     printf("load: load one file at a time\n");
-    //free(expression);
-    cleanup(args);
+ 
+   
     return NULL;
   } else if (count < 1) {
     printf("load: you must enter the name of a file to load\n");
-    //free(expression);
-    cleanup(args);
+  
     return NULL;
   }
   
@@ -1254,18 +1252,13 @@ Value *loadFunction(Value *args, Environment *env){
       return NULL;
     }
 
-    //while (fgets(expression, 256, fp)) {
-    //printf("line: %s\n", expression);
-    //} 
+ 
     // somehow do it for the current environment
     loadFromFile(fp, env);
-    //free(expression);
-    // then close file somehow
-    cleanup(args);
+ 
     return NULL;
   }  else {
-    //free(expression);
-    cleanup(args);
+
     return NULL;
   }
   return NULL;
