@@ -915,8 +915,9 @@ void freeTopFrame(Environment *env){
     assert(env->bindings->type==tableType);
     HashTable *table = env->bindings->tableValue;
     int i;
-    for (i = 0; i<table->capacity; i++){
+    for (i = 0; i<(table->capacity); i++){
       if ((table->entries[i]).car != NULL){
+	assert(table->entries);
 	if ((table->entries[i]).cdr  && ((table->entries[i]).cdr)->type == primitiveType){
 	  free((table->entries[i]).cdr);
 	  (table->entries[i]).cdr = NULL;
