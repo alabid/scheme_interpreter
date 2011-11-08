@@ -5,29 +5,25 @@
 #include <assert.h>
 
 /*
-Memory to free:
-follow execution starting from main.
-Have a table at the side where you keep track of memory allocated on the
-heap and then try to deal with each of them.
-One by one.
-*/
-// I have made quote, if, define, literal work well with our changes.
-// I also implement freeValue() function which can help determine which parts of memory need to be freed.
+  We have implemented literal, lambda, quote, let, letrec, define, if and load.
+  We also implemented several primitive functions, like +, -, *, /.
+  We tested the codes above.
 
-// This function evaluates the parse tree given by expr within the given environment.
+  Inside the file, we also have some functions that we will test in the next phase of the
+  assignment.
+  car, cdr, let* Please do not test these functions this time.
+*/
+
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
   
-  
   if (!expr){
     return NULL;
   }
-  
   switch (expr->type) 
     {
-    case symbolType:
-      
+    case symbolType:   
       args = envLookup(expr->symbolValue, env);
       if (args){
 	return args;
@@ -43,9 +39,9 @@ Value* eval(Value *expr, Environment *env){
       }
       
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
-	operator = getFirst(getTail(expr));
+	operator = car(expr);
 	args = getTail(getTail(expr));
-	
+
 	if (!operator){
 	  printf("syntax error, missing components here\n");
 	  return NULL;
@@ -60,8 +56,7 @@ Value* eval(Value *expr, Environment *env){
 	  }
 
 	}
-	if (operator->type == symbolType){
-	  
+	if (operator->type == symbolType){  
 	 
 	  if (strcmp(operator->symbolValue,"define")==0){
 	    return evalDefine(args, env);
@@ -251,9 +246,7 @@ Value* evalQuote(Value* args){
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs){
-  //printf("printing actual arguments: ");
-  //printValue(actualArgs);
-  //printf("\n");
+
  
   if (!function){
     return actualArgs;
@@ -261,22 +254,16 @@ Value* apply(Value* function, Value* actualArgs){
     return function->primitiveValue(actualArgs);
   }else if (function->type == closureType){
     List *formalArgs = function->closureValue->args;
-    //eval(formalArgs->head, function->closureValue->parent);
+  
     Environment *frame = createFrame(function->closureValue->parent);
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
     Value *curValue = actualArgs;
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
-      //printf("the binding: ");
-      //printValue(getFirst(curArg));
-      //printf(" => ");
-      //printValue(getFirst(curValue));
 
       insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
-      //printf("  and find it =>");
-      //printValue(lookup(frame->bindings->tableValue, getFirst(curArg)->symbolValue));
-      //printf("\n");
+
       curArg = getTail(curArg);
       curValue = getTail(curValue);
       
@@ -296,7 +283,7 @@ Value* apply(Value* function, Value* actualArgs){
   }
 }
 
-// look at the identifier.
+// look up the identifier.
 Value* envLookup(char* id, Environment* env){
   Value* returnValue = NULL;
   while (env){
@@ -312,7 +299,7 @@ Value* envLookup(char* id, Environment* env){
   return returnValue;
 }
 
-// group types into three main groups.
+// group types into four main groups.
 int typeCheck(Value* value){
   if (value){
     switch (value->type)
@@ -376,7 +363,7 @@ int variableCheck(Value* value){
 
 // This function evaluates define by creating bindings. It always returns NULL.
 Value* evalDefine(Value* args, Environment* env){
-  //printf("I'm in the evalDefine\n");
+ 
   if (args == NULL||args->cons->cdr== NULL){
     printf("syntax error: missing components here\n");
     return NULL;
@@ -423,10 +410,7 @@ Value* evalDefine(Value* args, Environment* env){
       assert(getFirst(args)!=NULL);
       assert(getFirst(args)->type==symbolType);
       assert(env->bindings->tableValue!=NULL);
-      //assert(getFirst(args)->symbolValue);
-      //printf("printing out value");
-      //printValue(eval(getTail(args),env));
-      //printf("\n");
+     
       
       insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getFirst(getTail(args)), env));
       
@@ -442,7 +426,7 @@ Value* evalEach(Value* args, Environment* env){
   while (args){ 
 
     assert(args->type==cellType);    
-    //temp = args->cons->car;
+  
     if (getFirst(args) && (getFirst(args))->type==cellType){
       tail = getTail(args);
    
@@ -452,57 +436,28 @@ Value* evalEach(Value* args, Environment* env){
 
 	temp =  deepCopy(eval(getFirst(args), env));
 
-	//printf("printing temp:");
-	//printValue(temp);
-	//printf("\n");
-	//assert(getFirst(getFirst(args))!=NULL);
-	//assert(getFirst(getFirst(args))->type==openType);
+
 	assert(args!=NULL);
 	assert(args->type==cellType);
 	assert(args->cons->car !=NULL);
-	//assert(args->cons->car->type ==integerType);
-	//free(args->cons->car);
+	
 	freeValue(args->cons->car);
 	
 	args->cons->car = temp;
 	if (!temp){
 	  return NULL;
 	}
-	//printf("printing tail:");
-	//printValue(tail);
-	//printf("\n");
-	/*
-	if (!temp && tail && tail->type == cellType && tail->cons->car &&  tail->cons->car->type == closeType){
-	  cleanup(tail);
-	  args->cons->cdr = NULL;
-	  free(args->cons);
-	  free(args);
-	  previous->cons->cdr = NULL;
-	  return NULL;
-	  break;
-	}else if (!temp){
-	  free(args->cons);
-	  free(args);
-	  previous->cons->cdr = NULL;
-	  return NULL;
-	  break;
-	  }*/
+
 	previous = args;
 	args = tail;
 
       }else{
-	printf("error\n");
+	printf("Error! Cannot evaluate each one.\n");
 	return NULL;
       }
       
     }else{
-      
       tail = getTail(args);
-      
-      //printf("start to print:  ");
-      //printValue(eval(args->cons->car, env));
-      //printf("  done\n");
-      
       temp = deepCopy(eval(args->cons->car, env));
       
       if (temp==NULL){ 	
@@ -520,12 +475,10 @@ Value* evalEach(Value* args, Environment* env){
 	}
 	break;
       }else{
-	//printValue(temp);
-	//printf("\n");
+
 	freeValue(args->cons->car);
 	args->cons->car = temp;
-	//printValue(temp);
-	//printf("\n");
+
 	
       }
       previous = args;
@@ -536,10 +489,8 @@ Value* evalEach(Value* args, Environment* env){
   return head;
 }
 
-
 Value* evalLetrec(Value* args, Environment* env){
   Value *toCheck;
-  //removeLast(args);
   int count = listLength(args);
   if (count < 2){
     printf("letrec: bad syntax in: (letrec ");
@@ -554,9 +505,7 @@ Value* evalLetrec(Value* args, Environment* env){
     }
     return eval(getTail(args), env);
   }
-  printf("in let: ");
-  printValue(getFirst(getTail(getFirst(getTail(getFirst(args))))));
-  printf("\n");
+ 
   if (getFirst(args)-> type != cellType){
     printf("syntax error in letrec: not a sequence of indentifier\n");
     return NULL;
@@ -567,155 +516,119 @@ Value* evalLetrec(Value* args, Environment* env){
     } else if (getFirst(getTail(getFirst(args)))-> type != cellType){
       printf("syntax error in letrec: not an indentifier for bindings\n");
       return NULL;
-    } 
+    }
     toCheck = getTail(getFirst(args));
-    printf("in let 2: ");
-    removeLast(toCheck);
-    printValue(toCheck);
-    
-    printf("\n");
+ 
+    removeLast(toCheck); // remove the close parenthesis.
+   
     if (getFirst(getTail(getFirst(toCheck))) -> type !=symbolType){
       printf("bad syntax in letrec: not an indentifier\n");
       return NULL;
     }else{
       Environment* newEnv = createFrame(env);
-      Value* listofBinds = toCheck;
+      Value* listofBinds = toCheck; // remember the start of variable list.
       
       while (listofBinds){
-	insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, NULL);
-	listofBinds = getTail(listofBinds);
-      }
-      //printTable(newEnv->bindings->tableValue);
-      //printf("\n");
-   
-      //int i;
-      // for (i=0;i<2;i++){
-      // if (i==1 && !unknown){
-      //  break;
-      //}
-      listofBinds = toCheck;
-      while (listofBinds){
-	printf("in let 3: ");
-	printValue((getFirst(listofBinds)));
-	//if (i==0){
-	removeLast(getTail(getFirst(listofBinds)));
-	//}
-	
-	printf("\n");
-	printf("in let 4: ");
-	printValue(getTail(getFirst(listofBinds)));
-	printf("\n");
-	Value* toBind = getTail(getTail(getFirst(listofBinds)));
-	if (typeCheck(toBind) > 0 && typeCheck(toBind)!=3){
-	  Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), newEnv);
-	}else{
-	  toBind = NULL;
-	}
-	//if (toBind){
-	printf("in let 4.5: ");
-	printValue(toBind);
-	printf("  and the type of it is: %d\n",toBind->type);
-	printf("\n");
-	if (toBind){
-	  if (toBind->type == cellType){
-	    if (getTail(toBind)){
-	      printf("syntax error in letrec: too many values for single identifier.\n");
-	    }else{
-	      toBind = getFirst(toBind);
-	    }
-	  }
-	}
-	insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
-	//}else if(toBind->type == symbolType){
-	//Value *value = eval(envLookup(toBind->symbolValue, newenv), newenv);
-	//if (value){
-	//  insertItem(newenv->bindings->tableValue, toBind->symbolValue, value);
-	//}else{
-	//printf("syntax error: unknown identifier\n");
-	//free(toBind);
-	//free(value);
-	//return NULL;
-	//}
-	//}else{ 
-	//printf("syntax error in letrec\n");
-	//return NULL;
-	
-	//}else{
-	// listofBinds = getTail(listofBinds);
-	//}
+        insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, NULL);
         listofBinds = getTail(listofBinds);
-        printValue(listofBinds);
-        printf("\n");
       }
+      
       listofBinds = toCheck;
-      while(listofBinds){
-	removeLast(getTail(getFirst(listofBinds)));
-	assert(getFirst(getTail(getFirst(listofBinds)))->type == symbolType);
-	if (envLookup(getFirst(getTail(getFirst(listofBinds)))->symbolValue, newEnv) == NULL){
-	  Value* checkBind = (getTail(getFirst(getTail(getFirst(listofBinds)))));
-	  printf("in let 4.75: ");
+      // first round of forming bindings. Ignore symbols first.
+      while (listofBinds){
+        removeLast(getTail(getFirst(listofBinds))); // remove close parethesis.
+       
+        Value* toBind = getTail(getTail(getFirst(listofBinds)));
+        if (typeCheck(getFirst(toBind)) > 0 && typeCheck(getFirst(toBind))!=3){
+          toBind = eval(getFirst(getTail(getTail(getFirst(listofBinds)))), newEnv);
  
-	  printValue(checkBind);
-	  printf("  and the type of it is: %d\n",checkBind->type);
-	  printf("\n");
-	  if (checkBind->type == symbolType){
-	    if(envLookup(checkBind->symbolValue, newEnv) != NULL){
-	      insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, checkBind);
-	    }else{
-	      printf("syntax eror: unknown identifier");
-	    }
-	  }else{
-	    printf("syntax error: expr not allowed in this expression");
-	  }
+        }else{
+          toBind = NULL;
+        }
+        
+        if (toBind){ 
+          if (toBind->type == cellType){
+            if (getTail(toBind)){
+              printf("syntax error in letrec: too many values for single identifier.\n");
+            }else{
+              toBind = getFirst(toBind);
+            }
+          }
+          insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
+        }else{
+	  printf("syntax error\n");
+	  destroyEnvironment(newEnv);
+	  return NULL;
 	}
+	listofBinds = getTail(listofBinds);
+	
+      }
+      listofBinds = toCheck;
+      // form bindings by assigning values to the symbols missed in the first round. 
+      while(listofBinds){
+	
+        assert(getFirst(getTail(getFirst(listofBinds)))->type == symbolType);
+	
+        if (envLookup(getFirst(getTail(getFirst(listofBinds)))->symbolValue, newEnv) == NULL){
+          Value* checkBind = (getFirst(getTail(getTail(getFirst(listofBinds)))));
+	  
+          if (checkBind->type == symbolType){
+            if(envLookup(checkBind->symbolValue, newEnv) != NULL){
+	      
+              insertItem(newEnv->bindings->tableValue,getFirst(getTail(getFirst(listofBinds)))->symbolValue, envLookup(checkBind ->symbolValue, newEnv));
+            
+            }else{
+              printf("syntax eror: unknown identifier\n");
+            }
+          }else{
+            printf("syntax error: expr not allowed in this expression\n");
+          }
+        }
         listofBinds = getTail(listofBinds);
       }
-      
       Value* listofExpressions = getTail(args);
-      printf("in let 5: ");
       removeLast(listofExpressions);
-      printValue(listofExpressions);
-      printf("  and the type of it is: %d\n",getFirst(listofExpressions)->type);
-      printf("\n");
+     
       if (!listofExpressions){
-	printf(" letrec: bad syntax.\n ");
+	printf("syntax error in let: bad syntax.\n ");  // if no return value is found, print out syntax error.
+	destroyEnvironment(newEnv); 
 	return NULL;
       }
+
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
-	printf("in let 6: ");
-	//removeLast(getTail(getFirst(listofBinds)));
-	printValue(toReturn);
-	if (toReturn)
-	  printf("  and the type of it is: %d\n",toReturn->type);
-	printf("\n");
+	
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
-	    printf("in let 7: ");
-	    //removeLast(getTail(getFirst(listofBinds)));
 	    
-	    printValue(getTail(listofExpressions));
-	    if (getTail(listofExpressions))
-	      printf("  and the type of it is: %d\n",getTail(listofExpressions)->type);
-	    printf("\n");
+	    
 	    listofExpressions = getTail(listofExpressions);
-	    //printf("hello world");
+	    freeValue(toReturn);
 	  }else{
+	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
+	    }else if (toReturn && toReturn->type==closureType){
+	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
+	    }
+	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
 	    return toReturn;
 	  }
 	}else{
 	  listofExpressions = getTail(listofExpressions);
-	}
+	}	
       }
-      printf(" letrec: bad syntax\n");
-
+      printf("letrec: bad syntax\n");
+      destroyEnvironment(newEnv);
       return NULL;
     }
+
   }
   return NULL;
 }
 
 
+
+// Creates an environment. Evaluates each thing and return the last one.
 Value* evalLet(Value* args, Environment* env){
   Value *toCheck;
  
@@ -780,7 +693,7 @@ Value* evalLet(Value* args, Environment* env){
 	  return NULL;
 	}
 	
-	listofBinds = getTail(listofBinds);
+	listofBinds = getTail(listofBinds); // get a list of variables that need to be binded.
 	
       }
       Value* listofExpressions = getTail(args);
@@ -788,21 +701,26 @@ Value* evalLet(Value* args, Environment* env){
       removeLast(listofExpressions);
      
       if (!listofExpressions){
-	printf("syntax error in let: bad syntax.\n ");
-	destroyEnvironment(newEnv);
+	printf("syntax error in let: bad syntax.\n ");  // if no return value is found, print out syntax error.
+	destroyEnvironment(newEnv); 
 	return NULL;
       }
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
-
+	
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
 	  
 	  
 	    listofExpressions = getTail(listofExpressions);
-	   
+	    freeValue(toReturn);
 	  }else{
-	    destroyEnvironment(newEnv);
+	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
+	    }else if (toReturn && toReturn->type==closureType){
+	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
+	    }
+	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
 	    return toReturn;
 	  }
 	}else{
@@ -816,6 +734,7 @@ Value* evalLet(Value* args, Environment* env){
   }
   return NULL;
 }
+
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   // args = evalEach(args,env);
@@ -858,7 +777,8 @@ Value* evalIf(Value* args, Environment* env){
  }
 }
 
-// not finished yet.
+// Return a closure which contains a parse tree, a linked list of parameters.
+
 Value* evalLambda(Value* args, Environment* env){
   if (!env || !args){
     printf("Syntax error for lambda. Missing components here\n");
@@ -866,9 +786,6 @@ Value* evalLambda(Value* args, Environment* env){
   }
   assert(args->type = cellType);
   Value *toCheck = getFirst(args);
-  //printf("start printing for lambda: ");
-  //printValue(toCheck);
-  //printf("\n");
   if (getFirst(toCheck) && getFirst(toCheck)->type == openType){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
@@ -876,6 +793,11 @@ Value* evalLambda(Value* args, Environment* env){
     toCheck = getTail(toCheck);
     
     while (toCheck && getFirst(toCheck) && getFirst(toCheck)->type!=closeType){
+      if (variableCheck(getFirst(toCheck))!=1){
+	printf("Syntax error for lambda. Invalid parameters.\n");
+	destroyClosure(closure);
+	return NULL;
+      }
       push(closure->args, deepCopy(getFirst(toCheck)));
       toCheck = getTail(toCheck);
     } 
@@ -894,9 +816,6 @@ Value* evalLambda(Value* args, Environment* env){
       return NULL;
     }
    
-    //printf("Show me the parse tree: ");
-    //printValue(getFirst(toCheck));
-    //printf("\n");
     closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
  
@@ -907,24 +826,19 @@ Value* evalLambda(Value* args, Environment* env){
     Closure *closure = initializeClosure(env);
     toCheck = getTail(args);
     
-    //removeLast(toCheck);
+ 
     closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
-    // printf("Show me the parse tree: ");
-    //printValue(getFirst(toCheck));
-    //printf("\n");
+
     return returnValue; 
   }else{
     
     printf("Syntax error for lambda! Missing parameters.\n");
     return NULL;
   }
-
-
-
 }
 
-// 
+// Make basic c functions to primitive scheme functions.
 Value *makePrimitiveValue(Value* (*f)(Value *)){
   Value *resultValue = (Value *)malloc(sizeof(Value));
   resultValue->type = primitiveType;
@@ -941,11 +855,13 @@ Environment *createTopFrame(){
   bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
-  bind("car", makePrimitiveValue(car), frame);
-  bind("cdr", makePrimitiveValue(cdr), frame);
+  // bind("car", makePrimitiveValue(car), frame);
+  // bind("cdr", makePrimitiveValue(cdr), frame);
   return frame;
 }
 
+
+// free top frame.
 void freeTopFrame(Environment *env){
   if (env){
     while (env->parent){
@@ -983,7 +899,7 @@ Environment *createFrame(Environment *parent){
 
 
 
-// Arithmetic addition function.
+// Arithmetic addition function. Integer and float addition are treated differently.
 Value *add(Value *args){
   int intSum = 0;
   double dblSum = 0;
@@ -1307,17 +1223,17 @@ Value *divide(Value *args){
 Value *loadFunction(Value *args, Environment *env){
   // read in the lines of a file one at a time
   // eval each line line by line
-  // char *expression = (char *)malloc(256 * sizeof(char));
+  //char *expression = (char *)malloc(256 * sizeof(char));
   int count = listLength(args);
 
   if (count > 1) {
     printf("load: load one file at a time\n");
-    // free(expression);
+    //free(expression);
     cleanup(args);
     return NULL;
   } else if (count < 1) {
     printf("load: you must enter the name of a file to load\n");
-    // free(expression);
+    //free(expression);
     cleanup(args);
     return NULL;
   }
@@ -1343,13 +1259,12 @@ Value *loadFunction(Value *args, Environment *env){
     //} 
     // somehow do it for the current environment
     loadFromFile(fp, env);
-    // free(expression);
+    //free(expression);
     // then close file somehow
     cleanup(args);
-    fclose(fp);
     return NULL;
   }  else {
-    // free(expression);
+    //free(expression);
     cleanup(args);
     return NULL;
   }
@@ -1387,16 +1302,12 @@ int loadFromFile(FILE *file, Environment *env) {
        
       } else {
        if (parseTree && parseTree->head){
-	 //printf("going to print parse tree: ");
-	 //printValue(parseTree->head);
-	 //printf("\n");
-	 //printf("going to print parse tree again: ");
-	 //printValue(deepCopyList(parseTree->head));
-	 //printf("\n");
+	
 	 temp = eval(parseTree->head,env);
 	 if (temp){
 	   printValue(temp);
 	   printf("\n");
+	   
 	 }
 	 
 	 //leftoverTokens->head = tokens->head;
@@ -1502,6 +1413,8 @@ Value *evalLetStar(Value *args, Environment *env){
 	  if (toBind->type == cellType){
 	    if (getTail(toBind)){
 	      printf("syntax error in let*: too many values for single identifier.\n");
+	      destroyEnvironment(newEnv);
+	      return NULL;
 	    }else{
 	      toBind = getFirst(toBind);
 	    }
@@ -1510,6 +1423,7 @@ Value *evalLetStar(Value *args, Environment *env){
 	  
 	}else{ 
 	  printf("syntax error in let*\n");
+	  destroyEnvironment(newEnv);
 	  return NULL;
 	}
 		
@@ -1526,21 +1440,28 @@ Value *evalLetStar(Value *args, Environment *env){
       }
       while(listofExpressions){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
-
+	
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
 	    
+	    
 	    listofExpressions = getTail(listofExpressions);
-	  
+	    freeValue(toReturn);
 	  }else{
+	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
+	    }else if (toReturn && toReturn->type==closureType){
+	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
+	    }
+	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
 	    return toReturn;
 	  }
 	}else{
 	  listofExpressions = getTail(listofExpressions);
 	}	
       }
-      printf(" let*: bad syntax\n");
-
+      printf("let*: bad syntax\n");
+      destroyEnvironment(newEnv);
       return NULL;
     }
   }

@@ -139,9 +139,6 @@ int hash(HashTable* table, char* id){
    where 2/3 is the load factor.
 */
 int insertItem(HashTable* table, char* id, Value* value){
-  if (!value){
-      return 0;
-  }
   if (table){
     if ((table->size) >= ((table->capacity)/2)){
       autoDouble(table);
@@ -163,8 +160,11 @@ int insertItem(HashTable* table, char* id, Value* value){
     keyVal->type = symbolType;
     keyVal->symbolValue = copiedID;
     
+    if ((table->entries)[key].cdr){
+      freeValue((table->entries)[key].cdr);
+    }
     (table->entries)[key].car = keyVal;
-    (table->entries)[key].cdr = value;
+    (table->entries)[key].cdr = deepCopy(value);
     (table->size)++;
     return 1;
   }
@@ -209,7 +209,7 @@ int deleteItem(HashTable* table, char* id){
     if (entry->car && entry->car->type == symbolType){
       free(entry->car->symbolValue); 
       free(entry->car);
-      //freeValue(entry->cdr);
+      freeValue(entry->cdr);
      }
      entry->car = NULL;
      //entry->cdr = NULL;
@@ -530,82 +530,34 @@ void destroy(List* list){
   This returns the car of a value (that is a list)
  */
 Value *car(Value *value) {
-  if (!(value || (value->type == cellType)))
-    return NULL;
-  int count = listLength(value);
-  
-  if (count > 1) {
-    printf("car: you passed in too many arguments to car\n");
+  if (!value){
     return NULL;
   }
-  else if (count < 1){
-    printf("car: you passed in no argument\n");
+  if (value->type == cellType){ 
+    return value->cons->cdr->cons->car;
+  }else{
     return NULL;
   }
-  
-  if ((value->cons->car->type == nullType)  ||
-      (value->cons->car->cons->car->type == nullType)) {
-    printf("car: Attempt to apply car on null");
-    return NULL;
-  } 
-
-  Value *content = value->cons->car->cons->car->cons->cdr;
-  if (listLength(content) < 1) {
-    printf("car: you must car a list with one or more items\n");
-    return NULL;
-  } else {
-    return getFirst(content);
-  }
-  return NULL;
 }
 
 Value *cdrFree(Value *value, int freeCar) {
-  Value *content;
-  Value *openParen;
-  Value *newValue;
-
-  if (!(value || (value->type == cellType)))
-   return NULL;
-  
-  // PROBLEMATIC BLOCK OF CODE
-  /*openParen = (Value *) malloc(sizeof(Value));
+  if (!value){
+    return NULL;
+  }
+  Value *openParen = (Value *) malloc(sizeof(Value));
   openParen->type = openType;
   openParen->open = '(';
   
-  newValue = (Value* )malloc(sizeof(Value));
+  Value *newValue = (Value* )malloc(sizeof(Value));
   newValue->type = cellType;
   newValue->cons->car = openParen;
-  */
   
-  int count = listLength(value);
-  
-  if (count > 1) {
-    printf("cdr: you passed in too many arguments to cdr\n");
-    return NULL;
-  }
-  else if (count < 1){
-    printf("cdr: you passed in no argument\n");
-    return NULL;
-  }
-  if ((value->cons->car->type == nullType)  ||
-      (value->cons->car->cons->car->type == nullType)) {
-    printf("cdr: Attempt to apply car on null");
-    return NULL;
-  }
-
-  content = value->cons->car->cons->car->cons->cdr;
-  
-  if (listLength(content) < 2) {
-    printf("cdr: you can only cdr a list with more than one item\n");
-    return NULL;
-  } else {
-    if (freeCar) {
-      free(value->cons->car->cons->car);
-      free(value->cons->car);
+  if (value->type == cellType && value->cons->cdr && value->cons->cdr->type==cellType){
+    if (freeCar){
+      free(value->cons->cdr->cons->car);
     }
-    return getTail(content);
-    //  newValue->cons->cdr = content->cons->cdr->cons->cdr;
-
+    newValue->cons->cdr = value->cons->cdr->cons->cdr;
+    return newValue;
   }
   return NULL;
 }
@@ -615,8 +567,7 @@ Value *cdrFree(Value *value, int freeCar) {
 Value *cdr(Value *value) {
   if (!value){
     return NULL;
-  } else
-    return cdrFree(value, 0);
+  } else return cdrFree(value, 0);
 }
 
 // print value.
@@ -786,19 +737,32 @@ Value *deepCopyList(Value *value){
   return head;
 }
 
-// limited deep copy since we don't want recursively copy stuff.
+
+// deep copy as a linked list.
+List* deepCopyLinkedList(List* list){
+  if (list){
+ 
+    List *returnList = initializeList();
+    Value *head = deepCopyList(list->head);
+    returnList->head = head;
+    return returnList;
+  }
+  return NULL;
+}
+
+//  deep copy the things in parse tree
 Value* deepCopyFun(Value *function){
   if (function){
     Value *value = (Value *)malloc(sizeof(Value));
-    if (function->type = primitiveType){
+    if (function->type == primitiveType){
       value->type = primitiveType;
       value->primitiveValue = function->primitiveValue;
       return value;
-    }else if (function->type = closureType){
+    }else if (function->type == closureType){
       value->type=closureType;
       value->closureValue = (Closure *)malloc(sizeof(Closure));
-      value->closureValue->body = function->closureValue->body;
-      value->closureValue->args = function->closureValue->args;
+      value->closureValue->body = deepCopy(function->closureValue->body);
+      value->closureValue->args = deepCopyLinkedList(function->closureValue->args);
       value->closureValue->parent = function->closureValue->parent;
       return value;
     }else{
@@ -849,6 +813,11 @@ Value* deepCopy(Value *value){
 	break;
       case nullType:
 	newValue->type = nullType;
+	break;
+      case primitiveType:
+      case closureType:
+	free(newValue);
+	newValue = deepCopyFun(value);
 	break;
       default:
 	return NULL;
