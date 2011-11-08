@@ -43,9 +43,9 @@ Value* eval(Value *expr, Environment *env){
       }
       
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
-	operator = car(expr);
+	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
-
+	
 	if (!operator){
 	  printf("syntax error, missing components here\n");
 	  return NULL;
