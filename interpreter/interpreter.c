@@ -550,16 +550,14 @@ Value* evalLetrec(Value* args, Environment* env){
           if (toBind->type == cellType){
             if (getTail(toBind)){
               printf("syntax error in letrec: too many values for single identifier.\n");
+	      destroyEnvironment(newEnv); 
+	      return NULL;
             }else{
               toBind = getFirst(toBind);
             }
           }
           insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
-        }else{
-	  printf("syntax error\n");
-	  destroyEnvironment(newEnv);
-	  return NULL;
-	}
+        }
 	listofBinds = getTail(listofBinds);
 	
       }
@@ -578,10 +576,14 @@ Value* evalLetrec(Value* args, Environment* env){
               insertItem(newEnv->bindings->tableValue,getFirst(getTail(getFirst(listofBinds)))->symbolValue, envLookup(checkBind ->symbolValue, newEnv));
             
             }else{
-              printf("syntax eror: unknown identifier\n");
+              printf("syntax error: unknown identifier\n");
+	      destroyEnvironment(newEnv); 
+	      return NULL;
             }
           }else{
             printf("syntax error: expr not allowed in this expression\n");
+	    destroyEnvironment(newEnv); 
+	    return NULL;
           }
         }
         listofBinds = getTail(listofBinds);
@@ -590,7 +592,7 @@ Value* evalLetrec(Value* args, Environment* env){
       removeLast(listofExpressions);
      
       if (!listofExpressions){
-	printf("syntax error in let: bad syntax.\n ");  // if no return value is found, print out syntax error.
+	printf("syntax error in letrec: bad syntax.\n ");  // if no return value is found, print out syntax error.
 	destroyEnvironment(newEnv); 
 	return NULL;
       }
@@ -600,7 +602,6 @@ Value* evalLetrec(Value* args, Environment* env){
 	
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if(getTail(listofExpressions)){
-	    
 	    
 	    listofExpressions = getTail(listofExpressions);
 	    freeValue(toReturn);
@@ -737,12 +738,10 @@ Value* evalLet(Value* args, Environment* env){
 
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
-  // args = evalEach(args,env);
+  
   
   int count = listLength(args);
-  // printf("count = %d \n",count);
-  // printValue(getTail(args));
-  // printValue(getTail(getTail(args)));
+
   
   if (count < 2) {
     printf("syntax error: too few arguments in if statement\n");
