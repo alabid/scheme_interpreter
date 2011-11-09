@@ -39,7 +39,7 @@ Value* eval(Value *expr, Environment *env){
       }
       
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
-	operator = car(expr);
+	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
 
 	if (!operator){
@@ -857,8 +857,8 @@ Environment *createTopFrame(){
   bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
-  // bind("car", makePrimitiveValue(car), frame);
-  // bind("cdr", makePrimitiveValue(cdr), frame);
+  bind("car", makePrimitiveValue(car), frame);
+  bind("cdr", makePrimitiveValue(cdr), frame);
   return frame;
 }
 

@@ -529,41 +529,90 @@ void destroy(List* list){
 /*
   This returns the car of a value (that is a list)
  */
+/*
+  This returns the car of a value (that is a list)
+ */
 Value *car(Value *value) {
-  if (!value){
+  if (!(value || (value->type == cellType)))
+    return NULL;
+  int count = listLength(value);
+  
+  if (count > 1) {
+    printf("car: you passed in too many arguments to car\n");
     return NULL;
   }
-  if (value->type == cellType){ 
-    return value->cons->cdr->cons->car;
-  }else{
+  else if (count < 1){
+    printf("car: you passed in no argument\n");
     return NULL;
   }
-}
+  
+  if ((value->cons->car->type == nullType)  ||
+      (value->cons->car->cons->car->type == nullType)) {
+    printf("car: Attempt to apply car on null");
+    return NULL;
+  } 
 
-Value *cdrFree(Value *value, int freeCar) {
-  if (!value){
+  Value *content = value->cons->car->cons->car->cons->cdr;
+  if (listLength(content) < 1) {
+    printf("car: you must car a list with one or more items\n");
     return NULL;
-  }
-  Value *openParen = (Value *) malloc(sizeof(Value));
-  openParen->type = openType;
-  openParen->open = '(';
-  
-  Value *newValue = (Value* )malloc(sizeof(Value));
-  newValue->type = cellType;
-  newValue->cons->car = openParen;
-  
-  if (value->type == cellType && value->cons->cdr && value->cons->cdr->type==cellType){
-    if (freeCar){
-      free(value->cons->cdr->cons->car);
-    }
-    newValue->cons->cdr = value->cons->cdr->cons->cdr;
-    return newValue;
+  } else {
+    return getFirst(content);
   }
   return NULL;
 }
-/*
-  This returns the cdr of a value (that is a list)
-*/
+
+Value *cdrFree(Value *value, int freeCar) {
+  Value *content;
+  Value *openParen;
+  Value *newValue;
+
+  if (!(value || (value->type == cellType)))
+   return NULL;
+  
+  // PROBLEMATIC BLOCK OF CODE
+  /*openParen = (Value *) malloc(sizeof(Value));
+  openParen->type = openType;
+  openParen->open = '(';
+  
+  newValue = (Value* )malloc(sizeof(Value));
+  newValue->type = cellType;
+  newValue->cons->car = openParen;
+  */
+  
+  int count = listLength(value);
+  
+  if (count > 1) {
+    printf("cdr: you passed in too many arguments to cdr\n");
+    return NULL;
+  }
+  else if (count < 1){
+    printf("cdr: you passed in no argument\n");
+    return NULL;
+  }
+  if ((value->cons->car->type == nullType)  ||
+      (value->cons->car->cons->car->type == nullType)) {
+    printf("cdr: Attempt to apply car on null");
+    return NULL;
+  }
+
+  content = value->cons->car->cons->car->cons->cdr;
+  
+  if (listLength(content) < 2) {
+    printf("cdr: you can only cdr a list with more than one item\n");
+    return NULL;
+  } else {
+    if (freeCar) {
+      free(value->cons->car->cons->car);
+      free(value->cons->car);
+    }
+    return getTail(content);
+    //  newValue->cons->cdr = content->cons->cdr->cons->cdr;
+
+  }
+  return NULL;
+}
+
 Value *cdr(Value *value) {
   if (!value){
     return NULL;

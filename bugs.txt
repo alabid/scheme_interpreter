@@ -16,7 +16,32 @@ BUGS WE NEED TO FIX
 
 4. car/cdr do not work well.
      (car (quote (5 6)))   => 5 but now it gives a segmentation fault.
+PART 2
+======
+1. When reading a file, if it encounters a bug, it doesn't
+ end the program but continues executing the codes. This could
+ sometimes lead to seg. fault if another function is
+ dependent on the result.
+2. Problem with procedure calling.
 
+ (define x    
+ (lambda ()
+  (+ 2 3)))
+x
+#<procedure>
 
-   
-5. MEMOORRRRRRRRRRRRRRYYYYYYYYYYY LLLLLLLLLLLEAAAAAAAAAKKKKKKKKK!!
+(x)
+5
+interpreter(46143) malloc: *** error for object 0x1001006a0: pointer being freed was not allocated
+*** set a breakpoint in malloc_error_break to debug
+Abort trap
+
+3. The result of a procedure seems to be tied to that procedure.
+
+(define mult
+  (lambda (x y)
+    (* x y)))
+(mult 2 3)
+6
+(mult 3 4)
+6
