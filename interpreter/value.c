@@ -82,7 +82,7 @@ void printValue(Value *curValue) {
 	break;
       case closureType:
       case primitiveType:
-	printf("#<procedure>\n");
+	printf("#<procedure>");
 	break;
       case nullType:
 	printf("()");

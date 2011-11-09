@@ -75,6 +75,12 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"letrec")==0){
 	    /*eval letrec goes here*/
 	    return evalLetrec(args, env);
+	  }else if (strcmp(operator->symbolValue,"and")==0){
+	    /*eval let* goes here*/
+	    return evalAnd(args, env);
+	  }else if (strcmp(operator->symbolValue,"or")==0){
+	    /*eval let* goes here*/
+	    return evalOr(args, env);
 	  }else if (strcmp(operator->symbolValue,"let*")==0){
 	    /*eval let* goes here*/
 	    return evalLetStar(args, env);
@@ -528,10 +534,7 @@ Value* evalLetrec(Value* args, Environment* env){
       Environment* newEnv = createFrame(env);
       Value* listofBinds = toCheck; // remember the start of variable list.
       
-      while (listofBinds){
-        insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, NULL);
-        listofBinds = getTail(listofBinds);
-      }
+      
       
       listofBinds = toCheck;
       // first round of forming bindings. Ignore symbols first.
@@ -1335,14 +1338,77 @@ void bind(char identifier[], Value *function, Environment *env){
 
 // To implement in round 2
 Value *evalAnd(Value *args, Environment *env){
-  return NULL;
+  assert(env!=NULL);
+  assert(env->bindings!=NULL);
+  assert(args!=NULL);
+  assert(args->type == cellType);
+  
+  if (!getTail(args)){
+    Value* value = (Value *)malloc(sizeof(Value));
+    value->type = booleanType;
+    value->boolValue = 1;
+    insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    free(value);  // value can be freed since there is one copy in hash table.
+    value = lookup(env->bindings->tableValue,"#returnValue");
+    return value;
+  }else{
+   
+    removeLast(args); // remove close parenthesis.
+    Value *toCheck  = args, *toValidate = NULL;
+    while (getFirst(toCheck)){
+      toValidate = eval(getFirst(toCheck),env);
+      if (!toValidate){
+	printf("Syntax error in: (and ");
+	printValue(args);
+	printf(")\n");
+	return NULL;
+      }else if (toValidate->type == booleanType && (!getFirst(toCheck)->boolValue)){
+	Value* value = (Value *)malloc(sizeof(Value));
+	value->type = booleanType;
+	value->boolValue = 0;
+	insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+	free(value);  // value can be freed since there is one copy in hash table.
+	value = lookup(env->bindings->tableValue,"#returnValue");
+	return value;
+      }
+      toCheck = getTail(toCheck);
+    }
+    return toValidate;
+  }
 }
 
 Value *evalCond(Value *args, Environment *env){
   return NULL;
 }
+
+
 Value *evalOr(Value *args, Environment *env){
-  return NULL;
+  assert(env!=NULL);
+  assert(env->bindings!=NULL);
+  assert(args!=NULL);
+  assert(args->type == cellType);
+  
+  if (!getTail(args)){
+    Value* value = (Value *)malloc(sizeof(Value));
+    value->type = booleanType;
+    value->boolValue = 0;
+    insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    free(value);  // value can be freed since there is one copy in hash table.
+    value = lookup(env->bindings->tableValue,"#returnValue");
+    return value;
+  }else{
+   
+    removeLast(args); // remove close parenthesis.
+    Value *toValidate = NULL;
+    toValidate = eval(getFirst(args),env);
+    if (!toValidate){
+      printf("Syntax error in: (or ");
+      printValue(args);
+      printf(")\n");
+      return NULL;
+    }   
+    return toValidate;
+  }
 }
 
 Value *evalSetBang(Value *args, Environment *env){
@@ -1350,7 +1416,7 @@ Value *evalSetBang(Value *args, Environment *env){
 }
 
 Value *evalLetStar(Value *args, Environment *env){
- Value *toCheck;
+  Value *toCheck;
   
   int count = listLength(args);
   if (count < 2){
@@ -1473,6 +1539,17 @@ Value *bigOrEqualThan(Value *args){
 }
 
 Value *arithmeticEqual(Value *args){
+  /*assert(args !=NULL);
+  assert(args->type == cellType);
+  Value *current = args, toValidate;
+  while (getFirst(current)){
+    if (getFirst(current)->type!=integerType && getFirst(current)->type!=floatType){
+      
+    }
+    if ()
+    
+    current = getTail(current);
+    }*/
   return NULL;
 }
 
