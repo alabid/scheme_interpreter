@@ -592,7 +592,7 @@ Value *cdrFree(Value *value, int freeCar) {
   }
   if ((value->cons->car->type == nullType)  ||
       (value->cons->car->cons->car->type == nullType)) {
-    printf("cdr: Attempt to apply car on null");
+    printf("cdr: Attempt to apply car on null\n");
     return NULL;
   }
 

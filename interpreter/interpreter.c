@@ -66,7 +66,9 @@ Value* eval(Value *expr, Environment *env){
 	  }else if (strcmp(operator->symbolValue,"if")== 0){
 	    return evalIf(args, env);
 	    /*eval if goes here*/
-	  }else if (strcmp(operator->symbolValue,"quote")==0){
+	  } else if (strcmp(operator->symbolValue, "cond") == 0) {
+	    return evalCond(args, env);
+	  } else if (strcmp(operator->symbolValue,"quote")==0){
 	    /*eval quote goes here*/
 	    return evalQuote(args);
 	  }else if (strcmp(operator->symbolValue,"let")==0){
@@ -855,6 +857,7 @@ Environment *createTopFrame(){
   bind("-", makePrimitiveValue(subtract), frame);
   bind("*", makePrimitiveValue(multiply), frame);
   bind("/", makePrimitiveValue(divide), frame);
+  bind("=", makePrimitiveValue(arithmeticEqual), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   // bind("load", makePrimitiveValue(loadFunction), frame);
   bind("car", makePrimitiveValue(car), frame);
@@ -1378,6 +1381,59 @@ Value *evalAnd(Value *args, Environment *env){
 }
 
 Value *evalCond(Value *args, Environment *env){
+  if (!(args || (args->type == cellType)))
+   return NULL;
+  int count = listLength(args);
+  
+  if (count < 1) {
+    printf("cond: cond called with no arguments\n");
+    return NULL;
+  } else if ((count == 1) && (getFirst(args)->type == nullType)) {
+    printf("cond: cond called on nullType\n");
+    return NULL;
+  }
+
+  int i; // loop through all the arguments
+  Value *current;
+  Value *tail;
+  Value *evalTest;
+  current = getFirst(args);
+  tail = getTail(args);
+  
+  if (getFirst(getTail(current))->type == stringType) {
+    if (strcmp(getFirst(getTail(current))->stringValue, "else") == 0) {
+      return eval(getFirst(getTail(getTail(current))), env);
+     } 
+  }
+  // printValue(getFirst(getTail(current)));
+  evalTest = eval(getFirst(getTail(current)), env);
+  for (i=0; i < count - 1; i++) {
+    if (current) {
+      if (evalTest && 
+	  evalTest->type == booleanType &&
+	  !(evalTest->boolValue)) {
+	current = getFirst(tail);
+	tail = getTail(tail);
+	evalTest = eval(getFirst(getTail(current)), env);
+      } else {
+	return eval(getFirst(getTail(getTail(current))), env);
+      }
+    }
+  }
+  // then return;
+
+  Value *evalEnd;
+  if (!(tail && current)) return NULL;
+  else if (getFirst(getTail(current))->type == stringType) {
+    if (strcmp(getFirst(getTail(current))->symbolValue, "else") == 0) {
+      return getFirst(getTail(getTail(current)));
+    }
+  } else {
+    evalEnd =  eval(getFirst(getTail(current)), env);
+    if (evalEnd && evalEnd->type == booleanType && !(evalEnd->boolValue)) 
+      return NULL;
+    else return getFirst(getTail(getTail(current)));
+  }
   return NULL;
 }
 
@@ -1539,18 +1595,57 @@ Value *bigOrEqualThan(Value *args){
 }
 
 Value *arithmeticEqual(Value *args){
-  /*assert(args !=NULL);
-  assert(args->type == cellType);
-  Value *current = args, toValidate;
-  while (getFirst(current)){
-    if (getFirst(current)->type!=integerType && getFirst(current)->type!=floatType){
-      
-    }
-    if ()
+  if (!(args || (args->type == cellType)))
+   return NULL;
+  
+  int count = listLength(args);
+  
+  if (count < 2) {
+    printf("equal: expects at least two arguments\n");
+    return NULL;
+  }
+  Value *current;
+  Value *tail;
+  current = getFirst(args);
+  tail = getTail(args);
+
+  assert(current != NULL);
+  assert(tail != NULL);
+  
+  int i;
+  int equal = 1;
     
-    current = getTail(current);
-    }*/
-  return NULL;
+  for (i = 0; i < count - 1; i++) {
+    if (((current->type == floatType) || (current->type == integerType)) &&
+	((getFirst(tail)->type == floatType) || (getFirst(tail)->type == integerType))) {
+      if ((current->type == floatType) && (getFirst(tail)->type == floatType)) {
+	if (current->dblValue != getFirst(tail)->dblValue)
+	  equal = 0;
+      } else if ((current->type == integerType) && (getFirst(tail)->type == integerType)) {
+	if (current->intValue != getFirst(tail)->intValue)
+	  equal = 0;
+      } else if ((current->type == integerType) && (getFirst(tail)->type == floatType)) {
+	if (((double)current->intValue) != getFirst(tail)->dblValue)
+	  equal = 0;
+      } else if ((current->type == floatType) && (getFirst(tail)->type == integerType)) {
+	if (current->dblValue != ((double)getFirst(tail)->intValue))
+	  equal = 0;
+      }
+      current = getFirst(tail);
+      tail = getTail(tail);
+    } else {
+      printf("equal: one of your arguments isn't an int or float.\n");
+      return NULL;
+    }
+  }
+  Value *value = (Value *)malloc(sizeof(Value));
+  value->type = booleanType;
+
+  if (equal) {
+    value->boolValue = 1;
+  } else
+    value->boolValue = 0;
+  return value;
 }
 
 Value *checkEqual(Value *args){
