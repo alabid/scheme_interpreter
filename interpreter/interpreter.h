@@ -61,9 +61,9 @@ Value *evalLetStar(Value *args, Environment *env);
 
 Value *consFunction(Value *args, Environment *env);
 
-Value *lessOrEqualThan(Value *args, Environment *env);
+Value *smallerOrEqualTo(Value *args, Environment *env);
 
-Value *bigOrEqualThan(Value *args, Environment *env);
+Value *greaterOrEqualTo(Value *args, Environment *env);
 
 Value *arithmeticEqual(Value *args, Environment *env);
 

@@ -5,43 +5,22 @@ BUGS WE NEED TO FIX
    was because he did not terminate his test files with a newline.
    We need to fix this enabling the tests to pass on EOF not just newline.
    
-2. We cannot handle execution of closures and functions well.
-   eg. ((lambda (x) x)) does not produce the correct result.
-   -- Now it can handle cases like:
-      	  ((lambda () (+ 5 ((lambda () (+ ((lambda () 5)) 5))))))  =>15
+-- I'm not sure whether I fixed that. I added EOF to the tokenize
+   function. Please check.
 	  
-
-3. letrec should evaluate things simutaneously.
-   (letrec ((x y) (y 5)) x)  => 5 but now it throws an error.
-
-4. car/cdr do not work well.
-     (car (quote (5 6)))   => 5 but now it gives a segmentation fault.
 PART 2
 ======
 1. When reading a file, if it encounters a bug, it doesn't
  end the program but continues executing the codes. This could
  sometimes lead to seg. fault if another function is
  dependent on the result.
-2. Problem with procedure calling.
 
- (define x    
- (lambda ()
-  (+ 2 3)))
-x
-#<procedure>
+ --- specific examples? Probably before we modified the parse tree
+     which could cause some problems. After I made changes, please
+     check again.
 
-(x)
-5
-interpreter(46143) malloc: *** error for object 0x1001006a0: pointer being freed was not allocated
-*** set a breakpoint in malloc_error_break to debug
-Abort trap
+2. >= and <=
+ does not compare 5.5 with 5.50 well. Probably Yichen can look at
+ Daniel's arithmeticEqual function who handles such cases well.
 
-3. The result of a procedure seems to be tied to that procedure.
-
-(define mult
-  (lambda (x y)
-    (* x y)))
-(mult 2 3)
-6
-(mult 3 4)
-6
+3. 

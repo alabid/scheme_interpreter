@@ -86,6 +86,8 @@ Value* eval(Value *expr, Environment *env){
 	    return evalLetStar(args, env);
 	  }else if (strcmp(operator->symbolValue,"cond")==0){
 	    return evalCond(args, env);
+	  }else if (strcmp(operator->symbolValue,"set!")==0){
+	    return evalSetBang(args, env);
 	  }else if(strcmp(operator->symbolValue, "load") == 0){
 	    while (env && env->parent){
 	      env = env->parent;
@@ -105,6 +107,7 @@ Value* eval(Value *expr, Environment *env){
 	      printf("Unknown procedure: ");
 	      printValue(operator);
 	      printf("\n");
+	      return NULL;
 	    }
 	    
 	    return apply(evaledOperator, evaledArgs, env);
@@ -482,9 +485,7 @@ Value* evalLetrec(Value* args, Environment* env){
     printf("\n");
     return NULL;
   }
-  printf("in letrec 0: ");
-  printValue(args);
-  printf("\n");
+
   if (getFirst(args)->type== nullType){
     while (getTail(getTail(getTail(args)))){
       if (typeCheck(getTail(getTail(getTail(args)))) == 5){
@@ -517,9 +518,7 @@ Value* evalLetrec(Value* args, Environment* env){
     }else{
       Environment* newEnv = createFrame(env);
       Value* listofBinds = toCheck; // remember the start of variable list.
-      printf("in letrec 1: ");
-      printValue(toCheck);
-      printf("\n");
+     
       // first round of forming bindings. Ignore symbols first.
       
    
@@ -529,9 +528,7 @@ Value* evalLetrec(Value* args, Environment* env){
 
         if (typeCheck(toBind) > 0 && typeCheck(toBind)!=3){
           toBind = eval(getFirst(getTail(getTail(getFirst(listofBinds)))), newEnv);
-	  printf("in letrec 3.5: ");
-	  printValue(toBind);
-	  printf("\n");
+	 
         }else{
           toBind = NULL;
         }
@@ -544,9 +541,7 @@ Value* evalLetrec(Value* args, Environment* env){
 	      return NULL;
             }else{
               toBind = getFirst(toBind);
-	      printf("in letrec 3.6: ");
-	      printValue(toBind);
-	      printf("\n");
+	    
             }
           }
           insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
@@ -555,28 +550,20 @@ Value* evalLetrec(Value* args, Environment* env){
 	
       }
       listofBinds = toCheck;
-      printf("in letrec 3.9: ");
-      printValue(toCheck);
-      printf("\n");
+      
       toBind = getFirst(toBind);
-      printf("in letrec 4: ");
-      printValue(getFirst(listofBinds));
-      printf("\n");
+      
       // form bindings by assigning values to the symbols missed in the first round. 
       while(listofBinds){
-	printf("in letrec 4.1.0: ");
-	printValue(getFirst(listofBinds));
-	printf("\n");
+
 	if (getFirst(listofBinds) && typeCheck(getFirst(listofBinds))==5){
-	  printf("hello world\n");
+	 
 	  break;
 	}
 	assert(getFirst(getTail(getFirst(listofBinds)))!=NULL);
         assert(getFirst(getTail(getFirst(listofBinds)))->type == symbolType);
 	
-	printf("in letrec 4.1.5: ");
-	printValue(getFirst(getTail(getFirst(listofBinds))));
-	printf("\n");
+
         if (envLookup(getFirst(getTail(getFirst(listofBinds)))->symbolValue, newEnv) == NULL){
 	  toBind = getFirst(getTail(getTail(getFirst(listofBinds))));
 	  
@@ -604,15 +591,10 @@ Value* evalLetrec(Value* args, Environment* env){
 	destroyEnvironment(newEnv); 
 	return NULL;
       }
-      printf("in letrec 5: ");
-      printTable(newEnv->bindings->tableValue);
-      printf("\n");
-
+     
       while(listofExpressions && typeCheck(getFirst(listofExpressions))!=5){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
-	printf("in letrec 6: ");
-	printValue(toReturn);
-	printf("\n");
+
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if( getFirst(getTail(listofExpressions)) && getFirst(getTail(listofExpressions))->type!=closeType){
 	    
@@ -866,7 +848,8 @@ Environment *createTopFrame(){
   bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   bind("=",makePrimitiveValue(arithmeticEqual),frame);
-  // bind("load", makePrimitiveValue(loadFunction), frame);
+  bind("<=",makePrimitiveValue(smallerOrEqualTo),frame);
+  bind(">=",makePrimitiveValue(greaterOrEqualTo),frame);
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);
   return frame;
@@ -947,11 +930,10 @@ Value *add(Value *args, Environment *env){
       args = getTail(args);
     }
     
-    
    
   }
   Value *value = (Value*) malloc(sizeof(Value));
- 
+  
   if (isFloat){
     value->type = floatType;
       value->dblValue = dblSum; 
@@ -1361,12 +1343,12 @@ Value *evalAnd(Value *args, Environment *env){
 }
 
 Value *evalCond(Value *args, Environment *env){
-  if (!(args || (args->type == cellType)))
+  if (!(args && (args->type == cellType)))
    return NULL;
   int count = listLength(args);
   
   if (count < 1) {
-    printf("cond: cond called with no arguments\n");
+    // It is okay not to have an argument. Just return NULL.
     return NULL;
   } else if ((count == 1) && (getFirst(args)->type == nullType)) {
     printf("cond: cond called on nullType\n");
@@ -1445,9 +1427,7 @@ Value *evalOr(Value *args, Environment *env){
   }
 }
 
-Value *evalSetBang(Value *args, Environment *env){
-  return NULL;
-}
+
 
 Value *evalLetStar(Value *args, Environment *env){
   Value *toCheck;
@@ -1554,20 +1534,200 @@ Value *evalLetStar(Value *args, Environment *env){
   return NULL;
 }
 
+
+Environment* checkEnv(char* id, Environment* env){
+  Environment* returnEnv = env;
+  Value* returnValue = NULL;
+  while (env){
+    
+    assert(env->bindings->type == tableType);
+    returnValue = lookup(env->bindings->tableValue, id);
+    if (returnValue){
+      break;
+    }else{
+      env = env->parent;
+    }
+  }
+  if(returnValue){
+    return env;
+  }else{
+    return NULL;
+  }
+}
+
+
+
+Value *evalSetBang(Value *args, Environment *env){
+ //we should modify let functions in order to handle those cases like(let ((y 4)) (set! y 3))
+ int count = listLength(args);
+ if (count < 1||count > 2){
+   printf("set!: has %d parts after key word in ", count);
+   printValue(args);
+   printf("\n");
+   return NULL;
+ }
+ if (getFirst(args)->type != symbolType){
+   printf("set!: not an indentifier ");
+   printValue(args);
+   printf("\n");
+   return NULL;
+ }else{
+   if(getFirst(args)->type == symbolType && variableCheck(getFirst(args)) == 0){
+     printf("set!: cannot mutate module-required identifier\n");
+     return NULL;
+   }else{
+     if((envLookup(getFirst(args)->symbolValue, env)) == NULL){
+	  printf("set!: cannot set undefined variable ");
+	  printValue(getFirst(args));
+	  printf("\n");
+	  return NULL;
+	}else{
+	Environment* newEnv= checkEnv(getFirst(args)->symbolValue, env);
+	Value* toBind = eval(getTail(args), env);
+	  if(toBind && newEnv){
+	    insertItem(newEnv->bindings->tableValue, getFirst(args)->symbolValue, toBind);
+	    return NULL;
+	  }else{
+	    printf("bad syntax\n");
+	    return NULL;
+	  }
+	}
+   }
+ }
+}
+Value *smallerOrEqualTo(Value *args, Environment *env){
+  assert(args->type == cellType);
+  int count = listLength(args);
+ if (count < 1){
+   printf("in <=: expect at least two arguments, given %d \n", count);
+ }else{
+   Value* checkArgs = args;
+   while(args){
+     Value* toCheck = getFirst(args);
+
+     if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
+	printf("in <=:expects type <real number>, given: ");
+	printValue(toCheck);
+	printf("\n");
+	return NULL;
+     }
+     args = getTail(args);
+   }
+
+   args = checkArgs;
+   Value* value = (Value *)malloc(sizeof(Value));
+   value -> type = booleanType;
+
+   if(getFirst(args)->type == integerType){
+
+     if(getFirst(getTail(args))->type == integerType){
+	
+	if (getFirst(getTail(args))->intValue >= getFirst(args)->intValue){
+	  value -> boolValue = 1;	
+	}else{
+	  value ->boolValue = 0;	  
+	}
+     }else{
+	if (getFirst(getTail(args))->dblValue >= getFirst(args)->intValue){
+	  value -> boolValue = 1;	  
+	}else{
+	  value ->boolValue = 0;
+	}
+     }
+   }else{
+     if(getFirst(getTail(args))->type == floatType){
+	if (getFirst(getTail(args))->dblValue >= getFirst(args)->intValue){
+	  value -> boolValue = 1;	
+	}else{
+	  value ->boolValue = 0;	  
+	}
+     }else{
+	if (getFirst(getTail(args))->dblValue >= getFirst(args)->dblValue){
+	  value -> boolValue = 1;	  
+	}else{
+	  value ->boolValue = 0;
+	}
+     }
+   }
+   insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+   free(value);  // value can be freed since there is one copy in hash table.
+   value = lookup(env->bindings->tableValue,"#returnValue");
+   return value;
+ }
+}
+
+
+
+Value *greaterOrEqualTo(Value *args, Environment *env){
+  assert(args->type == cellType);
+  int count = listLength(args);
+ if (count < 1){
+   printf("in >=: expect at least two arguments, given %d \n", count);
+ }else{
+   Value* checkArgs = args;
+   while(args){
+     Value* toCheck = getFirst(args);
+
+     if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
+	printf("in >=:expects type <real number>, given: ");
+	printValue(toCheck);
+	printf("\n");
+	return NULL;
+     }
+     args = getTail(args);
+   }
+
+   args = checkArgs;
+   Value* value = (Value *)malloc(sizeof(Value));
+   value -> type = booleanType;
+
+   if(getFirst(args)->type == integerType){
+
+     if(getFirst(getTail(args))->type == integerType){
+	
+	if (getFirst(getTail(args))->intValue <= getFirst(args)->intValue){
+	  value -> boolValue = 1;	
+	}else{
+	  value ->boolValue = 0;	  
+	}
+     }else{
+	if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
+	  value -> boolValue = 1;	  
+	}else{
+	  value ->boolValue = 0;
+	}
+     }
+   }else{
+     if(getFirst(getTail(args))->type == floatType){
+	if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
+	  value -> boolValue = 1;	
+	}else{
+	  value ->boolValue = 0;	  
+	}
+     }else{
+	if (getFirst(getTail(args))->dblValue <= getFirst(args)->dblValue){
+	  value -> boolValue = 1;	  
+	}else{
+	  value ->boolValue = 0;
+	}
+     }
+   }
+   insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+   free(value);  // value can be freed since there is one copy in hash table.
+   value = lookup(env->bindings->tableValue,"#returnValue");
+   return value;
+ }
+}
+
+
 Value *consFunction(Value *args, Environment *env){
   return NULL;
 }
 
-Value *lessOrEqualThan(Value *args, Environment *env){
-  return NULL;
-}
 
-Value *bigOrEqualThan(Value *args, Environment *env){
-  return NULL;
-}
 
 Value *arithmeticEqual(Value *args, Environment *env){
-  if (!(args || (args->type == cellType)))
+  if (!(args && (args->type == cellType)))
     return NULL;
   
   int count = listLength(args);
