@@ -607,7 +607,7 @@ Value *cdrFree(Value *value, int freeCar) {
       free(value->cons->car);
     }
     // return getTail(content);
-    newValue->cons->cdr = getTail(content);
+    newValue->cons->cdr = getTail(getTail(content)); // ->cons->cdr; // ->cons->cdr;
     return newValue;
   }
   return NULL;
