@@ -526,33 +526,43 @@ void destroy(List* list){
 }
 
 
+
 /*
   This returns the car of a value (that is a list)
  */
 /*
   This returns the car of a value (that is a list)
  */
-Value *car(Value *value) {
-  if (!(value || (value->type == cellType)))
-    return NULL;
+Value *car(Value *value, Environment *env) {
+  Value *current = value;
   int count = listLength(value);
-  
   if (count > 1) {
-    printf("car: you passed in too many arguments to car\n");
+    printf("car:expects 1 argument, given %d.\n", count);
     return NULL;
   }
   else if (count < 1){
-    printf("car: you passed in no argument\n");
+    printf("car: expects argument of type <pair>.\n");
     return NULL;
   }
   
-  if ((value->cons->car->type == nullType)  ||
-      (value->cons->car->cons->car->type == nullType)) {
-    printf("car: Attempt to apply car on null");
+  if (!(current && (current->type == cellType))){
+    printf("car: expects argument of type <pair>, given 0\n");
     return NULL;
-  } 
+  }else if (getFirst(current) && getFirst(current)->type == nullType){
+      printf("car: expects argument of type <pair>; given ()\n");
+      return NULL;
+  }
+  while (getFirst(current) && getFirst(current)->type!=openType){ 
+    current = getFirst(current);
+  }
+  if (!getFirst(current)){
+    printf("car: expects argument of type <pair>: given ");
+    printValue(getFirst(value));
+    printf("\n");
+    return NULL;
+  }
 
-  Value *content = value->cons->car->cons->car->cons->cdr;
+  Value *content = current->cons->cdr;
   if (listLength(content) < 1) {
     printf("car: you must car a list with one or more items\n");
     return NULL;
@@ -562,67 +572,72 @@ Value *car(Value *value) {
   return NULL;
 }
 
-Value *cdrFree(Value *value, int freeCar) {
+Value *cdr(Value *value, Environment *env) {
   Value *content;
   Value *openParen;
   Value *newValue;
-
-  if (!(value || (value->type == cellType)))
-   return NULL;
-  
-  // PROBLEMATIC BLOCK OF CODE
-  openParen = (Value *) malloc(sizeof(Value));
-  openParen->type = openType;
-  openParen->open = '(';
-  
-  newValue = (Value* )malloc(sizeof(Value));
-  newValue->type = cellType;
-  newValue->cons->car = openParen;
-  
-  
+ 
+  printf("print cdr: ");
+  printValue(value);
+  printf("\n");
+  Value *current = value;
   int count = listLength(value);
-  
   if (count > 1) {
-    printf("cdr: you passed in too many arguments to cdr\n");
+    printf("cdr:expects 1 argument, given %d.\n", count);
     return NULL;
   }
   else if (count < 1){
-    printf("cdr: you passed in no argument\n");
+    printf("cdr: expects argument of type <pair>.\n");
     return NULL;
   }
-  if ((value->cons->car->type == nullType)  ||
-      (value->cons->car->cons->car->type == nullType)) {
-    printf("cdr: Attempt to apply car on null\n");
-    return NULL;
-  }
-
-  content = value->cons->car->cons->car->cons->cdr;
   
-  if (listLength(content) < 1) {
-    printf("cdr: you can only cdr a list with more than one item\n");
+  if (!(current && (current->type == cellType))){
+    printf("cdr: expects argument of type <pair>, given 0\n");
     return NULL;
-  } else {
-    if (freeCar) {
-      free(value->cons->car->cons->car);
-      free(value->cons->car);
-    }
-    // return getTail(content);
-    newValue->cons->cdr = getTail(content);
-    return newValue;
+  }else if (getFirst(current) && getFirst(current)->type == nullType){
+      printf("cdr: expects argument of type <pair>; given ()\n");
+      return NULL;
   }
-  return NULL;
-}
-
-Value *cdr(Value *value) {
-  if (!value){
+  while (getFirst(current) && getFirst(current)->type!=openType){ 
+    current = getFirst(current);
+  }
+  if (!getFirst(current)){
+    printf("cdr: expects argument of type <pair>: given ");
+    printValue(getFirst(value));
+    printf("\n");
     return NULL;
-  } else return cdrFree(value, 0);
+  }
+
+  content = current->cons->cdr;
+  
+  if (listLength(content) == 1) {
+     newValue = (Value *) malloc(sizeof(Value));
+     newValue->type = nullType;
+     insertItem(env->bindings->tableValue,"#cdr",newValue);
+     free(newValue);
+     return lookup(env->bindings->tableValue, "#cdr");
+  } else {
+    openParen = (Value *) malloc(sizeof(Value));
+    openParen->type = openType;
+    openParen->open = '(';
+    newValue = (Value* )malloc(sizeof(Value));
+    newValue->type = cellType;
+    newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
+    newValue->cons->car = openParen;
+    newValue->cons->cdr = getTail(content);
+    insertItem(env->bindings->tableValue, "#cdr", newValue);
+    free(openParen);
+    free(newValue->cons);
+    free(newValue);
+    newValue = lookup(env->bindings->tableValue, "#cdr");
+    return newValue;
+
+  }
+ 
 }
 
-// print value.
-//void printValue(Value* curValue){
-//printArgs(curValue, 1);
-//}
+
+
 
 /*
   This function accepts a Value that is the head of the parse tree, and prints out the list.
@@ -708,9 +723,9 @@ int listLength(Value *value) {
 }
 
 int properListLength(Value *value) {
-  if (!value) 
+  if (!(value && value->type==cellType)){ 
     return 0;
-  else if (value->cons->car->type == openType) {
+  }else if (value->cons->car->type == openType) {
     return properListLength(value->cons->cdr);
   }else if (value->cons->car->type == closeType){
     return 0;
@@ -929,7 +944,6 @@ void removeLast(Value* value){
     previous->cons->cdr = NULL;
   } 
 }
-
 void destroyEnvironment(Environment *env){
   if (env){
     assert(env->bindings!=NULL);
@@ -939,3 +953,4 @@ void destroyEnvironment(Environment *env){
     free(env);
   }
 }
+void findLast(Value* value){}

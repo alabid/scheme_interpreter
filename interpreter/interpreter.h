@@ -3,7 +3,7 @@
 
 Value *eval(Value *expr, Environment *env);
 
-Value *apply(Value *function, Value *actualArgs);
+Value *apply(Value *function, Value *actualArgs, Environment *env);
 
 Value *envLookup(char *id, Environment *env);
 
@@ -21,7 +21,7 @@ Value* evalLambda(Value* args, Environment* env);
 
 Value *evalEach(Value *args, Environment *env);
 
-Value *makePrimitiveValue(Value *(*f)(Value *));
+Value *makePrimitiveValue(Value *(*f)(Value *, Environment *));
 
 Environment *createTopFrame();
 
@@ -29,9 +29,9 @@ void freeTopFrame(Environment *env);
 
 Environment *createFrame(Environment* parent);
 
-Value *exponentiate(Value *args);
+Value *exponentiate(Value *args, Environment *env);
 
-Value *add(Value *args);
+Value *add(Value *args, Environment *env);
 
 Value *loadFunction(Value *args, Environment *env);
 
@@ -41,11 +41,11 @@ void bind(char identifier[], Value *function, Environment *env);
 
 int validateArgs(Value *value, Environment *env);
 
-Value *subtract(Value *args);
+Value *subtract(Value *args, Environment *env);
 
-Value *multiply(Value *args);
+Value *multiply(Value *args, Environment *env);
 
-Value *divide(Value *args);
+Value *divide(Value *args, Environment *env);
 
 int loadFromFile(FILE *file, Environment *env);
 
@@ -59,12 +59,12 @@ Value *evalSetBang(Value *args, Environment *env);
 
 Value *evalLetStar(Value *args, Environment *env);
 
-Value *consFunction(Value *args);
+Value *consFunction(Value *args, Environment *env);
 
-Value *lessOrEqualThan(Value *args);
+Value *lessOrEqualThan(Value *args, Environment *env);
 
-Value *bigOrEqualThan(Value *args);
+Value *bigOrEqualThan(Value *args, Environment *env);
 
-Value *arithmeticEqual(Value *args);
+Value *arithmeticEqual(Value *args, Environment *env);
 
-Value *checkEqual(Value *args);
+Value *checkEqual(Value *args, Environment *env);

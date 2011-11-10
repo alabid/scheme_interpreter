@@ -6,6 +6,10 @@ enum VALUE_TYPE{
   nullType, tableType, cellType, listType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
+typedef struct __Environment{
+  struct __Value* bindings;
+  struct __Environment* parent;
+}Environment;
 
 typedef struct __Value{
   int type;
@@ -19,11 +23,13 @@ typedef struct __Value{
     char close;
     struct __ConsCell *cons;
     struct __Closure *closureValue;
-    struct __Value* (*primitiveValue)(struct __Value*);
+    struct __Value* (*primitiveValue)(struct __Value *, struct __Environment *);
     struct __Environment* envValue;
     struct __HashTable *tableValue;
   };
 } Value;
+
+
 
 typedef struct __ConsCell{
   struct __Value *car;
@@ -62,10 +68,7 @@ void printTokens(Value* value);
 // This function frees its cons cells and also frees the list.
 void destroy(List* list);
 
-typedef struct __Environment{
-  Value* bindings;
-  struct __Environment* parent;
-}Environment;
+
 
 // destroy environment
 void destroyEnvironment(Environment *env);
@@ -74,9 +77,9 @@ void destroyEnvironment(Environment *env);
 
 
 typedef struct __Closure{
-  Value* body;
-  List* args; 
-  Environment* parent;
+  struct __Value* body;
+  struct __LinkedList* args; 
+  struct __Environment* parent;
 }Closure;
 
 
@@ -158,12 +161,12 @@ void printTable(HashTable* table);
 /*
   returns the car of the List
 */
-Value *car (Value *value);
+Value *car (Value *value, Environment *env);
 
 /*
   returns the cdr of the List
 */
-Value *cdr (Value *value);
+Value *cdr (Value *value, Environment *env);
 
 void cleanupValue(Value* value);
 
@@ -191,7 +194,7 @@ List* getValues(HashTable* table);
 */
 void printList(Value* value);
 
-Value *cdrFree(Value *value, int freeCar);
+Value *cdrFree(Value *value, Environment *env, int freeCar);
 
 int listLength(Value *value);
 
@@ -210,6 +213,8 @@ void freeValue(Value *value);
 Value* deepCopyFun(Value *function);
 
 void removeLast(Value* value);
+void findLast(Value* value);
+
 
 //void printArgs(Value *curValue, int withQuotes);
 
