@@ -41,7 +41,11 @@ Value* eval(Value *expr, Environment *env){
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
-
+	printf("printing the operator");
+	printValue(operator);
+	printf("\nprinting args");
+	printValue(args);
+	printf("\n");
 	if (!operator){
 	  printf("syntax error, missing components here\n");
 	  return NULL;
@@ -57,7 +61,7 @@ Value* eval(Value *expr, Environment *env){
 
 	}
 	if (operator->type == symbolType){  
-	 
+
 	  if (strcmp(operator->symbolValue,"define")==0){
 	    return evalDefine(args, env);
 	  }else if (strcmp(operator->symbolValue,"lambda")==0){
@@ -101,16 +105,23 @@ Value* eval(Value *expr, Environment *env){
 	      printf("\n");
 	      return NULL;
 	    } 
+
 	    Value *evaledOperator = eval(operator, env);
+	    printf("hello world\n");
 	    Value *evaledArgs = evalEach(args, env);
+	    printf("hello world2\n");
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
 	      printValue(operator);
 	      printf("\n");
 	      return NULL;
 	    }
-	    
-	    return apply(evaledOperator, evaledArgs, env);
+	   printf("printing the evaled operator");
+	   printValue(evaledOperator);
+	   printf("\nprinting evaled args");
+	   printValue(evaledArgs);
+	   printf("\n");
+	   return apply(evaledOperator, evaledArgs, env);
 	  } 
 	}else if (typeCheck(operator)==1){
 	  printf("A literal ");
@@ -257,14 +268,24 @@ Value* evalQuote(Value* args){
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs, Environment* env){
-
+  printf("printing the applied operator");
+  printValue(function);
+  printf("\nprinting applied args");
+  printValue(actualArgs);
+  printf("\n");
   if (!function){
     return actualArgs;
   }else if (function->type == primitiveType){
     return function->primitiveValue(actualArgs, env);
   }else if (function->type == closureType){
+    printf("printing acutal args");
+    printValue(actualArgs);
+    printf("\nprinting formal args");
+
     List *formalArgs = function->closureValue->args;
- 
+    printValue(formalArgs->head);
+    printf("\n");
+
     Environment *frame = createFrame(function->closureValue->parent);
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
@@ -280,13 +301,20 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     }
     if (curArg || curValue){
       printf("Wrong number of parameters for the procedure.\n");
-      // destroyFrame(frame);
+      destroyEnvironment(frame);
       return NULL;
     }
-    
-    Value *returnValue = eval(deepCopy(function->closureValue->body), frame);
+    printf("printing the body of parse tree: ");
+    printValue(function->closureValue->body);
+    printf("\n");
+
+    Value *returnValue = eval(function->closureValue->body, frame);
+    //assert(1==2); 
+    insertItem(env->bindings->tableValue, "#returnValue",returnValue);
+   
     destroyEnvironment(frame);
-    return returnValue;
+
+    return lookup(env->bindings->tableValue, "#returnValue");
   }else{
     printf("Unknown identifier!");
     return NULL;
@@ -408,25 +436,37 @@ Value* evalDefine(Value* args, Environment* env){
     assert(args->type==cellType);
     assert(getFirst(args)!=NULL);
     assert(getFirst(args)->type == symbolType);
-    
+    Value *value;
     if (getFirst(getTail(args)) && getFirst(getTail(args))->type == symbolType){
-      Value *value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
+      value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
   
       if (value){
+	if (value->type == closureType){
+	  if (!value->closureValue->identifier){
+	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
+	  }
+	}
 	insertItem(env->bindings->tableValue, (getFirst(args))->symbolValue, value);
       }else{
 	printf("syntax error: unknown identifier\n");
 	return NULL;
       }
     }else{
-      
       assert(getFirst(args)!=NULL);
       assert(getFirst(args)->type==symbolType);
       assert(env->bindings->tableValue!=NULL);
-     
-      
-      insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, eval(getFirst(getTail(args)), env));
-      
+      value = eval(getFirst(getTail(args)), env);
+      if (value){
+	if (value->type == closureType){
+	  if (!value->closureValue->identifier){
+	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
+	  }
+	}
+	insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, value);
+      }else{
+	printf("syntax error: Cannot nest another definition inside define.\n");
+	return NULL;
+      }
     }
     return NULL;
   }  
@@ -437,8 +477,12 @@ Value* evalEach(Value* args, Environment* env){
   Value *temp;
   Value *head, *openParen;
   List *returnValue = initializeList();
- 
-  while (args){ 
+  
+  printf("printing args in eval each ");
+  printValue(args);
+  printf("\n");
+  
+  while (args && typeCheck(getFirst(args))!=5){ 
     assert(args->type==cellType);    
     if (getFirst(args) && (getFirst(args))->type==cellType){
       openParen = getFirst(getFirst(args));
@@ -452,12 +496,12 @@ Value* evalEach(Value* args, Environment* env){
 	push(returnValue, temp);
 	args = getTail(args);
       }else{
-	  printf("Error! Cannot evaluate each one.\n");
-	 free(returnValue);
-	  return NULL;
+	printf("Error! Cannot evaluate each one.\n");
+	free(returnValue);
+	return NULL;
       }
     }else{
-      temp = eval(args->cons->car, env);
+      temp = eval(getFirst(args), env);
       if (!temp){
 	break;
       }
@@ -479,14 +523,17 @@ Value* evalEach(Value* args, Environment* env){
 Value* evalLetrec(Value* args, Environment* env){
   Value *toCheck,  *toBind;
   int count = listLength(args);
+  
   if (count < 2){
     printf("letrec: bad syntax in: (letrec ");
     printValue(args);
     printf("\n");
     return NULL;
   }
-
-  if (getFirst(args)->type== nullType){
+  printf("in let1: ");
+  printValue(args);
+  printf("\n");
+  if (getFirst(args)->type == nullType){
     while (getTail(getTail(getTail(args)))){
       if (typeCheck(getTail(getTail(getTail(args)))) == 5){
 	break;
@@ -543,12 +590,26 @@ Value* evalLetrec(Value* args, Environment* env){
               toBind = getFirst(toBind);
 	    
             }
-          }
+          }else	if (toBind->type == closureType){
+	    if (!toBind->closureValue->identifier){
+	      nameClosure(toBind->closureValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue);
+	    }
+	    printf("printing the clousre: ");
+	    //  print(toBind->closureValue->args);
+	    printValue(toBind->closureValue->body);
+	    printf("\n");
+	  }
+	  printf("in let2: %s => ",getFirst(getTail(getFirst(listofBinds)))->symbolValue);
+	  printValue(toBind);
+	  printf("\n");
           insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
         }
 	listofBinds = getTail(listofBinds);
-	
+	printf("in let3: The following is  ");
+	printValue(listofBinds);
+	printf("\n");	
       }
+ 
       listofBinds = toCheck;
       
       toBind = getFirst(toBind);
@@ -569,9 +630,12 @@ Value* evalLetrec(Value* args, Environment* env){
 	  
           if (toBind && toBind->type == symbolType){
             if(envLookup(toBind->symbolValue, newEnv) != NULL){
+	      Value *curValue = eval(toBind,newEnv);
+              insertItem(newEnv->bindings->tableValue,getFirst(getTail(getFirst(listofBinds)))->symbolValue, curValue);
 	      
-              insertItem(newEnv->bindings->tableValue,toBind->symbolValue, eval(toBind,newEnv));
-            
+	      printf("in let4: %s=> ",getFirst(getTail(getFirst(listofBinds)))->symbolValue);
+	      printValue(curValue);
+	      printf("\n");
             }else{
               printf("syntax error: unknown identifier\n");
 	      destroyEnvironment(newEnv); 
@@ -579,7 +643,11 @@ Value* evalLetrec(Value* args, Environment* env){
             }
           }
 	}
-	  listofBinds = getTail(listofBinds);
+	listofBinds = getTail(listofBinds);
+	printf("in let5: The following is  ");
+	printValue(listofBinds);
+	printf("\n");	
+
       }
      
 
@@ -601,11 +669,27 @@ Value* evalLetrec(Value* args, Environment* env){
 	    listofExpressions = getTail(listofExpressions);
 	    freeValue(toReturn);
 	  }else{
-	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	    if (toReturn && toReturn->type==closureType){
+	      printf("returning here\n");
+	      Value *envValue = (Value *)malloc(sizeof(Value));
+	      envValue->type = envType;
+	      envValue->envValue = newEnv;
+	      //insertItem(env->bindings->tableValue, "#letEnv", envValue);
+	      //   if (getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	      //  toReturn = lookup(lookup(env->bindings->tableValue, "#letEnv")->envValue->bindings->tableValue, getFirst(listofExpressions)->symbolValue);
+	      //	  toReturn->closureValue->parent = lookup(env->bindings->tableValue, "#letEnv")->envValue;
+	      //}
+	      return toReturn;
+	    }else if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
-	    }else if (toReturn && toReturn->type==closureType){
-	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
+	      printf("copying the things: ");
+	      printValue(toReturn);
+	      printf("type of toReturn: %d",toReturn->type);
+	      printf("\n");
 	    }
+	    
+	      // if the last item is lambda, we need to return it and leave let environment there.
+	    
 	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
 	    return toReturn;
 	  }
@@ -679,6 +763,10 @@ Value* evalLet(Value* args, Environment* env){
 	      return NULL;
 	    }else{
 	      toBind = getFirst(toBind);
+	    }
+	  }else	if (toBind->type == closureType){
+	    if (!toBind->closureValue->identifier){
+	      nameClosure(toBind->closureValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue);
 	    }
 	  }
 	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
@@ -848,6 +936,7 @@ Environment *createTopFrame(){
   bind("/", makePrimitiveValue(divide), frame);
   // bind("exp", makePrimitiveValue(exponentiate), frame);
   bind("=",makePrimitiveValue(arithmeticEqual),frame);
+  bind("equal?",makePrimitiveValue(equality),frame);
   bind("<=",makePrimitiveValue(smallerOrEqualTo),frame);
   bind(">=",makePrimitiveValue(greaterOrEqualTo),frame);
   bind("car", makePrimitiveValue(car), frame);
@@ -1434,7 +1523,7 @@ Value *evalLetStar(Value *args, Environment *env){
   
   int count = listLength(args);
   if (count < 2){
-    printf("let*: bad syntax in: (letrec ");
+    printf("let*: bad syntax in: (let* ");
     printValue(args);
     printf("\n");
     return NULL;
@@ -1484,6 +1573,10 @@ Value *evalLetStar(Value *args, Environment *env){
 	      return NULL;
 	    }else{
 	      toBind = getFirst(toBind);
+	    }
+	  }else	if (toBind->type == closureType){
+	    if (!toBind->closureValue->identifier){
+	      nameClosure(toBind->closureValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue);
 	    }
 	  }
 	  insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
@@ -1733,7 +1826,7 @@ Value *arithmeticEqual(Value *args, Environment *env){
   int count = listLength(args);
   
   if (count < 2) {
-    printf("equal: expects at least two arguments\n");
+    printf("=: expects at least two arguments\n");
     return NULL;
   }
   Value *current;
@@ -1766,7 +1859,7 @@ Value *arithmeticEqual(Value *args, Environment *env){
       current = getFirst(tail);
       tail = getTail(tail);
     } else {
-      printf("equal: one of your arguments isn't an int or float.\n");
+      printf("=: one of your arguments isn't an int or float.\n");
       return NULL;
     }
   }
@@ -1780,8 +1873,92 @@ Value *arithmeticEqual(Value *args, Environment *env){
   return value;
 }
 
-Value *checkEqual(Value *args, Environment *env){
-  return NULL;
+int checkEqual(Value *first, Value *second, Environment *env){
+  if (!first || !second){
+    return 0;
+  }
+  int equal = 1;
+  if (first->type!=second->type){
+    equal = 0;
+  }else if (first->type == floatType){
+    if (first->dblValue != second->dblValue){
+      equal = 0;
+    }
+  }else if (first->type == integerType) {
+    if (first->intValue != second->intValue){
+      equal = 0;
+    }
+  }else if (first->type == booleanType) {
+    if (first->boolValue != second->boolValue){
+      equal = 0;
+    }
+  }else if (first->type == nullType || first->type == openType || first->type == closeType){
+    equal = 1;
+  }else if (first->type == stringType) {
+    if (strcmp(first->stringValue, second->stringValue)!=0){
+      equal = 0;
+    }
+  }else if (first->type == symbolType){
+    first = eval(first, env);
+    second = eval(second, env);
+    equal = checkEqual(first, second, env);
+  }else if (first->type == closureType){
+    if (first->closureValue->identifier!=NULL && second->closureValue->identifier!=NULL){
+      if (strcmp(first->closureValue->identifier,second->closureValue->identifier)==0){
+	equal = 1;
+      }else{
+	equal = 0;
+      }
+    }else{
+      equal = 0;
+    }
+  }else if (first->type == primitiveType){
+    if (first->primitiveValue != second->primitiveValue){
+      equal = 0;
+    } 
+  }else{
+    equal = 0;
+  }
+  return equal;
+}
+
+Value *equality(Value *args, Environment *env){
+  if (!(args && (args->type == cellType)))
+    return NULL;
+  
+  int count = listLength(args);
+  
+  if (count = 0) {
+    printf("equal?: expects two arguments, given 0\n");
+    return NULL;
+  }else if (count == 1) {
+    printf("equal?: expects two arguments, given 1: ");
+    printValue(args);
+    printf("\n");
+    return NULL;
+  }else if (count > 2) {
+    printf("equal?: expects two arguments, given %d: ", count);
+    printValue(args);
+    printf("\n");
+    return NULL;
+  }
+  Value *first = getFirst(args);
+  Value *second = getFirst(getTail(args));
+  int equal = checkEqual(first, second, env);
+
+  Value *value = (Value *)malloc(sizeof(Value));
+  value->type = booleanType;
+
+  if (equal) {
+    value->boolValue = 1;
+  } else{
+    value->boolValue = 0;
+  }
+  assert(env->bindings!=NULL);
+  insertItem(env->bindings->tableValue, "#returnValue",value);
+  free(value);
+  value = lookup(env->bindings->tableValue, "#returnValue");
+  return value;
 }
 
 // not finished yet.

@@ -67,4 +67,6 @@ Value *greaterOrEqualTo(Value *args, Environment *env);
 
 Value *arithmeticEqual(Value *args, Environment *env);
 
-Value *checkEqual(Value *args, Environment *env);
+int checkEqual(Value *first, Value *second, Environment *env);
+
+Value *equality(Value *args, Environment *env);

@@ -23,4 +23,14 @@ PART 2
  does not compare 5.5 with 5.50 well. Probably Yichen can look at
  Daniel's arithmeticEqual function who handles such cases well.
 
-3. 
+3. (<= 3 4 3) => #t
+But in DrRacket, (<= 3 4 3) => #f.
+There is the same problem for >=.
+
+4. Big bugs involved letrec, probably let has the smiliar bug.
+(define fun (letrec ((x (lambda () (+ 1 2)))(y x)) y))
+(define fun1 (letrec ((x (lambda () (+ 1 2)))(y x)) y))
+(fun)
+(fun1)
+(fun)
+=>segmentation fault.

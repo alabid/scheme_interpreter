@@ -80,6 +80,7 @@ typedef struct __Closure{
   struct __Value* body;
   struct __LinkedList* args; 
   struct __Environment* parent;
+  char* identifier; 
 }Closure;
 
 
@@ -92,6 +93,8 @@ void cleanupClosure(Closure *closure);
 
 // destroy frees the contents of the closure and closure itself.
 void destroyClosure(Closure *closure);
+
+void nameClosure(Closure *closure, char *id);
 
 typedef struct __HashTable{
   struct __ConsCell* entries;
@@ -211,6 +214,9 @@ Value *deepCopyList(Value *value);
 void freeValue(Value *value);
 
 Value* deepCopyFun(Value *function);
+Value *deepCopyEnv(Value * value);
+Value *deepCopyTable(Value * value);
+
 
 void removeLast(Value* value);
 void findLast(Value* value);

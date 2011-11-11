@@ -81,6 +81,13 @@ void printValue(Value *curValue) {
 	printList(curValue);
 	break;
       case closureType:
+	printf("#<procedure");
+	if (curValue->closureValue && curValue->closureValue->identifier!=NULL){
+	  printf(":%s>\n",curValue->closureValue->identifier);
+	}else{
+	  printf(">\n");
+	}
+	break;
       case primitiveType:
 	printf("#<procedure>");
 	break;
@@ -488,17 +495,8 @@ void freeValue(Value *value){
     //assert(value->cons->cdr!=NULL);
     assert(value->cons->car!=NULL);
     //assert(value->cons->cdr->type==cellType);
-    //assert(value->cons->car->type!=cellType);
-    //assert(value->cons->cdr->cons->car!=NULL);
-    //assert(value->cons->cdr->cons->cdr!=NULL);
-  
+     cleanup(value);
     
-    //assert(1==2);   
-    //assert(value->cons->cdr->cons->car->type==symbolType);
-   
-    //cleanup(value);
-    
-
   }else if (value->type == primitiveType){
  
     free(value);
@@ -700,6 +698,7 @@ void printList(Value* value){
   else printf("This is not a value\n");
 }
 
+
 Value *getFirst(Value *value) {
   if (!value)
     return NULL;
@@ -828,6 +827,13 @@ Value* deepCopyFun(Value *function){
       value->closureValue->body = deepCopy(function->closureValue->body);
       value->closureValue->args = deepCopyLinkedList(function->closureValue->args);
       value->closureValue->parent = function->closureValue->parent;
+      if (function->closureValue->identifier){
+	value->closureValue->identifier = (char *)malloc(sizeof(char)*(strlen(function->closureValue->identifier)+1));
+	strcpy(value->closureValue->identifier,function->closureValue->identifier);
+	value->closureValue->identifier[strlen(function->closureValue->identifier)] = '\0';	
+      }else{
+	value->closureValue->identifier = NULL;
+      } 
       return value;
     }else{
       free(value);
@@ -883,6 +889,14 @@ Value* deepCopy(Value *value){
 	free(newValue);
 	newValue = deepCopyFun(value);
 	break;
+      case envType:
+	free(newValue);
+	newValue = deepCopyEnv(value);
+	break;
+      case tableType:
+	free(newValue);
+	newValue = deepCopyTable(value);
+	break;
       default:
 	return NULL;
 	break;
@@ -892,10 +906,36 @@ Value* deepCopy(Value *value){
   return NULL;
 }
 
-
+Value *deepCopyEnv(Value * value){
+  assert(value!=NULL);
+  assert(value->type==envType);
+  Value *returnValue = (Value *)malloc(sizeof(Value));
+  returnValue->type = envType;
+  returnValue->envValue = (Environment *)malloc(sizeof(Environment));
+  returnValue->envValue->parent = value->envValue->parent;
+  returnValue->envValue->bindings = deepCopyTable(value->envValue->bindings);
+  return returnValue;
+}
+Value *deepCopyTable(Value * value){
+  assert(value!=NULL);
+  assert(value->type==tableType);
+  int i;
+  Value *returnValue = (Value *)malloc(sizeof(Value));
+  returnValue->type = tableType;
+  returnValue->tableValue = initializeTable(value->tableValue->capacity);
+  for (i=0;i<value->tableValue->capacity;i++){
+    if ((value->tableValue->entries)[i].car){
+      if (((value->tableValue->entries)[i].car)->type == symbolType){
+	insertItem(returnValue->tableValue, ((value->tableValue->entries)[i].car)->symbolValue, (value->tableValue->entries)[i].cdr);
+      }	
+    }
+  }
+  return returnValue;
+}
 Closure *initializeClosure(Environment* env){
   Closure *closure = (Closure *)malloc(sizeof(Closure));
   closure->parent = env;
+  closure->identifier = NULL;
   closure->args = initializeList();
   //closure->body = (Value *)malloc(sizeof(Value));
   //closure->body->type = cellType;
@@ -907,6 +947,9 @@ Closure *initializeClosure(Environment* env){
 void cleanupClosure(Closure *closure){
   if (closure && closure->args && closure->body){
     cleanup(closure->args->head);
+    if (closure->identifier){
+      free(closure->identifier);
+    }
     free(closure->args); 
     //free(closure->body);
   }
@@ -918,6 +961,19 @@ void destroyClosure(Closure *closure){
     cleanupClosure(closure);
     free(closure);
   }
+}
+
+// name the closure for comparision purpose.
+void nameClosure(Closure *closure, char *id){
+  if (closure){
+    if (closure->identifier!=NULL){
+      free(closure->identifier);
+    }
+    closure->identifier = (char *)malloc(sizeof(char)*(strlen(id)+1));
+    strcpy(closure->identifier, id);
+    closure->identifier[strlen(id)]='\0';
+  }
+
 }
 
 // remove the last thing in the list, typically the close parenthesis.
