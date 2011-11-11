@@ -311,33 +311,7 @@ void printTable(HashTable* table){
   }
 }
 
-List* getKeys(HashTable* table){
-  List* list = NULL;
-  if (table){
-    list = initializeList();
-    int i;
-    for (i=0;i<table->capacity;i++){
-      if ((table->entries)[i].car){
-	push(list, (table->entries)[i].car);	
-      }  
-    }
-  }
-  return list;
-}
 
-List* getValues(HashTable* table){
-  List* list = NULL;
-  if (table){
-    list = initializeList();
-    int i;
-    for (i=0;i<table->capacity;i++){
-      if ((table->entries)[i].car && (table->entries)[i].cdr){
-	push(list, (table->entries)[i].cdr);
-      }	 
-    }
-  }
-  return list; 
-}
 
 
 
@@ -445,7 +419,7 @@ void printTokens(Value* value){
 }
 
 
-// This function frees its cons cells.
+// This function frees its cons cells. It can only be used on basic types from tokenizer.
 void cleanup(Value* head){
   if (head && (head->type == cellType)){
     Value *second;
@@ -473,45 +447,32 @@ void freeValue(Value *value){
   if (!value){
     return;
   }
- 
+  assert(value->type!=envType);
   if (value->type == stringType){
-  
     free(value->stringValue);
     free(value);
     
   }else if (value->type == symbolType){
-
     free(value->symbolValue);
     free(value);
   }else if (value->type == cellType){
-    //printf("going to free: ");
-    
-    //printValue(value);
-
-    //printf("\n");
-
     assert(value->cons!=NULL);
-
-    //assert(value->cons->cdr!=NULL);
     assert(value->cons->car!=NULL);
-    //assert(value->cons->cdr->type==cellType);
-     cleanup(value);
-    
+    freeValue(value->cons->car);
+    freeValue(value->cons->cdr);
+    free(value->cons);
+    free(value);
+
   }else if (value->type == primitiveType){
- 
     free(value);
   }else if (value->type == closureType){
- 
-    free(value->closureValue);
+    destroyClosure(value->closureValue);
     free(value);
   }else if (value->type == tableType){
     destroyTable(value->tableValue);
     free(value);
   }else{
-
     free(value);
-  
-
   }
    
 }
@@ -525,9 +486,6 @@ void destroy(List* list){
 
 
 
-/*
-  This returns the car of a value (that is a list)
- */
 /*
   This returns the car of a value (that is a list)
  */
@@ -569,7 +527,9 @@ Value *car(Value *value, Environment *env) {
   }
   return NULL;
 }
-
+/*
+  This returns the cdr of a value (that is a list)
+ */
 Value *cdr(Value *value, Environment *env) {
   Value *content;
   Value *openParen;
@@ -788,7 +748,7 @@ void printList(Value* value){
   else printf("This is not a value\n");
 }
 
-
+// return the car of a cons cell.
 Value *getFirst(Value *value) {
   if (!value)
     return NULL;
@@ -798,6 +758,7 @@ Value *getFirst(Value *value) {
     return NULL;
 }
 
+// return the cdr of a cons cell.
 Value *getTail(Value *value) {
   if (!value) 
     return NULL;
@@ -1006,6 +967,7 @@ Value *deepCopyEnv(Value * value){
   returnValue->envValue->bindings = deepCopyTable(value->envValue->bindings);
   return returnValue;
 }
+
 Value *deepCopyTable(Value * value){
   assert(value!=NULL);
   assert(value->type==tableType);
@@ -1041,7 +1003,7 @@ void cleanupClosure(Closure *closure){
       free(closure->identifier);
     }
     free(closure->args); 
-    //free(closure->body);
+    freeValue(closure->body);
   }
 }
 
@@ -1112,3 +1074,66 @@ Value *findLastRec(Value* value){
   else
     return findLast(value->cons->cdr);
 }
+
+// can free top frame and also destory itself.
+void destroyTopFrame(Environment *env){
+  assert(env!=NULL);
+  Environment *top = env;
+  while (top->parent){
+    top = top->parent;
+  }  // make sure it is the top level environment.
+  Value *subEnvCounter = lookup(top->bindings->tableValue, "#envID");
+  assert(subEnvCounter!=NULL);
+  assert(subEnvCounter->type==integerType);
+  int i;
+  ConsCell *entry;
+  char *id;
+  for (i = subEnvCounter->intValue;i>=0;i--){
+    id = intToString(i);
+    printf("the id is %s\n",id);
+    assert(top->bindings->tableValue!=NULL);
+    entry = lookupEntry(top->bindings->tableValue, id);
+    if (entry){
+      destroyEnvironment(entry->cdr->envValue);
+      free(entry->cdr);
+      entry->cdr = NULL;
+    }
+  }
+  destroyEnvironment(top);
+}
+
+char* intToString(int number){
+  char digit[] = {'0','1','2','3','4','5','6','7','8','9'}; 
+  int reminder;
+  int quotient = number;
+  int counter = 0;
+  if (number==0){
+    char *id = (char *)malloc(sizeof(char)*3);
+    id[0]='#';
+    id[1]='0';
+    id[2]='\0';
+    return id;
+  }
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    if (reminder==0 && quotient ==0){
+      counter++;
+    }
+    counter++;
+  }
+
+  char *id = (char *)malloc(sizeof(char)*(counter+2));
+  id[0]='#';
+  id[counter+1] = '\0';
+  quotient = number;
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    id[counter] = digit[reminder];
+    counter --;
+ }
+  return id;
+}
+
+

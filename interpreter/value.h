@@ -134,6 +134,7 @@ int autoDouble(HashTable* table);
 */
 ConsCell* lookupEntry(HashTable* table, char* id);
 
+
 /*
   Return the payload with key = id
 */
@@ -185,23 +186,13 @@ give me the length of the list
 */
 int listLength(Value *value);
 
-/*
-  Returns all identifiers in the bindings as a linked list.
-*/
-List* getKeys(HashTable* table);
-/*
-  Returns all payloads in the hash table as a linked list.
-*/
-List* getValues(HashTable* table);
+
 
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
 void printList(Value* value);
 
-Value *cdrFree(Value *value, Environment *env, int freeCar);
-
-int listLength(Value *value);
 
 int properListLength(Value *value);
 
@@ -219,10 +210,15 @@ Value* deepCopyFun(Value *function);
 Value *deepCopyEnv(Value * value);
 Value *deepCopyTable(Value * value);
 
-
+void destroyTopFrame(Environment *env);
 void removeLast(Value* value);
+<<<<<<< HEAD
 Value *findLast(Value* value);
 Value *findLastRec(Value *value);
+=======
 
+>>>>>>> 81b404e964100deb3bed28550e713ad0f856a712
+
+char* intToString(int number);
 //void printArgs(Value *curValue, int withQuotes);
 

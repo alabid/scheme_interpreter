@@ -6,7 +6,14 @@
 
 int main(int argc, char*argv[]) {
   Environment *topEnv = createTopFrame();
+  //Environment *temp = createFrame(topEnv);
+  //int i = 0;
+  //for (i= 0; i<100;i++){
+  // insertEnv(temp);
+  //}
+  
   loadFromFile(stdin, topEnv);
-  freeTopFrame(topEnv);
+  
+  destroyTopFrame(topEnv);
   return -1;
 }
