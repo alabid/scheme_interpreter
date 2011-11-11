@@ -929,7 +929,7 @@ Environment *createTopFrame(){
 }
 
 // free top frame.
-void freeTopFrame(Environment *env){
+/*void freeTopFrame(Environment *env){
   if (env){
     while (env->parent){
       env = env->parent;  // find the top-level environment;
@@ -952,6 +952,7 @@ void freeTopFrame(Environment *env){
     free(env);
   }
 }
+*/
 // creates an environment.
 Environment *createFrame(Environment *parent){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
@@ -1985,36 +1986,4 @@ Environment* insertEnv(Environment* toInsert){
   return toReturn;
 }
 
-char* intToString(int number){
-  char digit[] = {'0','1','2','3','4','5','6','7','8','9'}; 
-  int reminder;
-  int quotient = number;
-  int counter = 0;
-  if (number==0){
-    char *id = (char *)malloc(sizeof(char)*3);
-    id[0]='#';
-    id[1]='0';
-    id[2]='\0';
-    return id;
-  }
-  while (quotient!=0){
-    reminder = quotient % 10;
-    quotient = quotient / 10;
-    if (reminder==0 && quotient ==0){
-      counter++;
-    }
-    counter++;
-  }
 
-  char *id = (char *)malloc(sizeof(char)*(counter+2));
-  id[0]='#';
-  id[counter+1] = '\0';
-  quotient = number;
-  while (quotient!=0){
-    reminder = quotient % 10;
-    quotient = quotient / 10;
-    id[counter] = digit[reminder];
-    counter --;
- }
-  return id;
-}
