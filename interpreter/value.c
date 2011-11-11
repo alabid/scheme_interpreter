@@ -625,7 +625,8 @@ Value *cons(Value *value, Environment *env) {
 
   if (newCdr->type == cellType) {
     carCopy = deepCopy(newCar);
-    cdrCopy = getFirst(deepCopy(newCdr));
+    cdrCopy = deepCopy(newCdr);
+
     free(cdrCopy->cons->car);
     Value *freeMe = cdrCopy;
     cdrCopy = cdrCopy->cons->cdr;
@@ -633,21 +634,21 @@ Value *cons(Value *value, Environment *env) {
     free(freeMe);
 
     carCdr = (Value *)malloc (sizeof(Value));
-  carCdr->type = cellType;
-  carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
-  carCdr->cons->car = carCopy;
-  carCdr->cons->cdr = cdrCopy;
-
+    carCdr->type = cellType;
+    carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
+    carCdr->cons->car = carCopy;
+    carCdr->cons->cdr = cdrCopy;
+        
   } else if (typeCheck(newCdr) == 1 || typeCheck(newCdr) == 2) {
     carCopy = deepCopy(newCar);
     cdrCopy = deepCopy(newCdr);    
 
     carCdr = (Value *)malloc (sizeof(Value));
-  carCdr->type = cellType;
-  carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
-  carCdr->cons->car = carCopy;
-  carCdr->cons->cdr = cdrCopy;
-
+    carCdr->type = cellType;
+    carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
+    carCdr->cons->car = carCopy;
+    carCdr->cons->cdr = cdrCopy;
+    
   } 
   
   openParen = (Value *) malloc(sizeof(Value));
@@ -659,8 +660,9 @@ Value *cons(Value *value, Environment *env) {
   newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
   newValue->cons->car = openParen;
   newValue->cons->cdr = carCdr;
-  printValue(newValue); // have to print this
-  // right now, the table hashing id stuff doesn't work
+  printValue(newValue); 
+  // perhaps the deep copy doesn't work for the new cons
+  printValue(deepCopy(newValue));
   insertItem(env->bindings->tableValue,"#cons",newValue);
   // we probably have to free the remaining components of newValue
   free(newValue);

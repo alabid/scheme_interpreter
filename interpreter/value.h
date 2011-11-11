@@ -212,12 +212,11 @@ Value *deepCopyTable(Value * value);
 
 void destroyTopFrame(Environment *env);
 void removeLast(Value* value);
-<<<<<<< HEAD
+
 Value *findLast(Value* value);
 Value *findLastRec(Value *value);
-=======
 
->>>>>>> 81b404e964100deb3bed28550e713ad0f856a712
+
 
 char* intToString(int number);
 //void printArgs(Value *curValue, int withQuotes);
