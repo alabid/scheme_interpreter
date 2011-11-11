@@ -1110,7 +1110,7 @@ void destroyTopFrame(Environment *env){
     }
     free(id);
   }
-  
+  destroyEnvironment(env);
 }
 
 void destroyFrame(Environment *env){
