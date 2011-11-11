@@ -171,6 +171,8 @@ Value *car (Value *value, Environment *env);
 */
 Value *cdr (Value *value, Environment *env);
 
+Value *cons (Value *value, Environment *env);
+
 void cleanupValue(Value* value);
 
 /*
@@ -219,8 +221,8 @@ Value *deepCopyTable(Value * value);
 
 
 void removeLast(Value* value);
-void findLast(Value* value);
-
+Value *findLast(Value* value);
+Value *findLastRec(Value *value);
 
 //void printArgs(Value *curValue, int withQuotes);
 

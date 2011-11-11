@@ -83,9 +83,9 @@ void printValue(Value *curValue) {
       case closureType:
 	printf("#<procedure");
 	if (curValue->closureValue && curValue->closureValue->identifier!=NULL){
-	  printf(":%s>\n",curValue->closureValue->identifier);
+	  printf(":%s>",curValue->closureValue->identifier);
 	}else{
-	  printf(">\n");
+	  printf(">");
 	}
 	break;
       case primitiveType:
@@ -636,6 +636,77 @@ Value *cdr(Value *value, Environment *env) {
 
 
 
+/*
+  (cons 1 '(2 3)) --> (1 2 3)
+  (cons 1 3) --> (1  . 3)
+*/
+Value *cons(Value *value, Environment *env) {
+  Value *openParen, *closeParen;
+  Value *newValue;
+  Value *newCar,  *newCdr;
+  Value *carCdr;
+  Value *endCdr;
+  Value *carCopy, *cdrCopy;
+
+  int count = listLength(value);
+
+  if (!(count == 2)) {
+    printf("cons: expects 2 arguments, given %d: ", count);
+    printValue(value);
+    printf("\n");
+    return NULL;
+  }
+  // first handle this case: (cons 1 (1 2)) -> (1 1 2)
+  // secondly: (cons 1 2) -> (1 . 2)
+  newCar = getFirst(value);
+  newCdr = getFirst(getTail(value));
+  
+  assert(newCdr != NULL);
+
+  if (newCdr->type == cellType) {
+    carCopy = deepCopy(newCar);
+    cdrCopy = getFirst(deepCopy(newCdr));
+    free(cdrCopy->cons->car);
+    Value *freeMe = cdrCopy;
+    cdrCopy = cdrCopy->cons->cdr;
+    free(freeMe->cons);
+    free(freeMe);
+
+    carCdr = (Value *)malloc (sizeof(Value));
+  carCdr->type = cellType;
+  carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
+  carCdr->cons->car = carCopy;
+  carCdr->cons->cdr = cdrCopy;
+
+  } else if (typeCheck(newCdr) == 1 || typeCheck(newCdr) == 2) {
+    carCopy = deepCopy(newCar);
+    cdrCopy = deepCopy(newCdr);    
+
+    carCdr = (Value *)malloc (sizeof(Value));
+  carCdr->type = cellType;
+  carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
+  carCdr->cons->car = carCopy;
+  carCdr->cons->cdr = cdrCopy;
+
+  } 
+  
+  openParen = (Value *) malloc(sizeof(Value));
+  openParen->type = openType;
+  openParen->open = '(';
+
+  newValue = (Value* )malloc(sizeof(Value));
+  newValue->type = cellType;
+  newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
+  newValue->cons->car = openParen;
+  newValue->cons->cdr = carCdr;
+  printValue(newValue); // have to print this
+  // right now, the table hashing id stuff doesn't work
+  insertItem(env->bindings->tableValue,"#cons",newValue);
+  // we probably have to free the remaining components of newValue
+  free(newValue);
+  
+  return lookup(env->bindings->tableValue, "#cons");
+}
 
 /*
   This function accepts a Value that is the head of the parse tree, and prints out the list.
@@ -643,11 +714,24 @@ Value *cdr(Value *value, Environment *env) {
 void printList(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
-    while (curValue){
-      if (!curValue->type == cellType && !curValue->cons->car){	
+    while (curValue->cons->cdr){
+      if (!(curValue->type == cellType) && !curValue->cons->car) {
 	return;
       }
-      switch (curValue->cons->car->type)
+      if (!(curValue->type == cellType)) {
+	printf(" . ");
+	printValue(curValue);
+	printf(")");
+	return;
+      }
+      if (!(curValue->cons->cdr->type == cellType)){
+	printValue(curValue->cons->car);
+	printf(" . ");
+	printValue(curValue->cons->cdr);
+	printf(")");
+	return;
+      }
+       switch (curValue->cons->car->type)
 	{
 	case booleanType:
 	  if(curValue->cons->car->boolValue){
@@ -686,14 +770,20 @@ void printList(Value* value){
 	default:
 	  break;
 	}
+      
       if (curValue->cons->cdr && 
 	  curValue->cons->cdr->cons->car->type !=closeType &&
 	  curValue->cons->car &&
 	  curValue->cons->car->type!=openType){
 	printf(" ");
 	} 
-      curValue = curValue->cons->cdr;
-    } 
+       	curValue = curValue->cons->cdr;
+     } 
+
+    if (curValue->type == cellType) {
+       printValue(curValue->cons->car);
+   }  
+    
   }
   else printf("This is not a value\n");
 }
@@ -1009,4 +1099,16 @@ void destroyEnvironment(Environment *env){
     free(env);
   }
 }
-void findLast(Value* value){}
+
+Value* findLast(Value *value) {
+  if (!value) return NULL;
+  else return findLastRec(value);
+}
+
+Value *findLastRec(Value* value){
+  if (!(value->cons->cdr)) {
+    return value;
+  } 
+  else
+    return findLast(value->cons->cdr);
+}

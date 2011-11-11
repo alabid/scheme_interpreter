@@ -940,7 +940,8 @@ Environment *createTopFrame(){
   bind("<=",makePrimitiveValue(smallerOrEqualTo),frame);
   bind(">=",makePrimitiveValue(greaterOrEqualTo),frame);
   bind("car", makePrimitiveValue(car), frame);
-  bind("cdr", makePrimitiveValue(cdr), frame);
+  bind("cdr", makePrimitiveValue(cdr), frame);	
+  bind("cons", makePrimitiveValue(cons), frame);
   return frame;
 }
 
