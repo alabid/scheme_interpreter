@@ -29,6 +29,8 @@ void freeTopFrame(Environment *env);
 
 Environment *createFrame(Environment* parent);
 
+Environment *searchTopLevel(Environment* current);
+
 Value *exponentiate(Value *args, Environment *env);
 
 Value *add(Value *args, Environment *env);
@@ -70,3 +72,7 @@ Value *arithmeticEqual(Value *args, Environment *env);
 int checkEqual(Value *first, Value *second, Environment *env);
 
 Value *equality(Value *args, Environment *env);
+
+Environment* insertEnv(Environment* toInsert);
+
+char* intToString(int number);

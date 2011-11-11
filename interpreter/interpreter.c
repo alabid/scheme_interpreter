@@ -190,17 +190,7 @@ Value* eval(Value *expr, Environment *env){
       return NULL;
       break;
     default:
-      
-      if (getTail(expr)){
-	assert(getFirst(getTail(expr))!=NULL);
-	assert(getFirst(getTail(expr))->type==closeType);
-	Value *toRemove = getTail(expr);
-	free(toRemove->cons->car);
-	free(toRemove->cons);
-	free(toRemove);
-	expr->cons->cdr = NULL;
-	
-      }
+
       return expr;      
     }
 }
@@ -254,14 +244,8 @@ Value* evalQuote(Value* args){
     return NULL;
   }
   else{
-    assert(getFirst(getTail(args))!=NULL);
-    assert(getFirst(getTail(args))->type==closeType);
-    Value *toRemove = getTail(args);
-    free(toRemove->cons->car);
-    free(toRemove->cons);
-    free(toRemove);
-    args->cons->cdr = NULL;
-    return args;
+    
+    return getFirst(args);
   }
 }
 
@@ -671,14 +655,7 @@ Value* evalLetrec(Value* args, Environment* env){
 	  }else{
 	    if (toReturn && toReturn->type==closureType){
 	      printf("returning here\n");
-	      Value *envValue = (Value *)malloc(sizeof(Value));
-	      envValue->type = envType;
-	      envValue->envValue = newEnv;
-	      //insertItem(env->bindings->tableValue, "#letEnv", envValue);
-	      //   if (getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
-	      //  toReturn = lookup(lookup(env->bindings->tableValue, "#letEnv")->envValue->bindings->tableValue, getFirst(listofExpressions)->symbolValue);
-	      //	  toReturn->closureValue->parent = lookup(env->bindings->tableValue, "#letEnv")->envValue;
-	      //}
+	      toReturn->closureValue->parent = insertEnv(newEnv);
 	      return toReturn;
 	    }else if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
@@ -930,6 +907,8 @@ Value *makePrimitiveValue(Value* (*f)(Value *, Environment *)){
 // creates a top-level frame and binds the "built-in" functions.
 Environment *createTopFrame(){
   Environment *frame = createFrame(NULL);
+  destroyTable(frame->bindings->tableValue);
+  frame->bindings->tableValue = initializeTable(256);
   bind("+", makePrimitiveValue(add), frame);
   bind("-", makePrimitiveValue(subtract), frame);
   bind("*", makePrimitiveValue(multiply), frame);
@@ -941,6 +920,11 @@ Environment *createTopFrame(){
   bind(">=",makePrimitiveValue(greaterOrEqualTo),frame);
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);
+  Value *value = (Value *)malloc(sizeof(Value));
+  value->type = integerType;
+  value->intValue = 0;
+  insertItem(frame->bindings->tableValue,"#envID",value);
+  free(value);
   return frame;
 }
 
@@ -1610,6 +1594,7 @@ Value *evalLetStar(Value *args, Environment *env){
 	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
 	    }else if (toReturn && toReturn->type==closureType){
+	      toReturn->closureValue->parent =insertEnv(newEnv);
 	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
 	    }
 	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
@@ -1964,4 +1949,72 @@ Value *equality(Value *args, Environment *env){
 // not finished yet.
 Value *exponentiate(Value *args, Environment *env){
   return NULL;
+}
+
+
+
+Environment *searchTopLevel(Environment* current){
+  Environment* returnEnv = current;
+  if (!current){
+    return NULL;
+  }
+  while (returnEnv->parent){
+    returnEnv = returnEnv->parent;
+  }
+  return returnEnv;
+}
+
+Environment* insertEnv(Environment* toInsert){
+  Environment *top = searchTopLevel(toInsert);
+  if (!top){
+    return NULL;
+  }
+  if (top == toInsert){
+    return top;
+  }
+  Value *value = (Value *)malloc(sizeof(Value));
+  value->type = envType;
+  value->envValue = toInsert;
+  Value  *currentID = lookup(top->bindings->tableValue, "#envID");
+  char *id = intToString(currentID->intValue); 
+  printf("current ID = %s \n",id);
+  currentID->intValue +=1;
+  insertItem(top->bindings->tableValue, id, value);
+  Environment *toReturn = lookup(top->bindings->tableValue,id)->envValue;
+  free(id);
+  return toReturn;
+}
+
+char* intToString(int number){
+  char digit[] = {'0','1','2','3','4','5','6','7','8','9'}; 
+  int reminder;
+  int quotient = number;
+  int counter = 0;
+  if (number==0){
+    char *id = (char *)malloc(sizeof(char)*3);
+    id[0]='#';
+    id[1]='0';
+    id[2]='\0';
+    return id;
+  }
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    if (reminder==0 && quotient ==0){
+      counter++;
+    }
+    counter++;
+  }
+
+  char *id = (char *)malloc(sizeof(char)*(counter+2));
+  id[0]='#';
+  id[counter+1] = '\0';
+  quotient = number;
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    id[counter] = digit[reminder];
+    counter --;
+ }
+  return id;
 }
