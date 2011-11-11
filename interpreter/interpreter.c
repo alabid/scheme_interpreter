@@ -2001,6 +2001,7 @@ Environment* insertEnv(Environment* toInsert, Environment *parent){
   printValue(lookup(parent->bindings->tableValue,id));
   printf("\n");
   free(id);
+  free(value);
   return toReturn;
 }
 

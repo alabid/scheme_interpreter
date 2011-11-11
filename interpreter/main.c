@@ -10,11 +10,11 @@ int main(int argc, char*argv[]) {
   int i = 0;
   Environment *second=temp;
   temp = insertEnv(temp, topEnv);
- 
+  destroyEnvironment(second);
   for (i= 0; i<100;i++){
     second = createFrame(temp);
-    second = insertEnv(second, temp);
-    temp = second;
+    temp = insertEnv(second, temp);
+    destroyEnvironment(second);
   }
   
   //loadFromFile(stdin, topEnv);
