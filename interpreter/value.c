@@ -93,6 +93,10 @@ void printValue(Value *curValue) {
 	break;
       case nullType:
 	printf("()");
+	break;
+      case envType:
+	printf("Environment");
+	break;
       default:
 	break;
       }
@@ -1090,18 +1094,52 @@ void destroyTopFrame(Environment *env){
   int i;
   ConsCell *entry;
   char *id;
-  for (i = subEnvCounter->intValue;i>=0;i--){
+  printf("the counter of top level is ");
+  printValue(subEnvCounter);
+  printf("\n");
+  for (i = subEnvCounter->intValue ;i>=0;i--){
     id = intToString(i);
     printf("the id is %s\n",id);
     assert(top->bindings->tableValue!=NULL);
     entry = lookupEntry(top->bindings->tableValue, id);
     if (entry){
-      destroyEnvironment(entry->cdr->envValue);
+      destroyFrame(entry->cdr->envValue);
+    
       free(entry->cdr);
       entry->cdr = NULL;
     }
+    free(id);
   }
-  destroyEnvironment(top);
+  
+}
+
+void destroyFrame(Environment *env){
+  assert(env!=NULL);
+  Value *subEnvCounter = lookup(env->bindings->tableValue, "#envID");
+  assert(subEnvCounter!=NULL);
+  assert(subEnvCounter->type==integerType);
+  int i;
+  ConsCell *entry;
+  char *id;
+  printf("the counter of sublevel is ");
+  printValue(subEnvCounter);
+  printf("\n");
+  for (i = subEnvCounter->intValue;i>=0;i--){
+    id = intToString(i);
+    printf("the id is %s\n",id);
+    assert(env->bindings->tableValue!=NULL);
+    entry = lookupEntry(env->bindings->tableValue, id);
+    
+    if (entry){
+      printf("Hello world\n");
+      destroyFrame(entry->cdr->envValue);
+
+      free(entry->cdr);
+      entry->cdr = NULL;
+    }
+    free(id);
+  }
+  destroyEnvironment(env);
 }
 
 char* intToString(int number){

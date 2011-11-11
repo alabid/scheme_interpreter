@@ -29,6 +29,8 @@ void freeTopFrame(Environment *env);
 
 Environment *createFrame(Environment* parent);
 
+Environment *createFrameWithSize(Environment *parent, int size);
+
 Environment *searchTopLevel(Environment* current);
 
 Value *exponentiate(Value *args, Environment *env);
@@ -61,7 +63,7 @@ Value *evalSetBang(Value *args, Environment *env);
 
 Value *evalLetStar(Value *args, Environment *env);
 
-Value *consFunction(Value *args, Environment *env);
+
 
 Value *smallerOrEqualTo(Value *args, Environment *env);
 
@@ -73,6 +75,8 @@ int checkEqual(Value *first, Value *second, Environment *env);
 
 Value *equality(Value *args, Environment *env);
 
-Environment* insertEnv(Environment* toInsert);
+Environment* insertEnv2Top(Environment* toInsert);
+
+Environment* insertEnv(Environment* toInsert, Environment *parent);
 
 char* intToString(int number);

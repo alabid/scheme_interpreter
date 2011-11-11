@@ -69,11 +69,8 @@ void printTokens(Value* value);
 void destroy(List* list);
 
 
-
 // destroy environment
 void destroyEnvironment(Environment *env);
-
-
 
 
 typedef struct __Closure{
@@ -187,12 +184,10 @@ give me the length of the list
 int listLength(Value *value);
 
 
-
 /*
   This function accepts a Value that is the head of the list, and prints out the list.
 */
 void printList(Value* value);
-
 
 int properListLength(Value *value);
 
@@ -207,15 +202,20 @@ Value *deepCopyList(Value *value);
 void freeValue(Value *value);
 
 Value* deepCopyFun(Value *function);
+
 Value *deepCopyEnv(Value * value);
+
 Value *deepCopyTable(Value * value);
 
 void destroyTopFrame(Environment *env);
+
+void destroyFrame(Environment *env);
+
 void removeLast(Value* value);
 
 Value *findLast(Value* value);
-Value *findLastRec(Value *value);
 
+Value *findLastRec(Value *value);
 
 
 char* intToString(int number);

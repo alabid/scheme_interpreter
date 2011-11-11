@@ -655,7 +655,7 @@ Value* evalLetrec(Value* args, Environment* env){
 	  }else{
 	    if (toReturn && toReturn->type==closureType){
 	      printf("returning here\n");
-	      toReturn->closureValue->parent = insertEnv(newEnv);
+	      toReturn->closureValue->parent = insertEnv(newEnv, env);
 	      return toReturn;
 	    }else if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
@@ -906,9 +906,7 @@ Value *makePrimitiveValue(Value* (*f)(Value *, Environment *)){
 
 // creates a top-level frame and binds the "built-in" functions.
 Environment *createTopFrame(){
-  Environment *frame = createFrame(NULL);
-  destroyTable(frame->bindings->tableValue);
-  frame->bindings->tableValue = initializeTable(256);
+  Environment *frame = createFrameWithSize(NULL,256);
   bind("+", makePrimitiveValue(add), frame);
   bind("-", makePrimitiveValue(subtract), frame);
   bind("*", makePrimitiveValue(multiply), frame);
@@ -921,13 +919,6 @@ Environment *createTopFrame(){
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);	
   bind("cons", makePrimitiveValue(cons), frame);
-
-  Value *value = (Value *)malloc(sizeof(Value));
-  value->type = integerType;
-  value->intValue = 0;
-  insertItem(frame->bindings->tableValue,"#envID",value);
-  free(value);
-
   return frame;
 }
 
@@ -957,15 +948,27 @@ Environment *createTopFrame(){
 }
 */
 // creates an environment.
-Environment *createFrame(Environment *parent){
+Environment *createFrameWithSize(Environment *parent, int size){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
   frame->parent = parent;
-  HashTable *table = initializeTable(32);
+  HashTable *table = initializeTable(size);
   Value *value = (Value *)malloc(sizeof(Value));
   value->type = tableType;
   value->tableValue = table;
   frame->bindings = value;
+  Value *id = (Value *)malloc(sizeof(Value));
+  id->type = integerType;
+  id->intValue = 0;
+  insertItem(frame->bindings->tableValue,"#envID",id);
+  printf("create a frame: ");
+  printValue(lookup(frame->bindings->tableValue,"#envID"));
+  printf("\n");
+  free(id);
   return frame;
+}
+
+Environment *createFrame(Environment *parent){
+  return createFrameWithSize(parent, 32);
 }
 
 
@@ -1598,7 +1601,7 @@ Value *evalLetStar(Value *args, Environment *env){
 	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
 	    }else if (toReturn && toReturn->type==closureType){
-	      toReturn->closureValue->parent =insertEnv(newEnv);
+	      toReturn->closureValue->parent =insertEnv(newEnv, env);
 	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
 	    }
 	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
@@ -1677,134 +1680,134 @@ Value *evalSetBang(Value *args, Environment *env){
    }
  }
 }
+
 Value *smallerOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
   int count = listLength(args);
- if (count < 1){
-   printf("in <=: expect at least two arguments, given %d \n", count);
- }else{
-   Value* checkArgs = args;
-   while(args){
-     Value* toCheck = getFirst(args);
-
-     if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
-	printf("in <=:expects type <real number>, given: ");
+  if (count < 1){
+    printf("in <=: expect at least two arguments, given %d /n", count);
+  }else{
+    Value* checkArgs = args;
+    while(args){
+      Value* toCheck = getFirst(args);
+   
+      if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
+	printf("in <=:expects type <real number>, given:");
 	printValue(toCheck);
 	printf("\n");
 	return NULL;
-     }
-     args = getTail(args);
-   }
-
-   args = checkArgs;
-   Value* value = (Value *)malloc(sizeof(Value));
-   value -> type = booleanType;
-
-   if(getFirst(args)->type == integerType){
-
-     if(getFirst(getTail(args))->type == integerType){
+      }
+      args = getTail(args);
+    }
+    
+    args = checkArgs;
+    int i;
+    Value* value = (Value *)malloc(sizeof(Value));
+    value -> type = booleanType;
+    value -> boolValue = 1;
+    for (i = 0; i < count - 1; i++) {
+      printValue(getFirst(args));
+      if(getFirst(args)->type == integerType){
+ 
+	if(getFirst(getTail(args))->type == integerType){
 	
-	if (getFirst(getTail(args))->intValue >= getFirst(args)->intValue){
-	  value -> boolValue = 1;	
+	  if (getFirst(getTail(args))->intValue < getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }
 	}else{
-	  value ->boolValue = 0;	  
+	  if (getFirst(getTail(args))->dblValue < getFirst(args)->intValue){
+	    value -> boolValue = 0;	  
+	  }
 	}
-     }else{
-	if (getFirst(getTail(args))->dblValue >= getFirst(args)->intValue){
-	  value -> boolValue = 1;	  
+      }else{
+       	if(getFirst(getTail(args))->type == floatType){
+	  if (getFirst(getTail(args))->dblValue < getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }	  
+	  
 	}else{
-	  value ->boolValue = 0;
+	  if (getFirst(getTail(args))->dblValue < getFirst(args)->dblValue){
+	    value -> boolValue = 0;	  
+	  }
 	}
-     }
-   }else{
-     if(getFirst(getTail(args))->type == floatType){
-	if (getFirst(getTail(args))->dblValue >= getFirst(args)->intValue){
-	  value -> boolValue = 1;	
-	}else{
-	  value ->boolValue = 0;	  
-	}
-     }else{
-	if (getFirst(getTail(args))->dblValue >= getFirst(args)->dblValue){
-	  value -> boolValue = 1;	  
-	}else{
-	  value ->boolValue = 0;
-	}
-     }
-   }
-   insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
-   free(value);  // value can be freed since there is one copy in hash table.
-   value = lookup(env->bindings->tableValue,"#returnValue");
-   return value;
- }
+      }
+      args = getTail(args);
+    }
+    return value;
+    
+    insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    free(value);  // value can be freed since there is one copy in hash table.
+    value = lookup(env->bindings->tableValue,"#returnValue");
+  } 
 }
+
+
+
+
+
 
 
 
 Value *greaterOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
   int count = listLength(args);
- if (count < 1){
-   printf("in >=: expect at least two arguments, given %d \n", count);
- }else{
-   Value* checkArgs = args;
-   while(args){
-     Value* toCheck = getFirst(args);
-
-     if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
-	printf("in >=:expects type <real number>, given: ");
+  if (count < 1){
+    printf("in <=: expect at least two arguments, given %d /n", count);
+  }else{
+    Value* checkArgs = args;
+    while(args){
+      Value* toCheck = getFirst(args);
+   
+      if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
+	printf("in <=:expects type <real number>, given:");
 	printValue(toCheck);
 	printf("\n");
 	return NULL;
-     }
-     args = getTail(args);
-   }
-
-   args = checkArgs;
-   Value* value = (Value *)malloc(sizeof(Value));
-   value -> type = booleanType;
-
-   if(getFirst(args)->type == integerType){
-
-     if(getFirst(getTail(args))->type == integerType){
+      }
+      args = getTail(args);
+    }
+    
+    args = checkArgs;
+    int i;
+    Value* value = (Value *)malloc(sizeof(Value));
+    value -> type = booleanType;
+    value -> boolValue = 1;
+    for (i = 0; i < count - 1; i++) {
+      printValue(getFirst(args));
+      if(getFirst(args)->type == integerType){
+ 
+	if(getFirst(getTail(args))->type == integerType){
 	
-	if (getFirst(getTail(args))->intValue <= getFirst(args)->intValue){
-	  value -> boolValue = 1;	
+	  if (getFirst(getTail(args))->intValue > getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }
 	}else{
-	  value ->boolValue = 0;	  
+	  if (getFirst(getTail(args))->dblValue > getFirst(args)->intValue){
+	    value -> boolValue = 0;	  
+	  }
 	}
-     }else{
-	if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
-	  value -> boolValue = 1;	  
+      }else{
+       	if(getFirst(getTail(args))->type == floatType){
+	  if (getFirst(getTail(args))->dblValue > getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }	  
+	  
 	}else{
-	  value ->boolValue = 0;
+	  if (getFirst(getTail(args))->dblValue > getFirst(args)->dblValue){
+	    value -> boolValue = 0;	  
+	  }
 	}
-     }
-   }else{
-     if(getFirst(getTail(args))->type == floatType){
-	if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
-	  value -> boolValue = 1;	
-	}else{
-	  value ->boolValue = 0;	  
-	}
-     }else{
-	if (getFirst(getTail(args))->dblValue <= getFirst(args)->dblValue){
-	  value -> boolValue = 1;	  
-	}else{
-	  value ->boolValue = 0;
-	}
-     }
-   }
-   insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
-   free(value);  // value can be freed since there is one copy in hash table.
-   value = lookup(env->bindings->tableValue,"#returnValue");
-   return value;
- }
+      }
+      args = getTail(args);
+    }
+    return value;
+    
+    insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    free(value);  // value can be freed since there is one copy in hash table.
+    value = lookup(env->bindings->tableValue,"#returnValue");
+  } 
 }
 
-
-Value *consFunction(Value *args, Environment *env){
-  return NULL;
-}
 
 
 
@@ -1968,7 +1971,9 @@ Environment *searchTopLevel(Environment* current){
   return returnEnv;
 }
 
-Environment* insertEnv(Environment* toInsert){
+
+// Insert things into top-level environment.
+Environment* insertEnv2Top(Environment* toInsert){
   Environment *top = searchTopLevel(toInsert);
   if (!top){
     return NULL;
@@ -1976,15 +1981,26 @@ Environment* insertEnv(Environment* toInsert){
   if (top == toInsert){
     return top;
   }
+  return insertEnv(toInsert, top);
+}
+
+Environment* insertEnv(Environment* toInsert, Environment *parent){
+  if (!toInsert || !parent){
+    return NULL;
+  }
   Value *value = (Value *)malloc(sizeof(Value));
   value->type = envType;
   value->envValue = toInsert;
-  Value  *currentID = lookup(top->bindings->tableValue, "#envID");
-  char *id = intToString(currentID->intValue); 
+  Value  *currentID = lookup(parent->bindings->tableValue, "#envID");
+
+  char *id = intToString(currentID->intValue);  // string is mallocated inside intToString function.
   printf("current ID = %s \n",id);
   currentID->intValue +=1;
-  insertItem(top->bindings->tableValue, id, value);
-  Environment *toReturn = lookup(top->bindings->tableValue,id)->envValue;
+  insertItem(parent->bindings->tableValue, id, value);
+  Environment *toReturn = lookup(parent->bindings->tableValue,id)->envValue;
+  printf("inserting: ");
+  printValue(lookup(parent->bindings->tableValue,id));
+  printf("\n");
   free(id);
   return toReturn;
 }
