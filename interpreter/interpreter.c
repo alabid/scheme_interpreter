@@ -922,6 +922,15 @@ Environment *createTopFrame(){
   return frame;
 }
 
+// bind primitive functions to the top-level environment.
+void bind(char identifier[], Value *function, Environment *env){
+  if (!env || !function){
+    return;
+  }
+  
+  insertItem(env->bindings->tableValue, identifier, function);
+  free(function);
+}
 // free top frame.
 /*void freeTopFrame(Environment *env){
   if (env){
@@ -1367,16 +1376,6 @@ int loadFromFile(FILE *file, Environment *env) {
 }
 
 
-// bind primitive functions to the top-level environment.
-void bind(char identifier[], Value *function, Environment *env){
-  if (!env || !function){
-    return;
-  }
-  char *variable = (char *)malloc(sizeof(char)*(strlen(identifier)+1));
-  strcpy(variable, identifier);
-  variable[strlen(identifier)]='\0';
-  insertItem(env->bindings->tableValue, variable, function);
-}
 
 
 // Special form And

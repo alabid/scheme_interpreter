@@ -468,6 +468,7 @@ void freeValue(Value *value){
     free(value);
 
   }else if (value->type == primitiveType){
+    
     free(value);
   }else if (value->type == closureType){
     destroyClosure(value->closureValue);
