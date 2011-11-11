@@ -27,10 +27,10 @@ PART 2
 But in DrRacket, (<= 3 4 3) => #f.
 There is the same problem for >=.
 
-4. Big bugs involved letrec, probably let has the smiliar bug.
-(define fun (letrec ((x (lambda () (+ 1 2)))(y x)) y))
-(define fun1 (letrec ((x (lambda () (+ 1 2)))(y x)) y))
-(fun)
-(fun1)
-(fun)
-=>segmentation fault.
+4. Bugs in input more than one functions in the same line. Can be
+fixed if we change parser, I guess.
+
+5. 
+equal? gives inconsistent results for the following case.
+(equal? (car (quote (1 2))) (car (quote (1 2 3))))  => #f
+(equal? (car (quote (1 2))) (car (quote (1 2 3)))) => #t

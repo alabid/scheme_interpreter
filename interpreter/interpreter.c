@@ -99,7 +99,7 @@ Value* eval(Value *expr, Environment *env){
 	    return loadFunction(args, env);
 	  } else{
 	 
-	    if (validateArgs(args, env)==-1){
+	    if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
 	      printf("Syntax error! Invalid arguments for the procedure: ");
 	      printValue(operator);
 	      printf("\n");
