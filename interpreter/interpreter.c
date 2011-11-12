@@ -511,25 +511,40 @@ Value* evalLetrec(Value* args, Environment* env){
   int count = listLength(args);
   
   if (count < 2){
-    //printf("letrec: bad syntax in: (letrec ");
-    //printValue(args);
-    //printf("\n");
     return NULL;
   }
-  //printf("in let1: ");
-  //printValue(args);
-  //printf("\n");
-  if (getFirst(args)->type == nullType){
+ 
+  if (getFirst(args)->type== nullType){
+    Value * toReturn;
     while (getTail(getTail(getTail(args)))){
-      if (typeCheck(getTail(getTail(getTail(args)))) == 5){
-	break;
-      }
-      eval(getTail(args),env);
+      toReturn = eval(getFirst(getTail(args)),env);
+      if(toReturn == NULL){
+	
+	if(!(getFirst(getTail(args)) && getFirst(getTail(args))->type!=closeType)){
+	  if (strcmp(getFirst(getTail(getFirst(listofExpressions)))->symbolValue, "set!") != 0){
+	    printf("Syntax error in letrec\n");
+	    return NULL;	
+	  }
+	}
+      }						
       args = getTail(args);
     }
-    return eval(getTail(args), env);
+    
+    Value* toEval = eval(getTail(args), env);
+    if (toEval){
+      return toEval;
+    }else{
+      if (strcmp(getFirst(getTail(getFirst(getTail(args))))->symbolValue, "set!") == 0){
+	return NULL;
+       }else{
+	printf("Bad syntax in letrec.\n");
+	return NULL;
+      }
+    }
   }
- 
+       
+     
+   
   if (getFirst(args)-> type != cellType){
     printf("syntax error in letrec: not a sequence of indentifier\n");
     return NULL;
@@ -648,7 +663,18 @@ Value* evalLetrec(Value* args, Environment* env){
      
       while(listofExpressions && typeCheck(getFirst(listofExpressions))!=5){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
+	
+	if(toReturn == NULL){
 
+	  if(!getFirst(getTail(listofExpressions)) || getFirst(getTail(listofExpressions))->type==closeType){
+	    if (strcmp(getFirst(getTail(getFirst(listofExpressions)))->symbolValue, "set!") == 0){
+	      destroyEnvironment(newEnv);
+	      return NULL;
+	    }
+	  }
+	}
+
+	
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if( getFirst(getTail(listofExpressions)) && getFirst(getTail(listofExpressions))->type!=closeType){
 	    
@@ -1534,7 +1560,7 @@ Value *evalLet(Value *args, Environment *env){
   
   int count = listLength(args);
   if (count < 2){
-    printf("let: bad syntax in: (let* ");
+    printf("let: bad syntax in: (let ");
     printValue(args);
     printf("\n");
     return NULL;
@@ -1544,8 +1570,20 @@ Value *evalLet(Value *args, Environment *env){
 	eval(getTail(args),env);
 	args = getTail(args);
     }
-    return eval(getTail(args), env);
+   Value* toEval = eval(getTail(args), env);
+    if (toEval){
+      return toEval;
+    }else{
+      if (strcmp(getFirst(getTail(getFirst(getTail(args))))->symbolValue, "set!") == 0){
+	      return NULL;
+      }else{
+	printf("Bad syntax in let\n");
+	return NULL;
+      }
+    }
    }
+   
+
  
   if (getFirst(args)-> type != cellType){
     printf("syntax error in let: not a sequence of indentifier\n");
@@ -1611,6 +1649,15 @@ Value *evalLet(Value *args, Environment *env){
       }
       while(listofExpressions && typeCheck(getFirst(listofExpressions))!=5){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
+	if(toReturn == NULL){
+	  if(!getFirst(getTail(listofExpressions)) || getFirst(getTail(listofExpressions))->type==closeType){
+	    if (strcmp(getFirst(getTail(getFirst(listofExpressions)))->symbolValue, "set!") == 0){
+	      destroyEnvironment(newEnv);
+	      return NULL;
+	    }
+	  }
+	}
+
 
 	if(typeCheck(toReturn) < 3 && typeCheck(toReturn) > 0 ){
 	  if( getFirst(getTail(listofExpressions)) && getFirst(getTail(listofExpressions))->type!=closeType){
