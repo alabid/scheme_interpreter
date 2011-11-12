@@ -106,6 +106,7 @@ Value* eval(Value *expr, Environment *env){
 	      return NULL;
 	      } */
 
+
 	    Value *evaledOperator = eval(operator, env);
 	    printf("hello world\n");
 	    Value *evaledArgs = evalEach(args, env);
@@ -194,32 +195,28 @@ Value* eval(Value *expr, Environment *env){
       return expr;      
     }
 }
-
+/*
 int validateArgs(Value *value, Environment* env){
- 
   if (value && value->type==cellType){
-  
     Value *toCheck = getFirst(value);
-    if (toCheck){
-   
+    if (toCheck){   
       switch (toCheck->type)
 	{
 	case cellType:
 	case openType:
 	  return 2;
-	  break;
 	case symbolType:
 	  toCheck = eval(toCheck,env);
 	  
-	  if (toCheck && (toCheck->type==primitiveType || toCheck->type == closureType)){
+	  if (toCheck && (toCheck->type==primitiveType)) {
 	    return -1;
-	  }else{
+	  } else {
 	    return 1;
 	  }
-	  break;
 	case primitiveType:
-	case closureType:
 	  return -1;
+	case closureType:
+	  return 0;
 	default:
 	  break;
 	}
@@ -228,6 +225,7 @@ int validateArgs(Value *value, Environment* env){
   
   return 0;
 }
+*/
 
 /*
   Quote function works well.

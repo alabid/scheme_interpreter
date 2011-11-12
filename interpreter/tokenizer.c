@@ -36,7 +36,11 @@ List *tokenize(char *expression) {
   List *list = initializeList();
   // now while loop that does main work
 
-  while (expression[i] != '\n' && expression[i]!=EOF) {
+  while (expression[i] != '\n') {
+    if (expression[i] == EOF) {
+      printf("reached the end of line\n");
+      break;
+    } // so if there is any EOF then take me back
     if (isspace(expression[i])) {
       i++; 
       continue;
