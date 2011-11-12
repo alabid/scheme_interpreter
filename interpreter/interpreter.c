@@ -41,11 +41,7 @@ Value* eval(Value *expr, Environment *env){
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
-	printf("printing the operator");
-	printValue(operator);
-	printf("\nprinting args");
-	printValue(args);
-	printf("\n");
+
 	if (!operator){
 	  printf("syntax error, missing components here\n");
 	  return NULL;
@@ -959,9 +955,6 @@ Environment *createFrameWithSize(Environment *parent, int size){
   id->type = integerType;
   id->intValue = 0;
   insertItem(frame->bindings->tableValue,"#envID",id);
-  printf("create a frame: ");
-  printValue(lookup(frame->bindings->tableValue,"#envID"));
-  printf("\n");
   free(id);
   return frame;
 }
@@ -1342,8 +1335,7 @@ int loadFromFile(FILE *file, Environment *env) {
        } else {
 	 
 	 if (parseTree && parseTree->head){
-	   printList(parseTree->head);
-	   printf("\n");
+	  
 	   temp = eval(parseTree->head,env);
 	   if (temp){
 	     printValue(temp);
@@ -1765,7 +1757,6 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
 
 
 
-
 Value *greaterOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
   int count = listLength(args);
@@ -1828,7 +1819,7 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
 
 
 
-
+// arithmetic equality check
 Value *arithmeticEqual(Value *args, Environment *env){
   if (!(args && (args->type == cellType)))
     return NULL;
@@ -1883,6 +1874,8 @@ Value *arithmeticEqual(Value *args, Environment *env){
   return value;
 }
 
+
+// check whether things are equal.
 int checkEqual(Value *first, Value *second, Environment *env){
   if (!first || !second){
     return 0;
@@ -1932,6 +1925,7 @@ int checkEqual(Value *first, Value *second, Environment *env){
   return equal;
 }
 
+// not sure whether this function will break in some cases.
 Value *equality(Value *args, Environment *env){
   if (!(args && (args->type == cellType)))
     return NULL;
@@ -2012,13 +2006,11 @@ Environment* insertEnv(Environment* toInsert, Environment *parent){
   Value  *currentID = lookup(parent->bindings->tableValue, "#envID");
 
   char *id = intToString(currentID->intValue);  // string is mallocated inside intToString function.
-  printf("current ID = %s \n",id);
+  //printf("current ID = %s \n",id);
   currentID->intValue +=1;
   insertItem(parent->bindings->tableValue, id, value);
   Environment *toReturn = lookup(parent->bindings->tableValue,id)->envValue;
-  printf("inserting: ");
-  printValue(lookup(parent->bindings->tableValue,id));
-  printf("\n");
+  
   free(id);
   free(value);
   return toReturn;
