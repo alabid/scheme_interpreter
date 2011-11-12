@@ -36,7 +36,7 @@ List *tokenize(char *expression) {
   List *list = initializeList();
   // now while loop that does main work
 
-  while (expression[i]) {
+  while (expression[i] != '\n') {
     if (expression[i] == EOF) {
       printf("reached the end of line\n");
       break;
