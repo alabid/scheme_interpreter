@@ -46,13 +46,13 @@ List* parse(List* tokens, int* depth){
       } 
       push(tempList,pop(stack)); // ignore the open parenthese.
       
-      // }
+      // 
       // if the depth is zero and there is no token left, we finish parsing. So we can return the list.
-      if (*depth == 0 && !(tokens->head)){
+      if (*depth == 0){
 	while (stack->head){
 	  push(tempList, pop(stack));
 	}
-	tokens->head=stack->head;
+
 	free(stack);	
 
 	return tempList;

@@ -1348,32 +1348,39 @@ int loadFromFile(FILE *file, Environment *env) {
        leftoverTokens->head = NULL;
        continue;
      }
-    
-     parseTree = parse(tokens,&depth);   
+     while (depth == 0){
      
-     if (depth < 0) {
-       printf("syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
-       cleanup(tokens->head);
-       //free(parseTree);
-       free(leftoverTokens);
-       free(tokens);
-       return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
-     } else if (depth > 0) {
-       // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
-       leftoverTokens->head = tokens->head;
+       parseTree = parse(tokens,&depth);   
        
-      } else {
-       if (parseTree && parseTree->head){
-	
-	 temp = eval(parseTree->head,env);
-	 if (temp){
-	   printValue(temp);
-	   printf("\n");
+       if (depth < 0) {
+	 printf("Syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
+	 cleanup(tokens->head);
+	 free(leftoverTokens);
+	 free(tokens);
+	 
+	 break;
+	 //return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
+       } else if (depth > 0) {
+	 // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
+	 leftoverTokens->head = tokens->head;
+	 
+       } else {
+	 
+	 if (parseTree && parseTree->head){
 	   
+	   temp = eval(parseTree->head,env);
+	   if (temp){
+	     printValue(temp);
+	     printf("\n"); 
+	   }
+	   destroy(parseTree);
+	 }
+	 leftoverTokens->head = tokens->head;
+
+	 if (!leftoverTokens->head){
+	   break;
 	 }
 	 
-	 //leftoverTokens->head = tokens->head;
-	 destroy(parseTree);
 	 // cleanup(leftoverTokens->head);
        }
      }
