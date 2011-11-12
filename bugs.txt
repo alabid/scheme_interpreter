@@ -19,18 +19,24 @@ PART 2
      which could cause some problems. After I made changes, please
      check again.
 
-2. >= and <=
- does not compare 5.5 with 5.50 well. Probably Yichen can look at
- Daniel's arithmeticEqual function who handles such cases well.
 
-3. (<= 3 4 3) => #t
-But in DrRacket, (<= 3 4 3) => #f.
-There is the same problem for >=.
 
 4. Bugs in input more than one functions in the same line. Can be
 fixed if we change parser, I guess.
 
-5. 
-equal? gives inconsistent results for the following case.
-(equal? (car (quote (1 2))) (car (quote (1 2 3))))  => #f
-(equal? (car (quote (1 2))) (car (quote (1 2 3)))) => #t
+
+6. We should be not able to eval the following, but now it gives #f.
+
+(letrec ((even2?
+          (lambda (x)
+            (or (= x 0)
+                (odd2? (- x 1)))))
+         (odd2?
+          (lambda (x)
+            (and (not (= x 0))
+                 (even2? (- x 1))))))
+  (even2? 20))
+
+
+7. (let ((y 0)) (set! x 10) (set! y 10) (+ x y)) => shoud be 20. Now
+error message.

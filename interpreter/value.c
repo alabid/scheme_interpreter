@@ -1178,3 +1178,20 @@ char* intToString(int number){
 }
 
 
+Value *letEnvLookup(Environment * bottom, Environment *top, char *id){
+  Value* returnValue = NULL;
+  Environment *env = bottom;
+  while (env && env!=top){
+    assert(env->bindings->type == tableType);
+    returnValue = lookup(env->bindings->tableValue, id);
+    if (returnValue){
+      return returnValue;
+    }else{
+      env = env->parent;
+    }
+  }
+  if (env == top){
+    returnValue = lookup(env->bindings->tableValue, id);
+  }
+  return returnValue;
+}
