@@ -99,12 +99,12 @@ Value* eval(Value *expr, Environment *env){
 	    return loadFunction(args, env);
 	  } else{
 	 
-	    if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
+	    /* if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
 	      printf("Syntax error! Invalid arguments for the procedure: ");
 	      printValue(operator);
 	      printf("\n");
 	      return NULL;
-	    } 
+	      } */
 
 	    Value *evaledOperator = eval(operator, env);
 	    printf("hello world\n");
@@ -1028,7 +1028,7 @@ Value *add(Value *args, Environment *env){
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
-	printf("+: expects type <number> as arguments");
+	printf("+: expects type <number> as arguments\n");
 	return NULL;
       }
       args = getTail(args);
@@ -1105,7 +1105,7 @@ Value *subtract(Value *args, Environment *env){
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
-	printf("-: expects type <number> as arguments");
+	printf("-: expects type <number> as arguments\n");
 	return NULL;
       }
       args = getTail(args);
@@ -1161,7 +1161,7 @@ Value *multiply(Value *args, Environment *env){
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
-	printf("*: expects type <number> as arguments");
+	printf("*: expects type <number> as arguments\n");
 	return NULL;
       }
       args = getTail(args);
@@ -1268,7 +1268,7 @@ Value *divide(Value *args, Environment *env){
       }else if (getFirst(args)->type == closeType){
 	break;
       }else{
-	printf("*: expects type <number> as arguments");
+	printf("*: expects type <number> as arguments\n");
 	return NULL;
       }
       args = getTail(args);
@@ -1363,11 +1363,12 @@ int loadFromFile(FILE *file, Environment *env) {
        } else if (depth > 0) {
 	 // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
 	 leftoverTokens->head = tokens->head;
-	 
+	 break;
        } else {
 	 
 	 if (parseTree && parseTree->head){
-	   
+	   printList(parseTree->head);
+	   printf("\n");
 	   temp = eval(parseTree->head,env);
 	   if (temp){
 	     printValue(temp);
@@ -1376,7 +1377,7 @@ int loadFromFile(FILE *file, Environment *env) {
 	   destroy(parseTree);
 	 }
 	 leftoverTokens->head = tokens->head;
-
+	 
 	 if (!leftoverTokens->head){
 	   break;
 	 }
@@ -1619,11 +1620,11 @@ Value *evalLet(Value *args, Environment *env){
 	    listofExpressions = getTail(listofExpressions);
 	    freeValue(toReturn);
 	  }else{
-	    if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
-	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
-	    }else if (toReturn && toReturn->type==closureType){
+	    if (toReturn && toReturn->type==closureType){
 	      toReturn->closureValue->parent = insertEnv(newEnv, env);
 	      return toReturn;   // if the last item is lambda, we need to return it and leave let environment there.
+	    }else if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
+	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
 	    }
 	    destroyEnvironment(newEnv); // clean the environment since no pointer points to it.
 	    return toReturn;
@@ -1689,7 +1690,7 @@ Value *evalSetBang(Value *args, Environment *env){
 	  return NULL;
 	}else{
 	Environment* newEnv= checkEnv(getFirst(args)->symbolValue, env);
-	Value* toBind = eval(getTail(args), env);
+	Value* toBind = eval(getFirst(getTail(args)), env);
 	  if(toBind && newEnv){
 	    insertItem(newEnv->bindings->tableValue, getFirst(args)->symbolValue, toBind);
 	    return NULL;

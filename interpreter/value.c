@@ -795,7 +795,11 @@ int properListLength(Value *value) {
 Value *deepCopyList(Value *value){
   Value *head = value;
   Value *newValue = NULL;
+  if (!value){
+    return NULL;
+  }
   List *newList = initializeList();
+  
   while (head && head->type == cellType) {   
     newValue = (Value *) malloc(sizeof(Value));
     if (!getFirst(head)){
@@ -834,8 +838,14 @@ Value *deepCopyList(Value *value){
 	newValue->close = head->cons->car->close;
 	break;
       case cellType:
-	free(newValue);
-	newValue = deepCopyList(head->cons->car);
+	newValue->type = cellType;
+	newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
+	newValue->cons->car = deepCopy(head->cons->car);
+	if (head->cons->cdr && head->cons->cdr->type!=cellType){
+	  newValue->cons->cdr = deepCopy(head->cons->cdr);
+	}else{
+	  newValue->cons->cdr = deepCopyList(head->cons->cdr);
+	}
 	break;
       case nullType:
 	newValue->type = nullType;
@@ -850,8 +860,8 @@ Value *deepCopyList(Value *value){
       }
     push(newList, newValue);
     head = head->cons->cdr;
+    
   }
-  
   reverse(newList);
   head = newList->head;
   free(newList);
