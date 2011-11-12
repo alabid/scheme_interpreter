@@ -1,3 +1,10 @@
-(letrec ((x 10) (y 5)) #f 34 (lambda () (+ x 5)))
-
-
+(define x 5)
+(letrec () (set! x 10) (* 5 20))
+(define add (lambda (n1 n2) (+ n1 n2)))
+x
+(add 10 20)
+(load "tests/interpreter-test.input.2")
+(and 5 #f)
+(or #f #f #f #F (/ 10 20))
+(cond (#f 5) ((+ 20 30) 100))  
+	

@@ -1,5 +1,0 @@
-(define y-me 20)
-(define x-me 50)
-(define return-me
-  (lambda (func x-me)
-     (func x-me x-me)))

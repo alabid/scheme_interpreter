@@ -1,0 +1,9 @@
+We implemented let*, and, or, set!, cond
+We also implemented arithmetic operations, +, -, *, /, <=, >=, =.
+We tried to free everything we can.
+
+
+We are still working on the following functions that are not part of 2a:
+cons, car, cdr and equal?
+We haven't finished them yet and we know our cons, car, cdr do not deal with improper list.
+

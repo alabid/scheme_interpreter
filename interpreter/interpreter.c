@@ -204,16 +204,6 @@ Value* evalQuote(Value* args){
 }
 
 
-Value *evalLet(Value *args, Environment *env){
-  Value *toCheck;
-  
-  int count = listLength(args);
-  if (count < 2){
-    printf("let: bad syntax in: (let ");
-    printValue(args);
-    printf("\n");
-
-
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs, Environment* env){
   
@@ -259,7 +249,215 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     return returnValue;
   }else{
     printf("Unknown identifier!");
+    return NULL;
+  }
+}
 
+// look up the identifier.
+Value* envLookup(char* id, Environment* env){
+  Value* returnValue = NULL;
+  while (env){
+  
+    assert(env->bindings->type == tableType);
+    returnValue = lookup(env->bindings->tableValue, id);
+    if (returnValue){
+      break;
+    }else{
+      env = env->parent;
+    }
+  }
+  return returnValue;
+}
+
+// group types into five main groups.
+int typeCheck(Value* value){
+  if (value){
+    switch (value->type)
+      {
+      case booleanType:
+      case integerType:
+      case floatType:
+      case stringType:
+	return 1;
+	break;
+      case closureType:
+      case primitiveType:
+	return 2;
+	break;
+      case symbolType:
+	return 3;
+	break;
+      case cellType:
+	return 4;
+	break;
+      case closeType:
+	return 5;
+	break;
+      default:
+	return 0;
+    }
+  }
+  else{
+    return -1;
+  }
+}
+
+// Check special cases.
+int variableCheck(Value* value){
+  if (value){
+    if (value->type == symbolType){
+      if (strcmp(value->symbolValue,".")==0 ||
+	  strcmp(value->symbolValue,"+")==0 ||
+	  strcmp(value->symbolValue,"-")==0 ||
+	  strcmp(value->symbolValue,"*")==0 ||
+	  strcmp(value->symbolValue,"/")==0 ||
+	  strcmp(value->symbolValue,"<")==0 ||
+	  strcmp(value->symbolValue,"=")==0 ||
+	  strcmp(value->symbolValue,">")==0 ||
+	  strcmp(value->symbolValue,"car")==0 ||
+	  strcmp(value->symbolValue,"cdr")==0 ||
+	  strcmp(value->symbolValue,"list")==0)
+	{
+	  return 0;
+	}else{
+	  return 1;
+	}
+    }else{
+      return -1;
+    }
+  }
+  else{
+    return -1;
+  }
+}	  
+
+      
+
+
+// This function evaluates define by creating bindings. It always returns NULL.
+Value* evalDefine(Value* args, Environment* env){
+ 
+  if (args == NULL||args->cons->cdr== NULL){
+    printf("syntax error: missing components here\n");
+    return NULL;
+  }
+  assert(args->type == cellType);
+  
+  //check if there are more than 2 values after define
+  if (listLength(args) > 2){
+    printf("syntax error: multiple expressions after identifier\n");
+    return NULL;
+  }
+  //check if the variable is valid
+  if (variableCheck(getFirst(args)) < 1){
+    if (variableCheck(getFirst(args)) < 0){
+      printf("bad syntax\n");
+      return NULL;
+    }
+    else{
+      printf("cannot change constant variable\n");
+      return NULL;
+    }
+  }else{
+    // now it has correct number of arguments and the identifier is valid.
+    // eval the second argument and put (1st, 2nd) as key-value pair in the hash table. 
+    
+    assert(env!=NULL);
+    assert(env->bindings->type == tableType);
+    
+    assert(args->type==cellType);
+    assert(getFirst(args)!=NULL);
+    assert(getFirst(args)->type == symbolType);
+    Value *value;
+    if (getFirst(getTail(args)) && getFirst(getTail(args))->type == symbolType){
+      value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
+  
+      if (value){
+	if (value->type == closureType){
+	  if (!value->closureValue->identifier){
+	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
+	  }
+	}
+	insertItem(env->bindings->tableValue, (getFirst(args))->symbolValue, value);
+      }else{
+	printf("syntax error: unknown identifier\n");
+	return NULL;
+      }
+    }else{
+      assert(getFirst(args)!=NULL);
+      assert(getFirst(args)->type==symbolType);
+      assert(env->bindings->tableValue!=NULL);
+      value = eval(getFirst(getTail(args)), env);
+      if (value){
+	if (value->type == closureType){
+	  if (!value->closureValue->identifier){
+	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
+	  }
+	}
+	insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, value);
+      }else{
+	printf("syntax error: Cannot nest another definition inside define.\n");
+	return NULL;
+      }
+    }
+    return NULL;
+  }  
+}
+
+// eval each part of the arguments.
+Value* evalEach(Value* args, Environment* env){
+  Value *temp;
+  Value *head, *openParen;
+  List *returnValue = initializeList();
+  
+
+  while (args && typeCheck(getFirst(args))!=5){ 
+    assert(args->type==cellType);    
+    if (getFirst(args) && (getFirst(args))->type==cellType){
+      openParen = getFirst(getFirst(args));
+      if (openParen && openParen->type == openType){
+	temp =  deepCopy(eval(getFirst(args), env));	
+	if (!temp){
+	  free(returnValue);
+	  printf("Error in eval each open.\n");
+	  return NULL;
+	}
+	push(returnValue, temp);
+	args = getTail(args);
+      }else{
+	printf("Error! Cannot evaluate each one.\n");
+	free(returnValue);
+	return NULL;
+      }
+    }else{
+      temp = deepCopy(eval(getFirst(args), env));
+      if (!temp){
+	break;
+      }
+      
+      push(returnValue, temp);
+      args =getTail(args);
+    }
+  }
+  assert(env!=NULL);
+ 
+  reverse(returnValue);
+  insertItem(env->bindings->tableValue, "#returnValue", returnValue->head);
+  destroy(returnValue);
+  head = lookup(env->bindings->tableValue, "#returnValue"); 
+
+  return head;
+}
+
+// eval letrec
+Value *evalLet(Value *args, Environment *env){
+  Value *toCheck;
+  
+  int count = listLength(args);
+  if (count < 2){
+    printf("let: bad syntax in: (let ");
+    printValue(args);
+    printf("\n");
     return NULL;
   }
   if (getFirst(args)->type== nullType){
@@ -552,18 +750,9 @@ Value* evalLetrec(Value* args, Environment* env){
     while (getTail(getTail(getTail(args)))){
       toReturn = eval(getFirst(getTail(args)),env);
       if(toReturn == NULL){
-
 	if (strcmp(getFirst(getTail(getFirst(getTail(args))))->symbolValue, "set!") != 0){
 	  printf("Syntax error in letrec\n");
 	  return NULL;	
-
-	
-	if(!(getFirst(getTail(args)) && getFirst(getTail(args))->type!=closeType)){
-	  if (strcmp(getFirst(getTail(getFirst(args)))->symbolValue, "set!") != 0){
-	    printf("Syntax error in letrec\n");
-	    return NULL;	
-	  }
-
 	}
       }						
       args = getTail(args);
@@ -749,264 +938,6 @@ Value* evalLetrec(Value* args, Environment* env){
   }
   return NULL;
 }
-
-// We have not tested this function yet for part a.
-Value* apply(Value* function, Value* actualArgs, Environment* env){
-  printf("printing the applied operator");
-  printValue(function);
-  printf("\nprinting applied args");
-  printValue(actualArgs);
-  printf("\n");
-  if (!function){
-    return actualArgs;
-  }else if (function->type == primitiveType){
-    return function->primitiveValue(actualArgs, env);
-  }else if (function->type == closureType){
-    printf("printing acutal args");
-    printValue(actualArgs);
-    printf("\nprinting formal args");
-
-    List *formalArgs = function->closureValue->args;
-    printValue(formalArgs->head);
-    printf("\n");
-
-    Environment *frame = createFrame(function->closureValue->parent);
-    /* Bind formalArgs to actualArgs in frame here. */
-    Value *curArg = formalArgs->head;
-    Value *curValue = actualArgs;
-    while (curArg && curValue){
-      assert(getFirst(curArg)->type ==symbolType);
-
-      insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
-
-      curArg = getTail(curArg);
-      curValue = getTail(curValue);
-      
-    }
-    if (curArg || curValue){
-      printf("Wrong number of parameters for the procedure.\n");
-      destroyEnvironment(frame);
-      return NULL;
-    }
-   
-
-    Value *returnValue = eval(function->closureValue->body, frame);
-  
-    insertItem(env->bindings->tableValue, "#returnValue",returnValue);
-   
-    destroyEnvironment(frame);
-    returnValue = lookup(env->bindings->tableValue, "#returnValue");
-    printf("printing the return value: ");
-    printValue(returnValue);
-    if (returnValue) printf("\n The type of return value is %d\n",returnValue->type);
-    printf("\n");
-    
-    return returnValue;
-  }else{
-    printf("Unknown identifier!");
-    return NULL;
-  }
-}
-
-// look up the identifier.
-Value* envLookup(char* id, Environment* env){
-  Value* returnValue = NULL;
-  while (env){
-  
-    assert(env->bindings->type == tableType);
-    returnValue = lookup(env->bindings->tableValue, id);
-    if (returnValue){
-      break;
-    }else{
-      env = env->parent;
-    }
-  }
-  return returnValue;
-}
-
-// group types into five main groups.
-int typeCheck(Value* value){
-  if (value){
-    switch (value->type)
-      {
-      case booleanType:
-      case integerType:
-      case floatType:
-      case stringType:
-	return 1;
-	break;
-      case closureType:
-      case primitiveType:
-	return 2;
-	break;
-      case symbolType:
-	return 3;
-	break;
-      case cellType:
-	return 4;
-	break;
-      case closeType:
-	return 5;
-	break;
-      default:
-	return 0;
-    }
-  }
-  else{
-    return -1;
-  }
-}
-
-// Check special cases.
-int variableCheck(Value* value){
-  if (value){
-    if (value->type == symbolType){
-      if (strcmp(value->symbolValue,".")==0 ||
-	  strcmp(value->symbolValue,"+")==0 ||
-	  strcmp(value->symbolValue,"-")==0 ||
-	  strcmp(value->symbolValue,"*")==0 ||
-	  strcmp(value->symbolValue,"/")==0 ||
-	  strcmp(value->symbolValue,"<")==0 ||
-	  strcmp(value->symbolValue,"=")==0 ||
-	  strcmp(value->symbolValue,">")==0 ||
-	  strcmp(value->symbolValue,"car")==0 ||
-	  strcmp(value->symbolValue,"cdr")==0 ||
-	  strcmp(value->symbolValue,"list")==0)
-	{
-	  return 0;
-	}else{
-	  return 1;
-	}
-    }else{
-      return -1;
-    }
-  }
-  else{
-    return -1;
-  }
-}	  
-
-      
-
-
-// This function evaluates define by creating bindings. It always returns NULL.
-Value* evalDefine(Value* args, Environment* env){
- 
-  if (args == NULL||args->cons->cdr== NULL){
-    printf("syntax error: missing components here\n");
-    return NULL;
-  }
-  assert(args->type == cellType);
-  
-  //check if there are more than 2 values after define
-  if (listLength(args) > 2){
-    printf("syntax error: multiple expressions after identifier\n");
-    return NULL;
-  }
-  //check if the variable is valid
-  if (variableCheck(getFirst(args)) < 1){
-    if (variableCheck(getFirst(args)) < 0){
-      printf("bad syntax\n");
-      return NULL;
-    }
-    else{
-      printf("cannot change constant variable\n");
-      return NULL;
-    }
-  }else{
-    // now it has correct number of arguments and the identifier is valid.
-    // eval the second argument and put (1st, 2nd) as key-value pair in the hash table. 
-    
-    assert(env!=NULL);
-    assert(env->bindings->type == tableType);
-    
-    assert(args->type==cellType);
-    assert(getFirst(args)!=NULL);
-    assert(getFirst(args)->type == symbolType);
-    Value *value;
-    if (getFirst(getTail(args)) && getFirst(getTail(args))->type == symbolType){
-      value = eval(envLookup(getFirst(getTail(args))->symbolValue, env), env);
-  
-      if (value){
-	if (value->type == closureType){
-	  if (!value->closureValue->identifier){
-	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
-	  }
-	}
-	insertItem(env->bindings->tableValue, (getFirst(args))->symbolValue, value);
-      }else{
-	printf("syntax error: unknown identifier\n");
-	return NULL;
-      }
-    }else{
-      assert(getFirst(args)!=NULL);
-      assert(getFirst(args)->type==symbolType);
-      assert(env->bindings->tableValue!=NULL);
-      value = eval(getFirst(getTail(args)), env);
-      if (value){
-	if (value->type == closureType){
-	  if (!value->closureValue->identifier){
-	    nameClosure(value->closureValue, (getFirst(args))->symbolValue);
-	  }
-	}
-	insertItem(env->bindings->tableValue, getFirst(args)->symbolValue, value);
-      }else{
-	printf("syntax error: Cannot nest another definition inside define.\n");
-	return NULL;
-      }
-    }
-    return NULL;
-  }  
-}
-
-// eval each part of the arguments.
-Value* evalEach(Value* args, Environment* env){
-  Value *temp;
-  Value *head, *openParen;
-  List *returnValue = initializeList();
-  
-  printf("printing args in eval each ");
-  printValue(args);
-  printf("\n");
-  
-  while (args && typeCheck(getFirst(args))!=5){ 
-    assert(args->type==cellType);    
-    if (getFirst(args) && (getFirst(args))->type==cellType){
-      openParen = getFirst(getFirst(args));
-      if (openParen && openParen->type == openType){
-	temp =  deepCopy(eval(getFirst(args), env));	
-	if (!temp){
-	  free(returnValue);
-	  printf("Error in eval each open.\n");
-	  return NULL;
-	}
-	push(returnValue, temp);
-	args = getTail(args);
-      }else{
-	printf("Error! Cannot evaluate each one.\n");
-	free(returnValue);
-	return NULL;
-      }
-    }else{
-      temp = deepCopy(eval(getFirst(args), env));
-      if (!temp){
-	break;
-      }
-      
-      push(returnValue, temp);
-      args =getTail(args);
-    }
-  }
-  assert(env!=NULL);
- 
-  reverse(returnValue);
-  insertItem(env->bindings->tableValue, "#returnValue", returnValue->head);
-  destroy(returnValue);
-  head = lookup(env->bindings->tableValue, "#returnValue"); 
-
-  return head;
-}
-
 // This function evaluates if statement.
 Value* evalIf(Value* args, Environment* env){
   
@@ -1721,6 +1652,9 @@ Value *evalOr(Value *args, Environment *env){
     return toValidate;
   }
 }
+
+
+
 
 
 

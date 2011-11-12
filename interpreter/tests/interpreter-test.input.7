@@ -1,1 +1,7 @@
-(if #f 3 (let ((x 3)(y 5)(z 6)) (+ y (+ x z))))
+(define x 6)
+(define y 7)
+(set! y 10)
+
+
+
+(if (<= x y)  (let ((x 3)(y 5)(z 6)) (+ y (+ x z))) 3)
