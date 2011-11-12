@@ -98,30 +98,20 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	 
-	    /* if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
-	      printf("Syntax error! Invalid arguments for the procedure: ");
-	      printValue(operator);
-	      printf("\n");
-	      return NULL;
-	      } */
+
 
 
 	    Value *evaledOperator = eval(operator, env);
-	    printf("hello world\n");
+	   
 	    Value *evaledArgs = evalEach(args, env);
-	    printf("hello world2\n");
+
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
 	      printValue(operator);
 	      printf("\n");
 	      return NULL;
 	    }
-	   printf("printing the evaled operator");
-	   printValue(evaledOperator);
-	   printf("\nprinting evaled args");
-	   printValue(evaledArgs);
-	   printf("\n");
+	  
 	   return apply(evaledOperator, evaledArgs, env);
 	  } 
 	}else if (typeCheck(operator)==1){
@@ -130,7 +120,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf(" cannot be a procedure.\n");
 	  return NULL; 
 	}else if (typeCheck(operator)==2){
-	  //printf("Argument list is ");
+	 
 	  Value *evaledArgs;
 	  if (args &&  getFirst(args) && getFirst(args)->type ==closeType){
 	    free(getFirst(args));
@@ -195,37 +185,7 @@ Value* eval(Value *expr, Environment *env){
       return expr;      
     }
 }
-/*
-int validateArgs(Value *value, Environment* env){
-  if (value && value->type==cellType){
-    Value *toCheck = getFirst(value);
-    if (toCheck){   
-      switch (toCheck->type)
-	{
-	case cellType:
-	case openType:
-	  return 2;
-	case symbolType:
-	  toCheck = eval(toCheck,env);
-	  
-	  if (toCheck && (toCheck->type==primitiveType)) {
-	    return -1;
-	  } else {
-	    return 1;
-	  }
-	case primitiveType:
-	  return -1;
-	case closureType:
-	  return 0;
-	default:
-	  break;
-	}
-    }
-  }
-  
-  return 0;
-}
-*/
+
 
 /*
   Quote function works well.
@@ -250,23 +210,17 @@ Value* evalQuote(Value* args){
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs, Environment* env){
-  printf("printing the applied operator");
-  printValue(function);
-  printf("\nprinting applied args");
-  printValue(actualArgs);
-  printf("\n");
+  
   if (!function){
     return actualArgs;
   }else if (function->type == primitiveType){
     return function->primitiveValue(actualArgs, env);
   }else if (function->type == closureType){
-    printf("printing acutal args");
-    printValue(actualArgs);
-    printf("\nprinting formal args");
+   
 
     List *formalArgs = function->closureValue->args;
     printValue(formalArgs->head);
-    printf("\n");
+  
 
     Environment *frame = createFrame(function->closureValue->parent);
     /* Bind formalArgs to actualArgs in frame here. */
@@ -294,10 +248,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
    
     destroyEnvironment(frame);
     returnValue = lookup(env->bindings->tableValue, "#returnValue");
-    printf("printing the return value: ");
-    printValue(returnValue);
-    if (returnValue) printf("\n The type of return value is %d\n",returnValue->type);
-    printf("\n");
+    
     
     return returnValue;
   }else{
@@ -521,7 +472,7 @@ Value* evalLetrec(Value* args, Environment* env){
       if(toReturn == NULL){
 	
 	if(!(getFirst(getTail(args)) && getFirst(getTail(args))->type!=closeType)){
-	  if (strcmp(getFirst(getTail(getFirst(listofExpressions)))->symbolValue, "set!") != 0){
+	  if (strcmp(getFirst(getTail(getFirst(args)))->symbolValue, "set!") != 0){
 	    printf("Syntax error in letrec\n");
 	    return NULL;	
 	  }

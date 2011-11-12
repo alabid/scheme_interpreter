@@ -497,6 +497,7 @@ void destroy(List* list){
 Value *car(Value *value, Environment *env) {
   Value *current = value;
   int count = listLength(value);
+  
   if (count > 1) {
     printf("car:expects 1 argument, given %d.\n", count);
     return NULL;
@@ -659,7 +660,7 @@ Value *cons(Value *value, Environment *env) {
   openParen = (Value *) malloc(sizeof(Value));
   openParen->type = openType;
   openParen->open = '(';
-
+  
   newValue = (Value* )malloc(sizeof(Value));
   newValue->type = cellType;
   newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
@@ -786,14 +787,13 @@ int properListLength(Value *value) {
     return properListLength(value->cons->cdr);
   }else if (value->cons->car->type == closeType){
     return 0;
-  }
-  else {
+  } else {
     return 1 + properListLength(value->cons->cdr);
   }
 }
 
 Value *deepCopyList(Value *value){
-  Value *head = value;
+  Value *head = value, *temp=NULL;
   Value *newValue = NULL;
   if (!value){
     return NULL;
@@ -838,14 +838,8 @@ Value *deepCopyList(Value *value){
 	newValue->close = head->cons->car->close;
 	break;
       case cellType:
-	newValue->type = cellType;
-	newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
-	newValue->cons->car = deepCopy(head->cons->car);
-	if (head->cons->cdr && head->cons->cdr->type!=cellType){
-	  newValue->cons->cdr = deepCopy(head->cons->cdr);
-	}else{
-	  newValue->cons->cdr = deepCopyList(head->cons->cdr);
-	}
+	free(newValue);
+	newValue = deepCopyList(head->cons->car);
 	break;
       case nullType:
 	newValue->type = nullType;
@@ -860,9 +854,16 @@ Value *deepCopyList(Value *value){
       }
     push(newList, newValue);
     head = head->cons->cdr;
-    
+   
   }
   reverse(newList);
+  if (head){
+    temp = newList->head;
+    while (getTail(temp)){
+      temp = getTail(temp);
+    }
+    temp->cons->cdr = deepCopy(head);
+  }
   head = newList->head;
   free(newList);
   return head;
