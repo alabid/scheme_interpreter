@@ -7,7 +7,6 @@
 int main(int argc, char*argv[]) {
   Environment *topEnv = createTopFrame();
  
-  
   loadFromFile(stdin, topEnv);
   
   destroyTopFrame(topEnv);

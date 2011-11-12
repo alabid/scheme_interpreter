@@ -41,11 +41,7 @@ Value* eval(Value *expr, Environment *env){
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
-	printf("printing the operator");
-	printValue(operator);
-	printf("\nprinting args");
-	printValue(args);
-	printf("\n");
+
 	if (!operator){
 	  printf("syntax error, missing components here\n");
 	  return NULL;
@@ -98,30 +94,20 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	 
-	    /* if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
-	      printf("Syntax error! Invalid arguments for the procedure: ");
-	      printValue(operator);
-	      printf("\n");
-	      return NULL;
-	      } */
+
 
 
 	    Value *evaledOperator = eval(operator, env);
-	    printf("hello world\n");
+	   
 	    Value *evaledArgs = evalEach(args, env);
-	    printf("hello world2\n");
+
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
 	      printValue(operator);
 	      printf("\n");
 	      return NULL;
 	    }
-	   printf("printing the evaled operator");
-	   printValue(evaledOperator);
-	   printf("\nprinting evaled args");
-	   printValue(evaledArgs);
-	   printf("\n");
+	  
 	   return apply(evaledOperator, evaledArgs, env);
 	  } 
 	}else if (typeCheck(operator)==1){
@@ -130,7 +116,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf(" cannot be a procedure.\n");
 	  return NULL; 
 	}else if (typeCheck(operator)==2){
-	  //printf("Argument list is ");
+	 
 	  Value *evaledArgs;
 	  if (args &&  getFirst(args) && getFirst(args)->type ==closeType){
 	    free(getFirst(args));
@@ -195,37 +181,7 @@ Value* eval(Value *expr, Environment *env){
       return expr;      
     }
 }
-/*
-int validateArgs(Value *value, Environment* env){
-  if (value && value->type==cellType){
-    Value *toCheck = getFirst(value);
-    if (toCheck){   
-      switch (toCheck->type)
-	{
-	case cellType:
-	case openType:
-	  return 2;
-	case symbolType:
-	  toCheck = eval(toCheck,env);
-	  
-	  if (toCheck && (toCheck->type==primitiveType)) {
-	    return -1;
-	  } else {
-	    return 1;
-	  }
-	case primitiveType:
-	  return -1;
-	case closureType:
-	  return 0;
-	default:
-	  break;
-	}
-    }
-  }
-  
-  return 0;
-}
-*/
+
 
 /*
   Quote function works well.
@@ -247,6 +203,7 @@ Value* evalQuote(Value* args){
   }
 }
 
+
 Value *evalLet(Value *args, Environment *env){
   Value *toCheck;
   
@@ -255,6 +212,54 @@ Value *evalLet(Value *args, Environment *env){
     printf("let: bad syntax in: (let ");
     printValue(args);
     printf("\n");
+
+
+// We have not tested this function yet for part a.
+Value* apply(Value* function, Value* actualArgs, Environment* env){
+  
+  if (!function){
+    return actualArgs;
+  }else if (function->type == primitiveType){
+    return function->primitiveValue(actualArgs, env);
+  }else if (function->type == closureType){
+   
+
+    List *formalArgs = function->closureValue->args;
+    printValue(formalArgs->head);
+  
+
+    Environment *frame = createFrame(function->closureValue->parent);
+    /* Bind formalArgs to actualArgs in frame here. */
+    Value *curArg = formalArgs->head;
+    Value *curValue = actualArgs;
+    while (curArg && curValue){
+      assert(getFirst(curArg)->type ==symbolType);
+
+      insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
+
+      curArg = getTail(curArg);
+      curValue = getTail(curValue);
+      
+    }
+    if (curArg || curValue){
+      printf("Wrong number of parameters for the procedure.\n");
+      destroyEnvironment(frame);
+      return NULL;
+    }
+   
+
+    Value *returnValue = eval(function->closureValue->body, frame);
+  
+    insertItem(env->bindings->tableValue, "#returnValue",returnValue);
+   
+    destroyEnvironment(frame);
+    returnValue = lookup(env->bindings->tableValue, "#returnValue");
+    
+    
+    return returnValue;
+  }else{
+    printf("Unknown identifier!");
+
     return NULL;
   }
   if (getFirst(args)->type== nullType){
@@ -547,9 +552,18 @@ Value* evalLetrec(Value* args, Environment* env){
     while (getTail(getTail(getTail(args)))){
       toReturn = eval(getFirst(getTail(args)),env);
       if(toReturn == NULL){
+
 	if (strcmp(getFirst(getTail(getFirst(getTail(args))))->symbolValue, "set!") != 0){
 	  printf("Syntax error in letrec\n");
 	  return NULL;	
+
+	
+	if(!(getFirst(getTail(args)) && getFirst(getTail(args))->type!=closeType)){
+	  if (strcmp(getFirst(getTail(getFirst(args)))->symbolValue, "set!") != 0){
+	    printf("Syntax error in letrec\n");
+	    return NULL;	
+	  }
+
 	}
       }						
       args = getTail(args);
@@ -1167,9 +1181,6 @@ Environment *createFrameWithSize(Environment *parent, int size){
   id->type = integerType;
   id->intValue = 0;
   insertItem(frame->bindings->tableValue,"#envID",id);
-  printf("create a frame: ");
-  printValue(lookup(frame->bindings->tableValue,"#envID"));
-  printf("\n");
   free(id);
   return frame;
 }
@@ -1550,8 +1561,7 @@ int loadFromFile(FILE *file, Environment *env) {
        } else {
 	 
 	 if (parseTree && parseTree->head){
-	   printList(parseTree->head);
-	   printf("\n");
+	  
 	   temp = eval(parseTree->head,env);
 	   if (temp){
 	     printValue(temp);
@@ -1841,7 +1851,6 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
 
 
 
-
 Value *greaterOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
   int count = listLength(args);
@@ -1904,7 +1913,7 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
 
 
 
-
+// arithmetic equality check
 Value *arithmeticEqual(Value *args, Environment *env){
   if (!(args && (args->type == cellType)))
     return NULL;
@@ -1959,6 +1968,8 @@ Value *arithmeticEqual(Value *args, Environment *env){
   return value;
 }
 
+
+// check whether things are equal.
 int checkEqual(Value *first, Value *second, Environment *env){
   if (!first || !second){
     return 0;
@@ -2008,6 +2019,7 @@ int checkEqual(Value *first, Value *second, Environment *env){
   return equal;
 }
 
+// not sure whether this function will break in some cases.
 Value *equality(Value *args, Environment *env){
   if (!(args && (args->type == cellType)))
     return NULL;
@@ -2088,13 +2100,11 @@ Environment* insertEnv(Environment* toInsert, Environment *parent){
   Value  *currentID = lookup(parent->bindings->tableValue, "#envID");
 
   char *id = intToString(currentID->intValue);  // string is mallocated inside intToString function.
-  printf("current ID = %s \n",id);
+  //printf("current ID = %s \n",id);
   currentID->intValue +=1;
   insertItem(parent->bindings->tableValue, id, value);
   Environment *toReturn = lookup(parent->bindings->tableValue,id)->envValue;
-  printf("inserting: ");
-  printValue(lookup(parent->bindings->tableValue,id));
-  printf("\n");
+  
   free(id);
   free(value);
   return toReturn;
