@@ -98,13 +98,6 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	 
-	    if (strcmp(operator->symbolValue, "equal?")!=0 && validateArgs(args, env)==-1){
-	      printf("Syntax error! Invalid arguments for the procedure: ");
-	      printValue(operator);
-	      printf("\n");
-	      return NULL;
-	    } 
 
 	    Value *evaledOperator = eval(operator, env);
 	    printf("hello world\n");
@@ -194,32 +187,28 @@ Value* eval(Value *expr, Environment *env){
       return expr;      
     }
 }
-
+/*
 int validateArgs(Value *value, Environment* env){
- 
   if (value && value->type==cellType){
-  
     Value *toCheck = getFirst(value);
-    if (toCheck){
-   
+    if (toCheck){   
       switch (toCheck->type)
 	{
 	case cellType:
 	case openType:
 	  return 2;
-	  break;
 	case symbolType:
 	  toCheck = eval(toCheck,env);
 	  
-	  if (toCheck && (toCheck->type==primitiveType || toCheck->type == closureType)){
+	  if (toCheck && (toCheck->type==primitiveType)) {
 	    return -1;
-	  }else{
+	  } else {
 	    return 1;
 	  }
-	  break;
 	case primitiveType:
-	case closureType:
 	  return -1;
+	case closureType:
+	  return 0;
 	default:
 	  break;
 	}
@@ -228,6 +217,7 @@ int validateArgs(Value *value, Environment* env){
   
   return 0;
 }
+*/
 
 /*
   Quote function works well.
