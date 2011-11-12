@@ -1488,13 +1488,13 @@ Value *evalCond(Value *args, Environment *env){
   if (!(tail && current)) return NULL;
   else if (getFirst(getTail(current))->type == stringType) {
     if (strcmp(getFirst(getTail(current))->symbolValue, "else") == 0) {
-      return getFirst(getTail(getTail(current)));
+      return eval(getFirst(getTail(getTail(current))), env);
     }
   } else {
     evalEnd =  eval(getFirst(getTail(current)), env);
     if (evalEnd && evalEnd->type == booleanType && !(evalEnd->boolValue)) 
       return NULL;
-    else return getFirst(getTail(getTail(current)));
+    else return eval(getFirst(getTail(getTail(current))), env);
   }
   return NULL;
 }
