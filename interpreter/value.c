@@ -626,12 +626,14 @@ Value *cons(Value *value, Environment *env) {
   // secondly: (cons 1 2) -> (1 . 2)
   newCar = getFirst(value);
   newCdr = getFirst(getTail(value));
-  
+  printValue(newCar);
+  printValue(newCdr);
+  printf("s=========");
   assert(newCdr != NULL);
 
   if (newCdr->type == cellType) {
     carCopy = deepCopy(newCar);
-    cdrCopy = deepCopy(newCdr);
+    cdrCopy = getTail(deepCopy(newCdr));
 
     free(cdrCopy->cons->car);
     Value *freeMe = cdrCopy;
@@ -644,7 +646,11 @@ Value *cons(Value *value, Environment *env) {
     carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
     carCdr->cons->car = carCopy;
     carCdr->cons->cdr = cdrCopy;
-        
+    printf("\n\n");
+    printValue(carCopy);
+    printf("----");
+    printValue(cdrCopy);
+    printf("---");
   } else if (typeCheck(newCdr) == 1 || typeCheck(newCdr) == 2) {
     carCopy = deepCopy(newCar);
     cdrCopy = deepCopy(newCdr);    
@@ -666,6 +672,8 @@ Value *cons(Value *value, Environment *env) {
   newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
   newValue->cons->car = openParen;
   newValue->cons->cdr = carCdr;
+  printValue(carCdr);
+  printf("\n");
   printValue(newValue); 
   // perhaps the deep copy doesn't work for the new cons
   printValue(deepCopy(newValue));
