@@ -3,7 +3,7 @@
 */
 
 enum VALUE_TYPE{
-  nullType, tableType, cellType, listType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
+  nullType, tableType, cellType, errorType, booleanType, integerType, floatType, stringType, symbolType, openType, closeType, closureType, envType, primitiveType
 };
 
 typedef struct __Environment{

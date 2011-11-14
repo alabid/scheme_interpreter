@@ -36,7 +36,7 @@ List *tokenize(char *expression) {
   List *list = initializeList();
   // now while loop that does main work
 
-  while (expression[i] != '\n' && expression[i] != EOF) {
+  while (expression[i] != '\n' && expression[i] != EOF && expression[i]!='\0') {
     if (isspace(expression[i])) {
       i++; 
       continue;
@@ -142,15 +142,10 @@ List *tokenize(char *expression) {
 	i++;
       }
       newValue = (Value *)malloc(sizeof(Value));
-      if (expression[i+1] == ')') {
-	i++;
-	newValue->type = nullType;
-	insertCell(list, newValue);
-      } else {
-	newValue->type = openType;
-	newValue->open = '(';
-	insertCell(list, newValue);
-      }
+      newValue->type = openType;
+      newValue->open = '(';
+      insertCell(list, newValue);
+      
       break;
     case ')':
       // ======= USE ME ======== CLOSE PARENS
@@ -162,7 +157,7 @@ List *tokenize(char *expression) {
     case '"':
       stringStart = i;
       while (expression[++i] != '"'){
-	if (expression[i]=='\n'){
+	if (expression[i]=='\n'|| expression[i]=='\0'){
 	  reverse(list);
 	  return list;
 	}

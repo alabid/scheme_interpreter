@@ -33,6 +33,9 @@ Value* eval(Value *expr, Environment *env){
 	return NULL;
       }
       break;
+    case nullType:
+      return expr;
+      break;
     case cellType:
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
@@ -44,6 +47,9 @@ Value* eval(Value *expr, Environment *env){
 
 	if (!operator){
 	  printf("syntax error, missing components here\n");
+	  return NULL;
+	}else if (operator->type==nullType){
+	  printf("procedure application: expected procedure, given: () (no arguments)\n");
 	  return NULL;
 	}
 	while (operator->type == cellType){
@@ -409,8 +415,8 @@ Value* evalEach(Value* args, Environment* env){
   Value *temp;
   Value *head, *openParen;
   List *returnValue = initializeList();
+ 
   
-
   while (args && typeCheck(getFirst(args))!=5){ 
     assert(args->type==cellType);    
     if (getFirst(args) && (getFirst(args))->type==cellType){
@@ -424,11 +430,19 @@ Value* evalEach(Value* args, Environment* env){
 	}
 	push(returnValue, temp);
 	args = getTail(args);
+      }else if (getFirst(getFirst(args)) && getFirst((getFirst(args)))->type==nullType){
+	temp =  deepCopy(getFirst(getFirst(args)));
+	push(returnValue, temp);
+	args = getTail(args);
       }else{
 	printf("Error! Cannot evaluate each one.\n");
 	free(returnValue);
 	return NULL;
       }
+    }else if (getFirst(args) && (getFirst(args))->type==nullType){
+	temp =  deepCopy(getFirst(args));
+	push(returnValue, temp);
+	args = getTail(args);
     }else{
       temp = deepCopy(eval(getFirst(args), env));
       if (!temp){
@@ -1062,6 +1076,7 @@ Environment *createTopFrame(){
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);	
   bind("cons", makePrimitiveValue(cons), frame);
+  bind("null?", makePrimitiveValue(checkNull), frame);
   return frame;
 }
 
@@ -1461,11 +1476,12 @@ Value *loadFunction(Value *args, Environment *env){
 int loadFromFile(FILE *file, Environment *env){
   List *tokens, *parseTree, *leftoverTokens = NULL;
   leftoverTokens = initializeList();
-  int depth = 0;
+  int depth = 0; 
   char *expression = (char *)malloc(256 * sizeof(char));
   Value* temp;
-
-  while (fgets(expression, 256, file)) {
+  int i;
+  printf(">  ");
+  while (fgets(expression, 256, stdin)) {
     
     tokens = append(leftoverTokens, tokenize(expression)); 
      
@@ -1474,35 +1490,33 @@ int loadFromFile(FILE *file, Environment *env){
        continue;
      }
      parseTree = parse(tokens,&depth);   
-     
+
      if (depth < 0) {
        printf("Syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
        cleanup(tokens->head);
        free(leftoverTokens);
        free(tokens);
        
-       break;
-       //return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
+       return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
      } else if (depth > 0) {
        // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
        leftoverTokens->head = tokens->head;
-    
+       continue;
      }else{
        
        if (parseTree && parseTree->head){
 	 
 	 temp = eval(parseTree->head,env);
 	 if (temp){
-
 	   printValue(temp);
-
+	   printf("\n");
 	 }
+	 
 	 destroy(parseTree);
        }
        leftoverTokens->head = tokens->head;
        while (depth == 0){
 	 
-	 tokens = append(leftoverTokens, tokenize(expression)); 
 	 parseTree = parse(tokens,&depth);   
 	 
 	 if (depth < 0) {
@@ -1510,13 +1524,13 @@ int loadFromFile(FILE *file, Environment *env){
 	   cleanup(tokens->head);
 	   free(leftoverTokens);
 	   free(tokens);
-	   
+	  
 	   break;
 	   //return SYNTAX_ERROR_TOO_MANY_CLOSE_PARENS;
 	 } else if (depth > 0) {
 	   // There are more open parens than close parens, so these tokens are saved as leftovers. We partially generate a parse tree now.
 	   leftoverTokens->head = tokens->head;
-	  
+
 	   break;
 	 } else {
 	   
@@ -1524,10 +1538,11 @@ int loadFromFile(FILE *file, Environment *env){
 	     
 	     temp = eval(parseTree->head,env);
 	     if (temp){
-	       
+	
 	       printValue(temp);
-	   
+	       printf("\n"); 
 	     }
+
 	     destroy(parseTree);
 	   }
 	   leftoverTokens->head = tokens->head;
@@ -1536,10 +1551,10 @@ int loadFromFile(FILE *file, Environment *env){
 	     break;
 	   }
 	   
-	   // cleanup(leftoverTokens->head);
+
 	 }
        }
- 
+       printf(">  ");
      }
   }
   if (leftoverTokens->head) {
@@ -1552,7 +1567,7 @@ int loadFromFile(FILE *file, Environment *env){
   destroy(leftoverTokens);
   free(tokens);
   free(expression); 
-
+  
 
 }
 
@@ -1578,7 +1593,7 @@ int interface(Environment *env){
      if (depth < 0) {
        printf("Syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
        cleanup(tokens->head);
-       free(leftoverTokens);
+       leftoverTokens->head =NULL;
        free(tokens);
        indentation = 0;
        printf("=> ");
@@ -1614,7 +1629,7 @@ int interface(Environment *env){
 	 if (depth < 0) {
 	   printf("Syntax error. Too many close parentheses.\n");   // Too many close parentheses. 
 	   cleanup(tokens->head);
-	   free(leftoverTokens);
+	   leftoverTokens->head =NULL;
 	   free(tokens);
 	   indentation = 0;
 	   break;
@@ -1635,7 +1650,7 @@ int interface(Environment *env){
 	     
 	     temp = eval(parseTree->head,env);
 	     if (temp){
-	       printf("=>   ");
+	       printf("=> ");
 	       printValue(temp);
 	       printf("\n"); 
 	     }
@@ -1648,7 +1663,7 @@ int interface(Environment *env){
 	     break;
 	   }
 	   
-	   // cleanup(leftoverTokens->head);
+	
 	 }
        }
        printf(">  ");
@@ -2191,3 +2206,47 @@ Environment* insertEnv(Environment* toInsert, Environment *parent){
 }
 
 
+// not finished. Will continue soon.
+Value* checkNull(Value *value, Environment *env){
+  assert(env!=NULL);
+  int count = listLength(value);
+  Value *toCheck;
+  Value *returnValue = (Value *)malloc(sizeof(Value));
+  if (count <1){
+    printf("null?: expects 1 argument, given 0\n");
+    returnValue->type = errorType;
+    insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+    free(returnValue);
+    return lookup(env->bindings->tableValue,"#returnValue");
+  }else if (count>1){
+    printf("null?: expects 1 argument, given %d\n",count);
+    returnValue->type = errorType;
+    insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+    free(returnValue);
+    return lookup(env->bindings->tableValue,"#returnValue");
+  } else{
+    returnValue->type = booleanType;
+    if (getFirst(value)->type == cellType){
+      toCheck = getFirst(eval(getFirst(value), env));
+      if (!toCheck){
+	printf("null?: Invalid argument\n");
+	returnValue->type = errorType;
+	insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+	free(returnValue);
+	return lookup(env->bindings->tableValue,"#returnValue");
+      }else if (toCheck->type == errorType){
+	return toCheck;
+      
+      }else{
+	toCheck = getFirst(value);
+      }
+      if (toCheck->type == nullType){
+	returnValue->boolValue = 1;
+      }else 
+	returnValue->boolValue = 0;
+    }
+  }
+  insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+  free(returnValue);
+  return lookup(env->bindings->tableValue,"#returnValue");
+}

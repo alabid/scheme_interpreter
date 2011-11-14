@@ -80,3 +80,5 @@ Environment* insertEnv2Top(Environment* toInsert);
 Environment* insertEnv(Environment* toInsert, Environment *parent);
 
 char* intToString(int number);
+
+Value* checkNull(Value *value, Environment *env);

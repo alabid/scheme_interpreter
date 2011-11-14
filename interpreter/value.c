@@ -414,6 +414,9 @@ void printTokens(Value* value){
 	case closeType:
 	  printf("):close\n");
 	  break;
+	case nullType:
+	  printf("():null\n");
+	  break;
 	default:
 	  break;
 	}
