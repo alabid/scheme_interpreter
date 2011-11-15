@@ -17,7 +17,7 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  
+
   if (!expr){
     return NULL;
   }
@@ -40,7 +40,7 @@ Value* eval(Value *expr, Environment *env){
       if (expr->cons->car->type == nullType) {
 	return expr->cons->car;
       }
-      
+
       if (getFirst(expr) != NULL && getFirst(expr)->type == openType) {
 	operator = getFirst(getTail(expr));
 	args = getTail(getTail(expr));
@@ -100,21 +100,38 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-
-
-
+	  
+	    /* if (strcmp(operator->symbolValue, "car") == 0) {
+	      if (isProperList(eval(args, env))) {
+		printf("This is  a proper list\n");
+	      } else {
+		printf("This is an improper list\n");
+	      }
+	      return NULL;
+	    }
+	    */
+	    fprintf(stderr, "came here yet again!");
+	    fprintf(stderr, "operator: %s\n", operator->symbolValue);
+	    printTokens(args);
 	    Value *evaledOperator = eval(operator, env);
 	   
 	    Value *evaledArgs = evalEach(args, env);
-
+	    
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
 	      printValue(operator);
 	      printf("\n");
 	      return NULL;
 	    }
-	  
-	   return apply(evaledOperator, evaledArgs, env);
+	    fprintf(stderr, "me here\n");
+	    // printValue(evaledArgs);
+	    printf("operator: %s\n", operator->symbolValue);
+	    Value *applyRet = apply(evaledOperator, evaledArgs, env);
+	    fprintf(stderr, "printing return:\n");
+	    printTokens(applyRet);
+	    fprintf(stderr, "\nme going to return stuff");
+	    
+	    return applyRet;
 	  } 
 	}else if (typeCheck(operator)==1){
 	  printf("A literal ");
@@ -122,7 +139,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf(" cannot be a procedure.\n");
 	  return NULL; 
 	}else if (typeCheck(operator)==2){
-	 
+	  fprintf(stderr, "am I in typecheck\n");
 	  Value *evaledArgs;
 	  if (args &&  getFirst(args) && getFirst(args)->type ==closeType){
 	    free(getFirst(args));
@@ -135,14 +152,18 @@ Value* eval(Value *expr, Environment *env){
 	    
 	    evaledArgs = evalEach(args, env);
 	  }
+	  fprintf(stderr, "I'm applying each'");
 	  return apply(operator, evaledArgs, env);	  
 	}
       }else if (typeCheck(getFirst(expr))==1){
-	
+	fprintf(stderr, "I'm applying each'");
 	return evalEach(expr,env);
       }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
+        fprintf(stderr, "I'm applying each'");
 	return eval(getFirst(expr),env);
       }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
+	fprintf(stderr, "why would I come here?\n");
+
 	operator = getFirst(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
 	
@@ -183,7 +204,10 @@ Value* eval(Value *expr, Environment *env){
       return NULL;
       break;
     default:
-
+      fprintf(stderr, "make life easier!");
+      printf("\n");
+      printValue(expr);
+      printf("\n");
       return expr;      
     }
 }
@@ -212,13 +236,27 @@ Value* evalQuote(Value* args){
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs, Environment* env){
-  
+   
   if (!function){
+    fprintf(stderr, "came here not function!");
     return actualArgs;
   }else if (function->type == primitiveType){
-    return function->primitiveValue(actualArgs, env);
+    fprintf(stderr, "\nactualArgs: ");
+    printValue(actualArgs);
+    fprintf(stderr, "\nfunction: ");
+    printValue(function);
+    printf("\n");
+    if (actualArgs) {
+      fprintf(stderr, "acutalargs type: %d\n", actualArgs->type);
+    }
+    Value *returnVal = function->primitiveValue(actualArgs, env);
+    fprintf(stderr, "came here after returnVal\n");
+    printTokens(returnVal);
+    // printValue(returnVal);
+    fprintf(stderr, "\nshould have printed stuff out");
+    return returnVal;
   }else if (function->type == closureType){
-   
+    fprintf(stderr, "came here closure!");
 
     List *formalArgs = function->closureValue->args;
     printValue(formalArgs->head);
@@ -416,7 +454,7 @@ Value* evalEach(Value* args, Environment* env){
   Value *head, *openParen;
   List *returnValue = initializeList();
  
-  
+
   while (args && typeCheck(getFirst(args))!=5){ 
     assert(args->type==cellType);    
     if (getFirst(args) && (getFirst(args))->type==cellType){
@@ -453,6 +491,7 @@ Value* evalEach(Value* args, Environment* env){
       args =getTail(args);
     }
   }
+ 
   assert(env!=NULL);
  
   reverse(returnValue);
@@ -1649,6 +1688,8 @@ int interface(Environment *env){
 	   if (parseTree && parseTree->head){
 	     
 	     temp = eval(parseTree->head,env);
+	     printTokens(temp);
+	     fprintf(stderr, "printed temp!\n");
 	     if (temp){
 	       printf("=> ");
 	       printValue(temp);
@@ -1675,7 +1716,8 @@ int interface(Environment *env){
     free(tokens);
     return SYNTAX_ERROR_UNTERMINATED_INPUT;
   }
-  // clean up memory 
+  // clean up memory
+  fprintf(stderr, "here to destroy!");
   destroy(leftoverTokens);
   free(tokens);
   free(expression); 

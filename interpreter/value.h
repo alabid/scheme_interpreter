@@ -222,3 +222,5 @@ char* intToString(int number);
 //void printArgs(Value *curValue, int withQuotes);
 
 Value *letEnvLookup(Environment * bottom, Environment *top, char *id);
+
+int isProperList(Value *value);

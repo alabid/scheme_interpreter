@@ -382,7 +382,24 @@ int reverse(List *list){
 void printTokens(Value* value){
   if (value && value->type == cellType){
     Value *curValue = value;
-    while (curValue){
+    while (curValue->cons->cdr){
+      if (!curValue->cons->car && (curValue->type != cellType)) {
+	return;
+      }
+      if (!(curValue->type == cellType)) {
+	printToken(curValue);
+	printf(".\n");
+	printf("):close\n");
+	return;
+      }
+      if (!(curValue->cons->cdr->type == cellType)){
+	printToken(curValue->cons->car);
+	printf(".\n");
+	printToken(curValue->cons->cdr);
+	printf("):close\n");
+	return;
+      }
+      
       switch (curValue->cons->car->type)
 	{
 	case booleanType:
@@ -420,7 +437,17 @@ void printTokens(Value* value){
 	default:
 	  break;
 	}
+      if (curValue->cons->cdr->type == cellType) {
       curValue = curValue->cons->cdr;
+      } else {
+	printTokens(curValue->cons->cdr);
+	printf("):close\n");
+	return;
+	// curValue = curValue->cdr;
+      }
+    }
+    if (curValue) {
+      printToken(curValue->cons->car);
     }
   }
 }
@@ -428,9 +455,20 @@ void printTokens(Value* value){
 
 // This function frees its cons cells. It can only be used on basic types from tokenizer.
 void cleanup(Value* head){
+  fprintf(stderr, "cleaning  up....\n");
+
   if (head && (head->type == cellType)){
     Value *second;
-    while (head){
+
+    while (head->cons->cdr){
+      if (head->type != cellType) {
+	freeValue(head);
+	return;
+      }
+      if (head->cons->cdr->type != cellType) {
+	freeValue(head);
+	return;
+      }
       second = (head->cons)->cdr;
       if (head->cons->car->type == stringType){
 	free(head->cons->car->stringValue);
@@ -446,6 +484,9 @@ void cleanup(Value* head){
       free(head->cons);
       free(head);
       head = second;
+    }
+    if (head && head->type == cellType) {
+      freeValue(head);
     }
   }    
 }
@@ -540,15 +581,27 @@ Value *car(Value *value, Environment *env) {
   This returns the cdr of a value (that is a list)
  */
 Value *cdr(Value *value, Environment *env) {
+  fprintf(stderr, "came here finally!!");
+  printValue(value);
+ 
   Value *content;
   Value *openParen;
   Value *newValue;
  
-  printf("print cdr: ");
-  printValue(value);
-  printf("\n");
+  
+  // printValue(value);
+  // return NULL;
+
+  if (isProperList(getTail(value))) {
+    fprintf(stderr, "I'm proper'");
+  } else { 
+    fprintf(stderr, "I'm improper'");
+  }
+
   Value *current = value;
   int count = listLength(value);
+  printf("count is: %d", count);
+  
   if (count > 1) {
     printf("cdr:expects 1 argument, given %d.\n", count);
     return NULL;
@@ -627,16 +680,16 @@ Value *cons(Value *value, Environment *env) {
   }
   // first handle this case: (cons 1 (1 2)) -> (1 1 2)
   // secondly: (cons 1 2) -> (1 . 2)
+  
   newCar = getFirst(value);
   newCdr = getFirst(getTail(value));
-  //printValue(newCar);
   // printValue(newCdr);
   // printf("s=========");
   assert(newCdr != NULL);
 
   if (newCdr->type == cellType) {
     carCopy = deepCopy(newCar);
-    cdrCopy = getTail(deepCopy(newCdr));
+    cdrCopy = deepCopy(newCdr);
 
     free(cdrCopy->cons->car);
     Value *freeMe = cdrCopy;
@@ -649,11 +702,7 @@ Value *cons(Value *value, Environment *env) {
     carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
     carCdr->cons->car = carCopy;
     carCdr->cons->cdr = cdrCopy;
-    //printf("\n\n");
-    //printValue(carCopy);
-    //printf("----");
-    //printValue(cdrCopy);
-    //printf("---");
+
   } else if (typeCheck(newCdr) == 1 || typeCheck(newCdr) == 2) {
     carCopy = deepCopy(newCar);
     cdrCopy = deepCopy(newCdr);    
@@ -675,11 +724,7 @@ Value *cons(Value *value, Environment *env) {
   newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
   newValue->cons->car = openParen;
   newValue->cons->cdr = carCdr;
-  //printValue(carCdr);
-  // printf("\n");
-  // printValue(newValue); 
-  // perhaps the deep copy doesn't work for the new cons
-  //printValue(deepCopy(newValue));
+
   insertItem(env->bindings->tableValue,"#cons",newValue);
   // we probably have to free the remaining components of newValue
   free(newValue);
@@ -696,13 +741,13 @@ void printList(Value* value){
     while (curValue->cons->cdr){
       if (!(curValue->type == cellType) && !curValue->cons->car) {
 	return;
-      }
+	}
       if (!(curValue->type == cellType)) {
 	printf(" . ");
 	printValue(curValue);
 	printf(")");
 	return;
-      }
+	}
       if (!(curValue->cons->cdr->type == cellType)){
 	printValue(curValue->cons->car);
 	printf(" . ");
@@ -710,7 +755,8 @@ void printList(Value* value){
 	printf(")");
 	return;
       }
-       switch (curValue->cons->car->type)
+      
+      switch (curValue->cons->car->type)
 	{
 	case booleanType:
 	  if(curValue->cons->car->boolValue){
@@ -749,20 +795,26 @@ void printList(Value* value){
 	default:
 	  break;
 	}
-      
-      if (curValue->cons->cdr && 
-	  curValue->cons->cdr->cons->car->type !=closeType &&
-	  curValue->cons->car &&
-	  curValue->cons->car->type!=openType){
-	printf(" ");
-	} 
-       	curValue = curValue->cons->cdr;
-     } 
 
-    if (curValue->type == cellType) {
-       printValue(curValue->cons->car);
-   }  
-    
+      if (curValue->cons->cdr && curValue->cons->car) {
+	if (curValue->cons->cdr->type == cellType) {
+	  if (curValue->cons->cdr->cons->car->type != closeType
+	      && curValue->cons->car->type != openType) {
+	    printf(" ");
+	  }
+	}
+      }
+      if (curValue->cons->cdr->type == cellType) {
+       	curValue = curValue->cons->cdr;
+      } else {
+        printList(curValue->cons->cdr);
+	printf(")");
+	return;
+      }
+     } 
+    if (curValue && curValue->type == cellType) {
+      printValue(curValue->cons->car);
+    } 
   }
   else printf("This is not a value\n");
 }
@@ -1212,4 +1264,16 @@ Value *letEnvLookup(Environment * bottom, Environment *top, char *id){
     returnValue = lookup(env->bindings->tableValue, id);
   }
   return returnValue;
+}
+
+int isProperList(Value *value) {
+  if (!value) return 1;
+  else if (value->type != cellType) {
+    fprintf(stderr, "I'm not a celltype!\n");
+    return 0;
+  } else {
+    fprintf(stderr, "recursing...");
+    printTokens(value->cons->car);
+    return isProperList(value->cons->cdr);
+  }
 }
