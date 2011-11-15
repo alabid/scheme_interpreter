@@ -191,6 +191,8 @@ void printList(Value* value);
 
 int properListLength(Value *value);
 
+int improperListLength(Value *value);
+
 Value *getFirst(Value *value);
 
 Value *getTail(Value *value);
@@ -215,8 +217,9 @@ void removeLast(Value* value);
 
 Value *findLast(Value* value);
 
-Value *findLastRec(Value *value);
+Value *findLastProperRec(Value *value);
 
+Value *findLastImproperRec(Value *value);
 
 char* intToString(int number);
 //void printArgs(Value *curValue, int withQuotes);
@@ -224,3 +227,6 @@ char* intToString(int number);
 Value *letEnvLookup(Environment * bottom, Environment *top, char *id);
 
 int isProperList(Value *value);
+
+int isProperListRec(Value *value);
+

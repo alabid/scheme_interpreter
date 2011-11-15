@@ -100,21 +100,7 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	  
-	    /* if (strcmp(operator->symbolValue, "car") == 0) {
-	      if (isProperList(eval(args, env))) {
-		printf("This is  a proper list\n");
-	      } else {
-		printf("This is an improper list\n");
-	      }
-	      return NULL;
-	    }
-	    */
-	    fprintf(stderr, "came here yet again!");
-	    fprintf(stderr, "operator: %s\n", operator->symbolValue);
-	    printTokens(args);
 	    Value *evaledOperator = eval(operator, env);
-	   
 	    Value *evaledArgs = evalEach(args, env);
 	    
 	    if (!evaledOperator){
@@ -123,24 +109,18 @@ Value* eval(Value *expr, Environment *env){
 	      printf("\n");
 	      return NULL;
 	    }
-	    fprintf(stderr, "me here\n");
-	    // printValue(evaledArgs);
-	    printf("operator: %s\n", operator->symbolValue);
-	    Value *applyRet = apply(evaledOperator, evaledArgs, env);
-	    fprintf(stderr, "printing return:\n");
-	    printTokens(applyRet);
-	    fprintf(stderr, "\nme going to return stuff");
 	    
+	    Value *applyRet = apply(evaledOperator, evaledArgs, env);
 	    return applyRet;
-	  } 
-	}else if (typeCheck(operator)==1){
-	  printf("A literal ");
-	  printValue(operator);
-	  printf(" cannot be a procedure.\n");
-	  return NULL; 
-	}else if (typeCheck(operator)==2){
-	  fprintf(stderr, "am I in typecheck\n");
-	  Value *evaledArgs;
+	} 
+      }else if (typeCheck(operator)==1){
+	printf("A literal ");
+	printValue(operator);
+	printf(" cannot be a procedure.\n");
+	return NULL; 
+      }else if (typeCheck(operator)==2){
+	
+	Value *evaledArgs;
 	  if (args &&  getFirst(args) && getFirst(args)->type ==closeType){
 	    free(getFirst(args));
 	    free(args->cons);
@@ -152,14 +132,11 @@ Value* eval(Value *expr, Environment *env){
 	    
 	    evaledArgs = evalEach(args, env);
 	  }
-	  fprintf(stderr, "I'm applying each'");
 	  return apply(operator, evaledArgs, env);	  
 	}
       }else if (typeCheck(getFirst(expr))==1){
-	fprintf(stderr, "I'm applying each'");
 	return evalEach(expr,env);
       }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
-        fprintf(stderr, "I'm applying each'");
 	return eval(getFirst(expr),env);
       }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
 	fprintf(stderr, "why would I come here?\n");
@@ -204,10 +181,6 @@ Value* eval(Value *expr, Environment *env){
       return NULL;
       break;
     default:
-      fprintf(stderr, "make life easier!");
-      printf("\n");
-      printValue(expr);
-      printf("\n");
       return expr;      
     }
 }
@@ -238,26 +211,11 @@ Value* evalQuote(Value* args){
 Value* apply(Value* function, Value* actualArgs, Environment* env){
    
   if (!function){
-    fprintf(stderr, "came here not function!");
     return actualArgs;
   }else if (function->type == primitiveType){
-    fprintf(stderr, "\nactualArgs: ");
-    printValue(actualArgs);
-    fprintf(stderr, "\nfunction: ");
-    printValue(function);
-    printf("\n");
-    if (actualArgs) {
-      fprintf(stderr, "acutalargs type: %d\n", actualArgs->type);
-    }
     Value *returnVal = function->primitiveValue(actualArgs, env);
-    fprintf(stderr, "came here after returnVal\n");
-    printTokens(returnVal);
-    // printValue(returnVal);
-    fprintf(stderr, "\nshould have printed stuff out");
     return returnVal;
   }else if (function->type == closureType){
-    fprintf(stderr, "came here closure!");
-
     List *formalArgs = function->closureValue->args;
     printValue(formalArgs->head);
   
@@ -1055,11 +1013,14 @@ Value* evalLambda(Value* args, Environment* env){
       push(closure->args, deepCopy(getFirst(toCheck)));
       toCheck = getTail(toCheck);
     } 
+    // we should be able to handle anonymous functions
+    
     if (!toCheck || !getFirst(toCheck) || getFirst(toCheck)->type!=closeType){
       printf("Syntax error for lambda. Missing parameters.\n");
       destroyClosure(closure);
       return NULL;
     }
+    
     reverse(closure->args);
     toCheck = getTail(args);
     if (!toCheck){
@@ -1688,8 +1649,7 @@ int interface(Environment *env){
 	   if (parseTree && parseTree->head){
 	     
 	     temp = eval(parseTree->head,env);
-	     printTokens(temp);
-	     fprintf(stderr, "printed temp!\n");
+
 	     if (temp){
 	       printf("=> ");
 	       printValue(temp);
@@ -1717,7 +1677,6 @@ int interface(Environment *env){
     return SYNTAX_ERROR_UNTERMINATED_INPUT;
   }
   // clean up memory
-  fprintf(stderr, "here to destroy!");
   destroy(leftoverTokens);
   free(tokens);
   free(expression); 

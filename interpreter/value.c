@@ -455,8 +455,6 @@ void printTokens(Value* value){
 
 // This function frees its cons cells. It can only be used on basic types from tokenizer.
 void cleanup(Value* head){
-  fprintf(stderr, "cleaning  up....\n");
-
   if (head && (head->type == cellType)){
     Value *second;
 
@@ -569,21 +567,30 @@ Value *car(Value *value, Environment *env) {
   }
 
   Value *content = current->cons->cdr;
-  if (listLength(content) < 1) {
-    printf("car: you must car a list with one or more items\n");
+  int proper = isProperList(content);
+
+  if (proper) {
+    if (listLength(content) < 1) {
+      printf("car: you must car a list with one or more items\n");
+      return NULL;
+    } else {
+      return getFirst(content);
+    }
     return NULL;
   } else {
-    return getFirst(content);
+    if (listLength(content) > 1) {
+      return getFirst(content);
+    } 
+    else {
+      printf("car: your improper list is not car'able\n");
+      return NULL;
+    }
   }
-  return NULL;
 }
 /*
   This returns the cdr of a value (that is a list)
  */
 Value *cdr(Value *value, Environment *env) {
-  fprintf(stderr, "came here finally!!");
-  printValue(value);
- 
   Value *content;
   Value *openParen;
   Value *newValue;
@@ -592,15 +599,10 @@ Value *cdr(Value *value, Environment *env) {
   // printValue(value);
   // return NULL;
 
-  if (isProperList(getTail(value))) {
-    fprintf(stderr, "I'm proper'");
-  } else { 
-    fprintf(stderr, "I'm improper'");
-  }
+
 
   Value *current = value;
   int count = listLength(value);
-  printf("count is: %d", count);
   
   if (count > 1) {
     printf("cdr:expects 1 argument, given %d.\n", count);
@@ -629,31 +631,61 @@ Value *cdr(Value *value, Environment *env) {
   }
 
   content = current->cons->cdr;
-  
-  if (listLength(content) == 1) {
-     newValue = (Value *) malloc(sizeof(Value));
-     newValue->type = nullType;
-     insertItem(env->bindings->tableValue,"#cdr",newValue);
-     free(newValue);
-     return lookup(env->bindings->tableValue, "#cdr");
-  } else {
-    openParen = (Value *) malloc(sizeof(Value));
-    openParen->type = openType;
-    openParen->open = '(';
-    newValue = (Value* )malloc(sizeof(Value));
-    newValue->type = cellType;
-    newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
-    newValue->cons->car = openParen;
-    newValue->cons->cdr = getTail(content);
-    insertItem(env->bindings->tableValue, "#cdr", newValue);
-    free(openParen);
-    free(newValue->cons);
-    free(newValue);
-    newValue = lookup(env->bindings->tableValue, "#cdr");
-    return newValue;
 
-  }
- 
+  int proper = isProperList(content);
+
+  if (proper) {
+    if (listLength(content) == 1) {
+      newValue = (Value *) malloc(sizeof(Value));
+      newValue->type = nullType;
+      insertItem(env->bindings->tableValue,"#cdr",newValue);
+      free(newValue);
+      return lookup(env->bindings->tableValue, "#cdr");
+    } else {
+      openParen = (Value *) malloc(sizeof(Value));
+      openParen->type = openType;
+      openParen->open = '(';
+      newValue = (Value* )malloc(sizeof(Value));
+      newValue->type = cellType;
+      newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
+      newValue->cons->car = openParen;
+      newValue->cons->cdr = getTail(content);
+      insertItem(env->bindings->tableValue, "#cdr", newValue);
+      free(openParen);
+      free(newValue->cons);
+      free(newValue);
+      newValue = lookup(env->bindings->tableValue, "#cdr");
+      return newValue;      
+    }
+  } else {
+    if (listLength(content) == 2) {
+      newValue = deepCopy(getTail(content));
+      newValue->type = getTail(content)->type;
+      
+      insertItem(env->bindings->tableValue, "#cdrImproper", newValue);
+      free(newValue);
+      newValue = lookup(env->bindings->tableValue, "#cdrImproper");
+      return newValue;      
+    } else if (listLength(content) > 2) {
+      openParen = (Value *) malloc(sizeof(Value));
+      openParen->type = openType;
+      openParen->open = '(';
+
+      newValue = (Value* )malloc(sizeof(Value));
+      newValue->type = cellType;
+      newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
+      newValue->cons->car = openParen;
+      newValue->cons->cdr = deepCopy(getTail(content));
+
+      insertItem(env->bindings->tableValue, "#cdrImproper", newValue);
+      free(newValue);
+      newValue = lookup(env->bindings->tableValue, "#cdrImproper");
+      return newValue;      
+    } else {
+      printf("cdr: your improper list is not cdrable!\n");
+      return NULL;
+    }
+  } 
 }
 
 
@@ -840,7 +872,25 @@ Value *getTail(Value *value) {
 }
 
 int listLength(Value *value) {
-  return properListLength(value);
+  if (isProperList(value)) {
+    return properListLength(value);
+  } else {
+    return improperListLength(value);
+  }
+}
+
+int improperListLength(Value *value) {
+  if (!value && value->type != cellType) {
+    return 0;
+  } else if (value->type != cellType) {
+    return 1;
+  } else {
+    if (value->cons->car->type == openType) {
+      return improperListLength(value->cons->cdr);
+    } else {
+     return 1 + improperListLength(value->cons->cdr);
+   }
+  }
 }
 
 int properListLength(Value *value) {
@@ -1145,10 +1195,28 @@ void destroyEnvironment(Environment *env){
 
 Value* findLast(Value *value) {
   if (!value) return NULL;
-  else return findLastRec(value);
+  else if (isProperList(value)) {
+    return findLastProperRec(value);
+  } else {
+    return findLastImproperRec(value);
+  }
 }
 
-Value *findLastRec(Value* value){
+Value *findLastImproperRec(Value *value) {
+  if (!(value->cons->cdr)) {
+    return value;
+  } else if (value->type != cellType) {
+    return value;
+  } else {
+    if (!(value->cons->car && value->cons->cdr)) {
+      return value;
+    } else {
+      return findLastImproperRec(value);
+    }
+  }
+}
+
+Value *findLastProperRec(Value* value){
   if (!(value->cons->cdr)) {
     return value;
   } 
@@ -1268,12 +1336,18 @@ Value *letEnvLookup(Environment * bottom, Environment *top, char *id){
 
 int isProperList(Value *value) {
   if (!value) return 1;
+  else return isProperListRec(value);
+}
+int isProperListRec(Value *value) {
+  if (!value) {
+    return 1;
+    }
   else if (value->type != cellType) {
-    fprintf(stderr, "I'm not a celltype!\n");
     return 0;
   } else {
-    fprintf(stderr, "recursing...");
-    printTokens(value->cons->car);
-    return isProperList(value->cons->cdr);
+    if (!value->cons->car && !value->cons->cdr) {
+      return 0;
+    } else
+      return (value->cons->car != NULL && isProperListRec(value->cons->cdr));
   }
 }
