@@ -1480,8 +1480,8 @@ int loadFromFile(FILE *file, Environment *env){
   char *expression = (char *)malloc(256 * sizeof(char));
   Value* temp;
   int i;
-  printf(">  ");
-  while (fgets(expression, 256, stdin)) {
+  // printf(">  ");
+  while (fgets(expression, 256, file)) {
     
     tokens = append(leftoverTokens, tokenize(expression)); 
      
@@ -1554,7 +1554,7 @@ int loadFromFile(FILE *file, Environment *env){
 
 	 }
        }
-       printf(">  ");
+       //  printf(">  ");
      }
   }
   if (leftoverTokens->head) {
