@@ -1023,7 +1023,7 @@ Value* evalLambda(Value* args, Environment* env){
       printf("Syntax error for lambda. Missing parameters.\n");
       destroyClosure(closure);
       return NULL;
-    }
+      }
     
     reverse(closure->args);
     toCheck = getTail(args);
@@ -2218,7 +2218,9 @@ Value* checkNull(Value *value, Environment *env){
   assert(env!=NULL);
   int count = listLength(value);
   Value *toCheck;
+  Value *current;
   Value *returnValue = (Value *)malloc(sizeof(Value));
+  
   if (count <1){
     printf("null?: expects 1 argument, given 0\n");
     returnValue->type = errorType;
@@ -2232,28 +2234,21 @@ Value* checkNull(Value *value, Environment *env){
     free(returnValue);
     return lookup(env->bindings->tableValue,"#returnValue");
   } else{
+    // assert(value != NULL);
+    current = value->cons->car;
+
+    // assert(current != NULL);
     returnValue->type = booleanType;
-    if (getFirst(value)->type == cellType){
-      toCheck = getFirst(eval(getFirst(value), env));
-      if (!toCheck){
-	printf("null?: Invalid argument\n");
-	returnValue->type = errorType;
-	insertItem(env->bindings->tableValue,"#returnValue",returnValue);
-	free(returnValue);
-	return lookup(env->bindings->tableValue,"#returnValue");
-      }else if (toCheck->type == errorType){
-	return toCheck;
-      
-      }else{
-	toCheck = getFirst(value);
-      }
-      if (toCheck->type == nullType){
-	returnValue->boolValue = 1;
-      }else 
-	returnValue->boolValue = 0;
+    
+    if (eval(current, env)->type == nullType) {
+      returnValue->boolValue = 1;
+    } else {
+      returnValue->boolValue = 0;
     }
-  }
+  
   insertItem(env->bindings->tableValue,"#returnValue",returnValue);
   free(returnValue);
   return lookup(env->bindings->tableValue,"#returnValue");
+  }
+  return NULL;
 }
