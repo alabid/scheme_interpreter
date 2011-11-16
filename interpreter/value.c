@@ -151,7 +151,7 @@ int hash(HashTable* table, char* id){
 */
 int insertItem(HashTable* table, char* id, Value* value){
   if (table){
-    if ((table->size) >= ((table->capacity)/2)){
+    if ((table->size) >= ((table->capacity)*2/3)){
       autoDouble(table);
     }
     

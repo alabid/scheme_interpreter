@@ -23,7 +23,10 @@ BUGS WE NEED TO FIX
                  (even2? (- x 1))))))
   (even2? 20))
 
+3. (define x (lambda (a) (lambda (b) (* a b))))
 
 
 
 
+
+(define y (lambda (n) (if (= n 0) n (+ 2 (y (- n 1))))) )
