@@ -321,7 +321,7 @@ int variableCheck(Value* value){
 	  strcmp(value->symbolValue,">")==0 ||
 	  strcmp(value->symbolValue,"car")==0 ||
 	  strcmp(value->symbolValue,"cdr")==0 ||
-	  strcmp(value->symbolValue,"list")==0)
+	  strcmp(value->symbolValue,"cons")==0)
 	{
 	  return 0;
 	}else{
@@ -2232,12 +2232,15 @@ Value* checkNull(Value *value, Environment *env){
     return lookup(env->bindings->tableValue,"#returnValue");
   } else{
     // assert(value != NULL);
-    current = value->cons->car;
-
+    current = getFirst(value);
+    if (current->type ==cellType){
+      if (getFirst(current) && getFirst(current)->type ==nullType)
+	current = getFirst(current);
+    }
     // assert(current != NULL);
     returnValue->type = booleanType;
-    
-    if (eval(current, env)->type == nullType) {
+   
+    if (current && current->type == nullType) {
       returnValue->boolValue = 1;
     } else {
       returnValue->boolValue = 0;
