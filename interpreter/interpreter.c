@@ -1080,6 +1080,9 @@ Environment *createTopFrame(){
   bind("cdr", makePrimitiveValue(cdr), frame);	
   bind("cons", makePrimitiveValue(cons), frame);
   bind("null?", makePrimitiveValue(checkNull), frame);
+  Value *null = (Value *)malloc(sizeof(Value));
+  null->type = nullType;
+  bind("null", null, frame);
   return frame;
 }
 
