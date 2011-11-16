@@ -807,6 +807,7 @@ void printList(Value* value){
 	    printf("#f");
 	  }
 	  break;
+	 
 	case integerType:
 	  printf("%d",curValue->cons->car->intValue);
 	  break;
@@ -832,6 +833,17 @@ void printList(Value* value){
 	  break;
 	case nullType:
 	  printf("()");
+	  break;
+	case closureType:
+	  printf("#<procedure");
+	  if (curValue->closureValue && curValue->closureValue->identifier!=NULL){
+	    printf(":%s>",curValue->closureValue->identifier);
+	  }else{
+	    printf(">");
+	  }
+	  break;
+	case primitiveType:
+	  printf("#<procedure>");
 	  break;
 	default:
 	  break;
