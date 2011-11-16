@@ -69,6 +69,8 @@ Value *smallerOrEqualTo(Value *args, Environment *env);
 
 Value *smallerThan(Value *args, Environment *env);
 
+Value *greaterThan(Value *args, Environment *env);
+
 Value *greaterOrEqualTo(Value *args, Environment *env);
 
 Value *arithmeticEqual(Value *args, Environment *env);
