@@ -17,7 +17,7 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-
+  printf("this is infinite loop?\n");
   if (!expr){
     return NULL;
   }
@@ -53,18 +53,34 @@ Value* eval(Value *expr, Environment *env){
 	  return NULL;
 	}
 	if (operator->type == cellType){
+	  //if (getFirst())
 	  while (operator->type == cellType){
-	    if (getFirst(operator) && getFirst(operator)->type==openType){
+	    if (getFirst(operator) && getFirst(operator)->type == openType){
 	      operator = eval(operator, env);
 	      
 	      if (!operator){
 		printf("Invalid procedure!\n");
 		return NULL;
 	      }
+	    }else{
+	      if (getFirst(operator) && getFirst(operator)->type == closureType){
+		operator = getFirst(operator);
+
+	      }
+	      break;
 	    }
+	  
 	  }
 	  Value *evaledArgs = evalEach(args, env);
+	  printf("printing the operator ");
+	  printValue(operator);
+	  if (operator) printf("the type of operator is: %d",operator->type );
+	  printf("\n");
 	 
+	  printf("printing the args ");
+	  printValue(evaledArgs);
+	  if (evaledArgs) printf("the type of args is: %d",evaledArgs->type );
+	  printf("\n");
 	  return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
@@ -229,15 +245,24 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
     Value *curValue = actualArgs;
+
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
 
       insertItem(frame->bindings->tableValue, getFirst(curArg)->symbolValue, getFirst(curValue));
-
+     
       curArg = getTail(curArg);
       curValue = getTail(curValue);
       
     }
+printf("printing the function ");
+  printValue(function);
+  if (function) printf("the type of operator is: %d",function->type );
+  printf("\n");
+  printf("printing the actual args ");
+  printValue(actualArgs);
+  if (actualArgs) printf("\nthe type of args is: %d",actualArgs->type );
+  printf("\n");
     if (curArg || curValue){
       printf("Wrong number of parameters for the procedure.\n");
       destroyEnvironment(frame);
@@ -245,11 +270,11 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     }
    
     Value *returnValue = eval(function->closureValue->body, frame);
-  
-    insertItem(env->bindings->tableValue, "#returnValue",returnValue);
+    printf("hello world\n");
+    insertItem(env->bindings->tableValue, "#lambda",returnValue);
    
     destroyEnvironment(frame);
-    returnValue = lookup(env->bindings->tableValue, "#returnValue");
+    returnValue = lookup(env->bindings->tableValue, "#lambda");
    
     
     return returnValue;
