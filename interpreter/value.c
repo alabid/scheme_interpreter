@@ -744,8 +744,18 @@ Value *cons(Value *value, Environment *env) {
     carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
     carCdr->cons->car = carCopy;
     carCdr->cons->cdr = cdrCopy;
-  } 
-  
+    
+  } else if (newCdr->type == nullType){
+    List *tempList = initializeList();
+    Value *closeParen = (Value *) malloc(sizeof(Value));
+    closeParen->type = closeType;
+    closeParen->close = ')';    
+    push(tempList, closeParen);
+    push(tempList, deepCopy(newCar));
+    carCdr = tempList->head;
+    free(tempList);
+  }
+
   openParen = (Value *) malloc(sizeof(Value));
   openParen->type = openType;
   openParen->open = '(';
