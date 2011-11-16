@@ -1,14 +1,5 @@
 BUGS WE NEED TO FIX
-====================
-1. Newline issue:
-   On the tokenizer homework, the symbol-integer issue he was referring to
-   was because he did not terminate his test files with a newline.
-   We need to fix this enabling the tests to pass on EOF not just newline.
-   
--- I'm not sure whether I fixed that. I added EOF to the tokenize
-   function. Please check.
-	  
-PART 2
+====================PART 2
 ======
 1. When reading a file, if it encounters a bug, it doesn't
  end the program but continues executing the codes. This could
@@ -20,12 +11,7 @@ PART 2
      check again.
 
 
-
-4. Bugs in input more than one functions in the same line. Can be
-fixed if we change parser, I guess.
-
-
-6. We should be not able to eval the following, but now it gives #f.
+2. We should be not able to eval the following, but now it gives #f.
 
 (letrec ((even2?
           (lambda (x)
@@ -40,3 +26,5 @@ fixed if we change parser, I guess.
 
 7. (let ((y 0)) (set! x 10) (set! y 10) (+ x y)) => shoud be 20. Now
 error message.
+
+

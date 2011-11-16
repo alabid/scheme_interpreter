@@ -52,15 +52,18 @@ Value* eval(Value *expr, Environment *env){
 	  printf("procedure application: expected procedure, given: () (no arguments)\n");
 	  return NULL;
 	}
-	while (operator->type == cellType){
-	 
-	  operator = eval(operator, env);
-
-	  if (!operator){
-	    printf("Invalid procedure!\n");
-	    return NULL;
+	if (operator->type == cellType){
+	  while (operator->type == cellType){
+	    
+	    operator = eval(operator, env);
+	    
+	    if (!operator){
+	      printf("Invalid procedure!\n");
+	      return NULL;
+	    }  
 	  }
-
+	  Value *evaledArgs = evalEach(args, env);
+	  return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
 
@@ -135,7 +138,7 @@ Value* eval(Value *expr, Environment *env){
 	  return apply(operator, evaledArgs, env);	  
 	}
       }else if (typeCheck(getFirst(expr))==1){
-	return evalEach(expr,env);
+	return evalEach(expr,env); // eval literals.
       }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
 	return eval(getFirst(expr),env);
       }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
@@ -146,7 +149,7 @@ Value* eval(Value *expr, Environment *env){
 	
 	if (returnValue){
 	  return returnValue;
-	}else{
+	}else{  // show error message below
 	  if (strcmp(operator->symbolValue,"define")==0){
 	    printf("define: bad syntax in ");
 	    printValue(expr);
@@ -209,7 +212,7 @@ Value* evalQuote(Value* args){
 
 // We have not tested this function yet for part a.
 Value* apply(Value* function, Value* actualArgs, Environment* env){
-   
+  
   if (!function){
     return actualArgs;
   }else if (function->type == primitiveType){
@@ -217,7 +220,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     return returnVal;
   }else if (function->type == closureType){
     List *formalArgs = function->closureValue->args;
-    printValue(formalArgs->head);
+    //printValue(formalArgs->head);
   
 
     Environment *frame = createFrame(function->closureValue->parent);
@@ -998,6 +1001,7 @@ Value* evalLambda(Value* args, Environment* env){
   }
   assert(args->type = cellType);
   Value *toCheck = getFirst(args);
+ 
   if (getFirst(toCheck) && getFirst(toCheck)->type == openType){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
@@ -1035,16 +1039,18 @@ Value* evalLambda(Value* args, Environment* env){
     returnValue->closureValue = closure;
  
     return returnValue; 
-  }else if (toCheck && toCheck->type==nullType){
+  }else if (getFirst(toCheck) && getFirst(toCheck)->type==nullType){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
     Closure *closure = initializeClosure(env);
-    toCheck = getTail(args);
+    toCheck = getTail(toCheck);
     
  
     closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
-
+    printf("show me the parse tree: ");
+    printValue(returnValue);
+    printf("\n");
     return returnValue; 
   }else{
     
