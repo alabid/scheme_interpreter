@@ -54,12 +54,13 @@ Value* eval(Value *expr, Environment *env){
 	}
 	if (operator->type == cellType){
 	  while (operator->type == cellType){
-	   
-	    operator = eval(operator, env);
-	    
-	    if (!operator){
-	      printf("Invalid procedure!\n");
-	      return NULL;
+	    if (getFirst(operator) && getFirst(operator)->type==openType){
+	      operator = eval(operator, env);
+	      
+	      if (!operator){
+		printf("Invalid procedure!\n");
+		return NULL;
+	      }
 	    }
 	  }
 	  Value *evaledArgs = evalEach(args, env);
@@ -253,7 +254,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     
     return returnValue;
   }else{
-    printf("Unknown identifier!");
+    printf("Can not apply the arguments to the function. Unknown identifier\n");
     return NULL;
   }
 }
