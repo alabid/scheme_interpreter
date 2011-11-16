@@ -189,6 +189,7 @@ int insertItem(HashTable* table, char* id, Value* value){
   where 2/3 is the load factor.
 */
 int autoDouble(HashTable* table){
+  //assert(1==2);
   if (table){
     int oldCapacity = table->capacity;
     int i;
@@ -493,7 +494,7 @@ void freeValue(Value *value){
   if (!value){
     return;
   }
-  assert(value->type!=envType);
+
   if (value->type == stringType){
     free(value->stringValue);
     free(value);
@@ -501,6 +502,10 @@ void freeValue(Value *value){
   }else if (value->type == symbolType){
     free(value->symbolValue);
     free(value);
+  
+  }else if (value->type == envType){
+    //destroyFrame(value->envValue);
+    //free(value);
   }else if (value->type == cellType){
     assert(value->cons!=NULL);
     assert(value->cons->car!=NULL);

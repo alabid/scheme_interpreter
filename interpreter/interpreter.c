@@ -17,7 +17,7 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  printf("this is infinite loop?\n");
+  printf("eval: ");
   printValue(expr);
   printf("\n");
   if (expr) printf("the type of expr is %d\n",expr->type);
@@ -55,9 +55,8 @@ Value* eval(Value *expr, Environment *env){
 	}else if (operator->type==nullType){
 	  printf("procedure application: expected procedure, given: () (no arguments)\n");
 	  return NULL;
-	}
-	if (operator->type == cellType){
-	  
+	}else if (operator->type == cellType){
+	  Value *evaledArgs = evalEach(args, env);
 	  
 	  if (getFirst(operator) && getFirst(operator)->type == openType){
 	    operator = eval(operator, env);
@@ -67,16 +66,16 @@ Value* eval(Value *expr, Environment *env){
 	      return NULL;
 	    }
 	  }else if (getFirst(operator) && getFirst(operator)->type == closureType){
-		operator = getFirst(operator);
-		
+	    operator = getFirst(operator);
+	    
 	  }else{
 	    printf("potential error\n");
 	    return NULL;
 	  }
 	  
 	  
-	  Value *evaledArgs = evalEach(args, env);
-	  /*printf("printing the operator ");
+	 
+	  printf("printing the operator ");
 	  printValue(operator);
 	  if (operator) printf("the type of operator is: %d",operator->type );
 	  printf("\n");
@@ -84,7 +83,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf("printing the args ");
 	  printValue(evaledArgs);
 	  if (evaledArgs) printf("the type of args is: %d",evaledArgs->type );
-	  printf("\n");*/
+	  printf("\n");
 	  return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
@@ -125,8 +124,9 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	    Value *evaledOperator = eval(operator, env);
 	    Value *evaledArgs = evalEach(args, env);
+	    Value *evaledOperator = eval(operator, env);
+	   
 	    
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
@@ -244,18 +244,18 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     List *formalArgs = function->closureValue->args;
   
      
-    Environment *temp = createFrameWithSize(function->closureValue->parent, 8);
+    Environment *temp = createFrameWithSize(function->closureValue->parent, 16);
     Environment *frame = insertEnv(temp, env);
     destroyEnvironment(temp);
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
     Value *curValue = actualArgs;
-    //printf("show me the formal parameter list: ");
-    //printValue(curArg);
-    //printf("\n");
-    //printf("show me the actual parameter list: ");
-    //printValue(actualArgs);
-    //printf("\n");
+    printf("show me the formal parameter list: ");
+    printValue(curArg);
+    printf("\n");
+    printf("show me the actual parameter list: ");
+    printValue(actualArgs);
+    printf("\n");
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
 
@@ -265,14 +265,14 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
       curValue = getTail(curValue);
       
     }
-    printf("printing the function ");
+    /*printf("printing the function ");
     printValue(function);
     if (function) printf("the type of operator is: %d",function->type );
     printf("\n");
     printf("printing the actual args ");
     printValue(actualArgs);
     if (actualArgs) printf("\nthe type of args is: %d",actualArgs->type );
-    printf("\n");
+    printf("\n");*/
     if (curArg || curValue){
       printf("Wrong number of parameters for the procedure.\n");
       destroyEnvironment(frame);
@@ -280,7 +280,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     }
     
     Value *returnValue = eval(function->closureValue->body, frame);
-    printf("hello world\n");
+    //printf("hello world\n");
     insertItem(env->bindings->tableValue, "#lambda",returnValue);
     
     //destroyEnvironment(frame);
