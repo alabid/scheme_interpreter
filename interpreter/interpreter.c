@@ -54,15 +54,16 @@ Value* eval(Value *expr, Environment *env){
 	}
 	if (operator->type == cellType){
 	  while (operator->type == cellType){
-	    
+	   
 	    operator = eval(operator, env);
 	    
 	    if (!operator){
 	      printf("Invalid procedure!\n");
 	      return NULL;
-	    }  
+	    }
 	  }
 	  Value *evaledArgs = evalEach(args, env);
+	 
 	  return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
@@ -142,11 +143,11 @@ Value* eval(Value *expr, Environment *env){
       }else if (getFirst(expr) && getFirst(expr)->type ==cellType && getFirst(getTail(expr)) && getFirst(getTail(expr))->type==closeType){
 	return eval(getFirst(expr),env);
       }else if (getFirst(expr) && getFirst(expr)->type == symbolType){
-	fprintf(stderr, "why would I come here?\n");
+
 
 	operator = getFirst(expr);
 	Value *returnValue = envLookup(operator->symbolValue, env);
-	
+	// we do need this one.
 	if (returnValue){
 	  return returnValue;
 	}else{  // show error message below
@@ -220,9 +221,9 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     return returnVal;
   }else if (function->type == closureType){
     List *formalArgs = function->closureValue->args;
-    //printValue(formalArgs->head);
   
-
+    
+    
     Environment *frame = createFrame(function->closureValue->parent);
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
@@ -242,7 +243,6 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
       return NULL;
     }
    
-
     Value *returnValue = eval(function->closureValue->body, frame);
   
     insertItem(env->bindings->tableValue, "#returnValue",returnValue);
@@ -1043,14 +1043,11 @@ Value* evalLambda(Value* args, Environment* env){
     Value *returnValue = (Value *)malloc(sizeof(Value));
     returnValue->type = closureType;
     Closure *closure = initializeClosure(env);
-    toCheck = getTail(toCheck);
-    
- 
+    toCheck = getTail(args); // need to worry about this line.
+
     closure->body = deepCopy(getFirst(toCheck));
     returnValue->closureValue = closure;
-    printf("show me the parse tree: ");
-    printValue(returnValue);
-    printf("\n");
+  
     return returnValue; 
   }else{
     

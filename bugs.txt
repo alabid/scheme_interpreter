@@ -24,7 +24,6 @@ BUGS WE NEED TO FIX
   (even2? 20))
 
 
-7. (let ((y 0)) (set! x 10) (set! y 10) (+ x y)) => shoud be 20. Now
-error message.
+
 
 
