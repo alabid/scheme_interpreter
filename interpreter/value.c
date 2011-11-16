@@ -744,7 +744,6 @@ Value *cons(Value *value, Environment *env) {
     carCdr->cons = (ConsCell *)malloc(sizeof(ConsCell));
     carCdr->cons->car = carCopy;
     carCdr->cons->cdr = cdrCopy;
-    
   } 
   
   openParen = (Value *) malloc(sizeof(Value));

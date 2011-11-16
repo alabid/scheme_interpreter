@@ -67,6 +67,8 @@ Value *evalLetStar(Value *args, Environment *env);
 
 Value *smallerOrEqualTo(Value *args, Environment *env);
 
+Value *smallerThan(Value *args, Environment *env);
+
 Value *greaterOrEqualTo(Value *args, Environment *env);
 
 Value *arithmeticEqual(Value *args, Environment *env);
@@ -82,3 +84,4 @@ Environment* insertEnv(Environment* toInsert, Environment *parent);
 char* intToString(int number);
 
 Value* checkNull(Value *value, Environment *env);
+

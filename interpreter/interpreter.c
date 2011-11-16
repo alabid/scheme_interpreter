@@ -1075,6 +1075,7 @@ Environment *createTopFrame(){
   bind("=",makePrimitiveValue(arithmeticEqual),frame);
   bind("equal?",makePrimitiveValue(equality),frame);
   bind("<=",makePrimitiveValue(smallerOrEqualTo),frame);
+  bind("<", makePrimitiveValue(smallerThan), frame);
   bind(">=",makePrimitiveValue(greaterOrEqualTo),frame);
   bind("car", makePrimitiveValue(car), frame);
   bind("cdr", makePrimitiveValue(cdr), frame);	
@@ -1912,7 +1913,6 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
     value -> type = booleanType;
     value -> boolValue = 1;
     for (i = 0; i < count - 1; i++) {
-      printValue(getFirst(args));
       if(getFirst(args)->type == integerType){
  
 	if(getFirst(getTail(args))->type == integerType){
@@ -1953,6 +1953,8 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
 
 
 
+
+
 Value *greaterOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
   int count = listLength(args);
@@ -1978,7 +1980,6 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
     value -> type = booleanType;
     value -> boolValue = 1;
     for (i = 0; i < count - 1; i++) {
-      printValue(getFirst(args));
       if(getFirst(args)->type == integerType){
  
 	if(getFirst(getTail(args))->type == integerType){
@@ -2013,6 +2014,64 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
   } 
 }
 
+Value *smallerThan(Value *args, Environment *env){
+  assert(args->type == cellType);
+  int count = listLength(args);
+  if (count < 1){
+    printf("in <: expect at least two arguments, given %d /n", count);
+  }else{
+    Value* checkArgs = args;
+    while(args){
+      Value* toCheck = getFirst(args);
+   
+      if (getFirst(args) -> type != integerType && getFirst(args) -> type != floatType){
+	printf("in <:expects type <real number>, given:");
+	printValue(toCheck);
+	printf("\n");
+	return NULL;
+      }
+      args = getTail(args);
+    }
+    
+    args = checkArgs;
+    int i;
+    Value* value = (Value *)malloc(sizeof(Value));
+    value -> type = booleanType;
+    value -> boolValue = 1;
+    for (i = 0; i < count - 1; i++) {
+      if(getFirst(args)->type == integerType){
+ 
+	if(getFirst(getTail(args))->type == integerType){
+	
+	  if (getFirst(getTail(args))->intValue <= getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }
+	}else{
+	  if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
+	    value -> boolValue = 0;	  
+	  }
+	}
+      }else{
+       	if(getFirst(getTail(args))->type == floatType){
+	  if (getFirst(getTail(args))->dblValue <= getFirst(args)->intValue){
+	    value -> boolValue = 0;	
+	  }	  
+	  
+	}else{
+	  if (getFirst(getTail(args))->dblValue <= getFirst(args)->dblValue){
+	    value -> boolValue = 0;	  
+	  }
+	}
+      }
+      args = getTail(args);
+    }
+    return value;
+    
+    insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    free(value);  // value can be freed since there is one copy in hash table.
+    value = lookup(env->bindings->tableValue,"#returnValue");
+  } 
+}
 
 
 // arithmetic equality check
