@@ -17,9 +17,7 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  printf("please evaluate this: ");
-  printValue(expr);
-  printf("\n\n");
+ 
   if (!expr){
     return NULL;
   }
@@ -32,7 +30,7 @@ Value* eval(Value *expr, Environment *env){
 	return args;
       }
       else{
-	printf("syntax error: unknown identifier\n");
+	
 	return NULL;
       }
       break;
@@ -259,11 +257,15 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     }
     
     Value *returnValue = eval(function->closureValue->body, frame);
-    Value *toReturn = insertValueToEnv(returnValue, env); // value is copied into the hash table.
-    free(returnValue);  // value can be freed since there is one copy in hash table.
+    
+    //insertItem(env->bindings->tableValue, "#lambda",returnValue);
+    
+    //freeValue(returnValue);
+    //returnValue = lookup(env->bindings->tableValue, "#lambda");
+   
     freeValue(copiedArgs);
     
-    return toReturn;
+    return returnValue;
   }else{
     printf("Can not apply the arguments to the function. Unknown identifier\n");
     return NULL;
@@ -474,9 +476,10 @@ Value* evalEach(Value* args, Environment* env){
   assert(env!=NULL);
  
   reverse(returnValue);
-  
-  head = insertValueToEnv(returnValue->head, env); // value is copied into the hash table.
-  free(returnValue);  // value can be freed since there is one copy in hash table.
+  //insertItem(env->bindings->tableValue, "#returnValue", returnValue->head);
+  //destroy(returnValue);
+  //head = lookup(env->bindings->tableValue, "#returnValue"); 
+  head = returnValue->head;
   freeValue(copiedArgs);
   return head;
 }
@@ -1113,6 +1116,7 @@ Environment *createTopFrame(){
   bind("-", makePrimitiveValue(subtract), frame);
   bind("*", makePrimitiveValue(multiply), frame);
   bind("/", makePrimitiveValue(divide), frame);
+  // bind("exp", makePrimitiveValue(exponentiate), frame);
   bind("=",makePrimitiveValue(arithmeticEqual),frame);
   bind("equal?",makePrimitiveValue(equality),frame);
   bind("<=",makePrimitiveValue(smallerOrEqualTo),frame);
@@ -1138,7 +1142,31 @@ void bind(char identifier[], Value *function, Environment *env){
   insertItem(env->bindings->tableValue, identifier, function);
   free(function);
 }
-
+// free top frame.
+/*void freeTopFrame(Environment *env){
+  if (env){
+    while (env->parent){
+      env = env->parent;  // find the top-level environment;
+    }
+    assert(env->bindings!=NULL);
+    assert(env->bindings->type==tableType);
+    HashTable *table = env->bindings->tableValue;
+    int i;
+    for (i = 0; i<(table->capacity); i++){
+      if ((table->entries[i]).car != NULL){
+	assert(table->entries);
+	if ((table->entries[i]).cdr  && ((table->entries[i]).cdr)->type == primitiveType){
+	  free((table->entries[i]).cdr);
+	  (table->entries[i]).cdr = NULL;
+	}
+      }
+    }
+    destroyTable(table);
+    free(env->bindings);
+    free(env);
+  }
+}
+*/
 // creates an environment.
 Environment *createFrameWithSize(Environment *parent, int size){
   Environment *frame = (Environment *)malloc(sizeof(Environment));
@@ -1152,7 +1180,6 @@ Environment *createFrameWithSize(Environment *parent, int size){
   id->type = integerType;
   id->intValue = 0;
   insertItem(frame->bindings->tableValue,"#envID",id);
-  insertItem(frame->bindings->tableValue,"#returnID",id); // it is okay to insert id again since hash table copies it.
   free(id);
   return frame;
 }
@@ -1725,9 +1752,10 @@ Value *evalAnd(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value->type = booleanType;
     value->boolValue = 1;
-    Value *returnValue = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
-    return returnValue;
+    // insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
+    return value;
   }else{
     //findLast(args); // remove close parenthesis.
     Value *toCheck  = args, *toValidate = NULL;
@@ -1745,9 +1773,10 @@ Value *evalAnd(Value *args, Environment *env){
 	Value* value = (Value *)malloc(sizeof(Value));
 	value->type = booleanType;
 	value->boolValue = 0;
-	Value *returnValue = insertValueToEnv(value, env); // value is copied into the hash table.
-	free(value);  // value can be freed since there is one copy in hash table.
-	return returnValue;
+	//insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+	//free(value);  // value can be freed since there is one copy in hash table.
+	//value = lookup(env->bindings->tableValue,"#returnValue");
+	return value;
       }
       toCheck = getTail(toCheck);
     }
@@ -1823,12 +1852,10 @@ Value *evalOr(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value->type = booleanType;
     value->boolValue = 1;
-    
-    Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
-    
-    return toReturn;
-    
+    //insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
+    return value;
   }else{
     
     Value *toCheck  = args, *toValidate = NULL;
@@ -1971,11 +1998,11 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
       }
       args = getTail(args);
     }
-   
-    Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
+    return value;
     
-    return toReturn;
+    //insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
   } 
 }
 
@@ -2040,13 +2067,11 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
       }
       args = getTail(args);
     }
-
-    Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
+    return value;
     
-    return toReturn;
- 
-   
+    //insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
   } 
 }
 
@@ -2102,11 +2127,11 @@ Value *greaterThan(Value *args, Environment *env){
       }
       args = getTail(args);
     }
+    return value;
     
-    Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
-    
-    return toReturn;
+    //insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
   } 
 }
 
@@ -2165,11 +2190,11 @@ Value *smallerThan(Value *args, Environment *env){
       }
       args = getTail(args);
     }
- 
-    Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-    free(value);  // value can be freed since there is one copy in hash table.
+    return value;
     
-    return toReturn;
+    //insertItem(env->bindings->tableValue,"#returnValue",value); // value is copied into the hash table.
+    //free(value);  // value can be freed since there is one copy in hash table.
+    //value = lookup(env->bindings->tableValue,"#returnValue");
   } 
 }
 
@@ -2314,15 +2339,16 @@ Value *equality(Value *args, Environment *env){
     value->boolValue = 0;
   }
   assert(env->bindings!=NULL);
-
-  Value *toReturn = insertValueToEnv(value, env); // value is copied into the hash table.
-  free(value);  // value can be freed since there is one copy in hash table.
-    
-  return toReturn;
-  
+  //insertItem(env->bindings->tableValue, "#returnValue",value);
+  //free(value);
+  //value = lookup(env->bindings->tableValue, "#returnValue");
+  return value;
 }
 
-
+// not finished yet.
+Value *exponentiate(Value *args, Environment *env){
+  return NULL;
+}
 
 
 
@@ -2381,12 +2407,19 @@ Value* checkNull(Value *value, Environment *env){
   
   if (count <1){
     printf("null?: expects 1 argument, given 0\n");
-    return NULL;
+    returnValue->type = errorType;
+    //insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+    //free(returnValue);
+    //return lookup(env->bindings->tableValue,"#returnValue");
+    return returnValue;
   }else if (count>1){
     printf("null?: expects 1 argument, given %d\n",count);
-   
-    return NULL;
-  }else{
+    //returnValue->type = errorType;
+    //insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+    //free(returnValue);
+    //return lookup(env->bindings->tableValue,"#returnValue");
+    return returnValue;
+  } else{
     // assert(value != NULL);
     current = getFirst(value);
     if (current->type ==cellType){
@@ -2395,17 +2428,17 @@ Value* checkNull(Value *value, Environment *env){
     }
     // assert(current != NULL);
     returnValue->type = booleanType;
-    
+   
     if (current && current->type == nullType) {
       returnValue->boolValue = 1;
     } else {
       returnValue->boolValue = 0;
     }
   
-    Value *toReturn = insertValueToEnv(returnValue, env); // value is copied into the hash table.
-    free(returnValue);  // value can be freed since there is one copy in hash table.
-    return toReturn;
-    
+    //insertItem(env->bindings->tableValue,"#returnValue",returnValue);
+    //free(returnValue);
+    //return lookup(env->bindings->tableValue,"#returnValue");
+    return returnValue;
   }
   return NULL;
 }

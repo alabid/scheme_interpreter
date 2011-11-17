@@ -1,0 +1,10 @@
+(define keep-first-n 
+   (lambda (num lst)
+   (cond ((null? lst) null)
+      ((<= num 0) null)  
+         (else (cons (car lst) (keep-first-n (- num 1) (cdr lst)))))))
+
+(keep-first-n 3 (quote (1 2 3 4 5 6 7 8 9 10)))
+(keep-first-n 5 (quote (2 3 2 5 5 2 3 3 )))
+(keep-first-n 2 (quote (1 2 3 4 5 5)))
+(keep-first-n 1 (quote (2 3 4 5)))

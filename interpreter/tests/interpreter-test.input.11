@@ -1,0 +1,4 @@
+(cons 1 2)
+(cons 1 (cons 1 2))
+(car (cons 1 (lambda () 3)))
+(cdr (cons 2 (lambda () 3)))

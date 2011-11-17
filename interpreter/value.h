@@ -46,6 +46,7 @@ List* initializeList();
 // This function inserts a new cons cell to the linked list.
 int insertCell(List *list, Value *value);
 
+// pushes value in the front of the list
 int push(List *list, Value *value);
 
 // This function pops the head of the linked list.
@@ -54,6 +55,7 @@ Value* pop(List *list);
 // This function reverses the linked list.
 int reverse(List *list);
 
+// deepcopies the linked list into a new one and returns it
 List* deepCopyLinkedList(List* list);
 
 // This function frees cons cells of the linked list.
@@ -69,7 +71,7 @@ void printTokens(Value* value);
 void destroy(List* list);
 
 
-// destroy environment
+// destroy the environment and everything in it
 void destroyEnvironment(Environment *env);
 
 
@@ -91,6 +93,7 @@ void cleanupClosure(Closure *closure);
 // destroy frees the contents of the closure and closure itself.
 void destroyClosure(Closure *closure);
 
+// gives an identifier to a closure
 void nameClosure(Closure *closure, char *id);
 
 typedef struct __HashTable{
@@ -169,8 +172,12 @@ Value *car (Value *value, Environment *env);
 */
 Value *cdr (Value *value, Environment *env);
 
+/*
+  RETURNS THE CONS OF THE LIST
+*/
 Value *cons (Value *value, Environment *env);
 
+// clean ups value
 void cleanupValue(Value* value);
 
 /*
@@ -179,7 +186,7 @@ void cleanupValue(Value* value);
 void printValue(Value* head);
 
 /*
-give me the length of the list
+give me the length of the list, whether proper or improper
 */
 int listLength(Value *value);
 
@@ -189,19 +196,33 @@ int listLength(Value *value);
 */
 void printList(Value* value);
 
+/*
+Determines the length of a proper list
+*/
 int properListLength(Value *value);
 
+/*
+Determines the length of a proper list
+*/
 int improperListLength(Value *value);
 
+/*
+returns the first car of the cons cell of the value.
+*/
 Value *getFirst(Value *value);
 
+/*
+ returns the cdr of the cons cell of the value
+*/
 Value *getTail(Value *value);
 
+/*
+generic deepCopy which calls subsequent ones
+*/
 Value *deepCopy(Value *value);
 
-Value *deepCopyList(Value *value);
 
-void freeValue(Value *value);
+Value *deepCopyList(Value *value);
 
 Value* deepCopyFun(Value *function);
 
@@ -209,26 +230,38 @@ Value *deepCopyEnv(Value * value);
 
 Value *deepCopyTable(Value * value);
 
+/*
+recursively. frees a value
+*/
+void freeValue(Value *value);
+
 void destroyTopFrame(Environment *env);
 
 void destroyFrame(Environment *env);
 
+
 void removeLast(Value* value);
-
+// finds the last element in the value structure
 Value *findLast(Value* value);
-
+// helper for findlast
 Value *findLastProperRec(Value *value);
-
+// find the last cons cell in an improper list
 Value *findLastImproperRec(Value *value);
 
+// converts an int to string
 char* intToString(int number);
+
 
 char* getReturnString(int number);
 
+
 Value *letEnvLookup(Environment * bottom, Environment *top, char *id);
 
+// determines if a list is proper or not
 int isProperList(Value *value);
 
+// helper function for isproperlist
 int isProperListRec(Value *value);
 
+// inserts a value into the environment, parent
 Value* insertValueToEnv(Value *toInsert,Environment *parent);

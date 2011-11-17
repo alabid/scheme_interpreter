@@ -1,3 +1,16 @@
-(cond
-   [(<= 3 5) (+ 2 3)]
-   [(>= 2 5) (* 4 5)])
+
+(define length
+  (lambda (lst)
+    (if (null? lst) 0
+      (+ 1 (length (cdr lst))))))
+
+
+ (define average
+   (lambda (lst)
+       (/ (sum lst) (length lst))))
+ 
+(define sum
+  (lambda (lst)
+    (if (null? lst) 0
+        (+ (car lst) (sum (cdr lst))))))
+(average (quote (1 2 3 )))

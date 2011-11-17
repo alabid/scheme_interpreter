@@ -1,0 +1,11 @@
+(cons 1 (quote (1 2 3 4 5 5)))
+(cons 1 3)
+(cons 1 5)
+
+(define sum
+  (lambda (lst)
+    (if (null? lst) 0
+        (+ (car lst) (sum (cdr lst))))))
+
+(sum (quote (1 2 3 4)))
+((cdr (cons 1 sum)) (quote (1 2 3 4 5)))

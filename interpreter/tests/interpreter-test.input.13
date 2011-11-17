@@ -1,0 +1,20 @@
+(define factorial
+  (lambda (n)
+    (if (= n 0)
+        1
+        (* n (factorial (- n 1))))))
+         
+(define expon
+  (lambda (x y)
+    (if (= y 1) x
+        (* x (expon x (- y 1))))))
+
+
+
+(factorial 2)
+(factorial 4)
+(factorial 7)
+(factorial 8)
+
+(expon  2 4)
+(expon 3 3)

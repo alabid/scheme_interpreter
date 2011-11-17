@@ -1,0 +1,11 @@
+ (define count-in-list
+   (lambda (item lst)
+     (cond ((null? lst) 0)
+           ((equal? (car lst) item) (+ 1 (count-in-list item (cdr lst))))
+           (else (count-in-list item (cdr lst))))))
+
+(count-in-list 5 (quote (1 5 2 3 4 5)))
+(count-in-list 2 (quote (1 2 3 4 5 5)))
+(count-in-list 2 (quote (2 3 5 3 2)))
+(count-in-list 3 (quote (3 2 3 4 5 5)))
+(count-in-list 4 (cons 4 (quote (2 3 4))))

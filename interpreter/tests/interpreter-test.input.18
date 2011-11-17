@@ -1,0 +1,8 @@
+(define remove-first
+  (lambda (item lst)
+    (cond ((null? lst) null)
+          ((equal? item (car lst)) (cdr lst)) 
+          (else (cons (car lst) (remove-first item (cdr lst)))))))
+
+(remove-first 3 (quote (2 3 3 2 3)))
+(remove-first 3 (quote (2 2 2 7 8)))
