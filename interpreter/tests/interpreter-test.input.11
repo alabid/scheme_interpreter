@@ -1,8 +1,0 @@
-(define recursion 
-	(lambda (n)
-		(if (or (equal? n 0) (= n 1)) n (recursion (- n 1)))))
-(recursion 1000)
-(cons 4 5)
-(define crazy (letrec ((a 10) (c 20) (b c)) (lambda (n1 n2) (if (equal? n1 n2) a b))))  
-(crazy "this is crazy, isn't it" "this is crazy, isn't it")
-(crazy "this is crazy, isn't it" 5)
