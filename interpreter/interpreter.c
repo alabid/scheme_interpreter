@@ -17,11 +17,7 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
-  printf("eval: ");
-  printValue(expr);
-  printf("\n");
-  if (expr) printf("the type of expr is %d\n",expr->type);
-  
+ 
   if (!expr){
     return NULL;
   }
@@ -57,7 +53,7 @@ Value* eval(Value *expr, Environment *env){
 	  printf("procedure application: expected procedure, given: () (no arguments)\n");
 	  return NULL;
 	}else if (operator->type == cellType){
-	  Value *evaledArgs = evalEach(args, env);
+	
 	  
 	  if (getFirst(operator) && getFirst(operator)->type == openType){
 	    operator = eval(operator, env);
@@ -70,21 +66,13 @@ Value* eval(Value *expr, Environment *env){
 	     operator = getFirst(operator);
 	    
 	  }else{
-	    printf("potential error\n");
+	    printf("Cannot evaluate your expression. It is too complicated.\n");
 	    return NULL;
 	  }
 	  
-	  
+	  Value *evaledArgs = evalEach(args, env);
 	 
-	  printf("printing the operator ");
-	  printValue(operator);
-	  if (operator) printf("the type of operator is: %d",operator->type );
-	  printf("\n");
 	  
-	  printf("printing the args ");
-	  printValue(evaledArgs);
-	  if (evaledArgs) printf("the type of args is: %d",evaledArgs->type );
-	  printf("\n");
 	  return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
@@ -125,9 +113,9 @@ Value* eval(Value *expr, Environment *env){
 	    } // go to top-level environment.
 	    return loadFunction(args, env);
 	  } else{
-	    Value *evaledArgs = evalEach(args, env);
-	    Value *evaledOperator = eval(operator, env);
 	   
+	    Value *evaledOperator = eval(operator, env);
+	    Value *evaledArgs = evalEach(args, env);
 	    
 	    if (!evaledOperator){
 	      printf("Unknown procedure: ");
@@ -251,12 +239,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
     /* Bind formalArgs to actualArgs in frame here. */
     Value *curArg = formalArgs->head;
     Value *curValue = copiedArgs;
-    printf("show me the formal parameter list: ");
-    printValue(curArg);
-    printf("\n");
-    printf("show me the actual parameter list: ");
-    printValue(actualArgs);
-    printf("\n");
+  
     while (curArg && curValue){
       assert(getFirst(curArg)->type ==symbolType);
 
@@ -466,8 +449,8 @@ Value* evalEach(Value* args, Environment* env){
 	}
 	push(returnValue, temp);
 	curArgs = getTail(curArgs);
-	// }else if (paren && paren->type == closeType){
-      //break;
+      }else if (paren && paren->type == closeType){
+	break;
       }else if (getFirst(getFirst(curArgs)) && getFirst((getFirst(curArgs)))->type==nullType){
 	temp =  deepCopy(getFirst(getFirst(curArgs)));
 	push(returnValue, temp);
