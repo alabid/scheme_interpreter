@@ -17,7 +17,9 @@
 Value* eval(Value *expr, Environment *env){
   Value* operator;
   Value* args;
- 
+  printf("please evaluate this: ");
+  printValue(expr);
+  printf("\n\n");
   if (!expr){
     return NULL;
   }
@@ -70,10 +72,10 @@ Value* eval(Value *expr, Environment *env){
 	    return NULL;
 	  }
 	  
-	  Value *evaledArgs = evalEach(args, env);
+	  //Value *evaledArgs = evalEach(args, env);
 	 
 	  
-	  return apply(operator, evaledArgs, env);
+	  //return apply(operator, evaledArgs, env);
 	}
 	if (operator->type == symbolType){  
 	  
@@ -252,7 +254,7 @@ Value* apply(Value* function, Value* actualArgs, Environment* env){
    
     if (curArg || curValue){
       printf("Wrong number of parameters for the procedure.\n");
-      destroyEnvironment(frame);
+      
       return NULL;
     }
     
@@ -438,7 +440,7 @@ Value* evalEach(Value* args, Environment* env){
   while (curArgs && typeCheck(getFirst(curArgs))!=5){ 
     assert(curArgs->type==cellType);    
     if (getFirst(curArgs) && (getFirst(curArgs))->type==cellType){
-      paren = getFirst(getFirst(copiedArgs));
+      paren = getFirst(getFirst(curArgs));
       if (paren && paren->type == openType){
 	temp =  deepCopy(eval(getFirst(curArgs), env));	
 	if (!temp){
@@ -449,17 +451,14 @@ Value* evalEach(Value* args, Environment* env){
 	}
 	push(returnValue, temp);
 	curArgs = getTail(curArgs);
-      }else if (paren && paren->type == closeType){
-	break;
+	//}else if (paren && paren->type == closeType){
+	//break;
       }else if (getFirst(getFirst(curArgs)) && getFirst((getFirst(curArgs)))->type==nullType){
 	temp =  deepCopy(getFirst(getFirst(curArgs)));
 	push(returnValue, temp);
 	args = getTail(curArgs);
       }else{
-	printf("Error! Cannot evaluate each one.\n");
-	free(returnValue);
-	freeValue(copiedArgs);
-	return NULL;
+	//push(returnValue, getFirst());
       }
     }else if (getFirst(curArgs) && (getFirst(curArgs))->type==nullType){
 	temp =  deepCopy(getFirst(curArgs));
