@@ -643,9 +643,11 @@ Value *cdr(Value *value, Environment *env) {
     if (listLength(content) == 1) {
       newValue = (Value *) malloc(sizeof(Value));
       newValue->type = nullType;
-      insertItem(env->bindings->tableValue,"#cdr",newValue);
-      free(newValue);
-      return lookup(env->bindings->tableValue, "#cdr");
+    
+      Value *toReturn = insertValueToEnv(newValue, env); // value is copied into the hash table.
+      free(newValue);  // value can be freed since there is one copy in hash table.
+      
+      return toReturn;
     } else {
       openParen = (Value *) malloc(sizeof(Value));
       openParen->type = openType;
@@ -655,22 +657,25 @@ Value *cdr(Value *value, Environment *env) {
       newValue->cons = (ConsCell *)malloc(sizeof(ConsCell));
       newValue->cons->car = openParen;
       newValue->cons->cdr = getTail(content);
-      insertItem(env->bindings->tableValue, "#cdr", newValue);
+      
+      Value *toReturn = insertValueToEnv(newValue, env); // value is copied into the hash table.
+    
       free(openParen);
       free(newValue->cons);
       free(newValue);
-      newValue = lookup(env->bindings->tableValue, "#cdr");
-      return newValue;      
+      
+      return toReturn;      
     }
   } else {
     if (listLength(content) == 2) {
       newValue = deepCopy(getTail(content));
       newValue->type = getTail(content)->type;
       
-      insertItem(env->bindings->tableValue, "#cdrImproper", newValue);
-      free(newValue);
-      newValue = lookup(env->bindings->tableValue, "#cdrImproper");
-      return newValue;      
+     
+      Value *toReturn = insertValueToEnv(newValue, env); // value is copied into the hash table.
+      free(newValue);  // value can be freed since there is one copy in hash table.
+    
+    return toReturn;     
     } else if (listLength(content) > 2) {
       openParen = (Value *) malloc(sizeof(Value));
       openParen->type = openType;
@@ -682,10 +687,11 @@ Value *cdr(Value *value, Environment *env) {
       newValue->cons->car = openParen;
       newValue->cons->cdr = deepCopy(getTail(content));
 
-      insertItem(env->bindings->tableValue, "#cdrImproper", newValue);
-      free(newValue);
-      newValue = lookup(env->bindings->tableValue, "#cdrImproper");
-      return newValue;      
+      
+      Value *toReturn = insertValueToEnv(newValue, env); // value is copied into the hash table.
+      free(newValue);  // value can be freed since there is one copy in hash table.
+    
+      return toReturn;    
     } else {
       printf("cdr: your improper list is not cdrable!\n");
       return NULL;
@@ -771,11 +777,11 @@ Value *cons(Value *value, Environment *env) {
   newValue->cons->car = openParen;
   newValue->cons->cdr = carCdr;
 
-  insertItem(env->bindings->tableValue,"#cons",newValue);
-  // we probably have to free the remaining components of newValue
-  free(newValue);
   
-  return lookup(env->bindings->tableValue, "#cons");
+  Value *toReturn = insertValueToEnv(newValue, env); // value is copied into the hash table.
+  free(newValue);  // value can be freed since there is one copy in hash table.
+  
+  return toReturn;
 }
 
 /*
@@ -1336,6 +1342,53 @@ char* intToString(int number){
     reminder = quotient % 10;
     quotient = quotient / 10;
     id[counter] = digit[reminder];
+    counter --;
+ }
+  return id;
+}
+
+Value* insertValueToEnv(Value *toInsert,Environment *parent){
+  if (!toInsert || !parent){
+    return NULL;
+  }
+  Value  *currentID = lookup(parent->bindings->tableValue, "#returnID");
+  char *id = getReturnString(currentID->intValue);  // string is mallocated inside intToString function.
+  currentID->intValue +=1;
+  insertItem(parent->bindings->tableValue, id, toInsert);
+  Value *toReturn = lookup(parent->bindings->tableValue,id);
+  free(id);
+  return toReturn;
+}
+
+char* getReturnString(int number){
+  char digit[] = {'0','1','2','3','4','5','6','7','8','9'}; 
+  int reminder;
+  int quotient = number;
+  int counter = 0;
+  if (number==0){
+    char *id = (char *)malloc(sizeof(char)*9);
+    id[0]='#';id[1]='r';id[2]='e';id[3]='t';id[4]='u';id[5]='r';id[6]='n';
+    id[7]='0';
+    id[8]='\0';
+    return id;
+  }
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    if (reminder==0 && quotient ==0){
+      counter++;
+    }
+    counter++;
+  }
+
+  char *id = (char *)malloc(sizeof(char)*(counter+8));
+  id[0]='#';id[1]='r';id[2]='e';id[3]='t';id[4]='u';id[5]='r';id[6]='n';
+  id[counter+7] = '\0';
+  quotient = number;
+  while (quotient!=0){
+    reminder = quotient % 10;
+    quotient = quotient / 10;
+    id[counter+6] = digit[reminder];
     counter --;
  }
   return id;

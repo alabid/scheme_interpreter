@@ -222,7 +222,8 @@ Value *findLastProperRec(Value *value);
 Value *findLastImproperRec(Value *value);
 
 char* intToString(int number);
-//void printArgs(Value *curValue, int withQuotes);
+
+char* getReturnString(int number);
 
 Value *letEnvLookup(Environment * bottom, Environment *top, char *id);
 
@@ -230,3 +231,4 @@ int isProperList(Value *value);
 
 int isProperListRec(Value *value);
 
+Value* insertValueToEnv(Value *toInsert,Environment *parent);
