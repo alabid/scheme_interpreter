@@ -25,6 +25,7 @@ Value* eval(Value *expr, Environment *env){
   if (!expr){
     return NULL;
   }
+  //if symbol type, look up the environment
   switch (expr->type) 
     {
     case symbolType:   
@@ -515,6 +516,7 @@ Value *evalLet(Value *args, Environment *env){
     printf("\n");
     return NULL;
   }
+  //handle the case with no args to bind
   if (getFirst(args)->type== nullType){
     Value * toReturn;
     while (getTail(getTail(getTail(args)))){
@@ -561,6 +563,7 @@ Value *evalLet(Value *args, Environment *env){
       Value* listofBinds = toCheck;
      
       listofBinds = toCheck;
+      //bind the bindings to the new environment
       while (listofBinds){
 	
 	if (getFirst(listofBinds) && typeCheck(getFirst(listofBinds))==5){
@@ -595,9 +598,7 @@ Value *evalLet(Value *args, Environment *env){
 
       }
       Value* listofExpressions = getTail(args);
-      
-    
-      
+      //eval the following expressions
       if (!listofExpressions){
 	printf(" let: bad syntax.\n ");
 	return NULL;
@@ -654,6 +655,7 @@ Value* evalLetStar(Value* args, Environment* env){
     printf("\n");
     return NULL;
   }
+  //handle the case when nothing to bind
   if (getFirst(args)->type== nullType){
     Value * toReturn;
     while (getTail(getTail(getTail(args)))){
@@ -702,7 +704,7 @@ Value* evalLetStar(Value* args, Environment* env){
       firstEnv = createFrame(env);
       parent = env;
       newEnv = firstEnv;
-      
+      //binds the bindings to new environment
       while (getFirst(listofBinds) && typeCheck(getFirst(listofBinds))!=5){
 	
 	Value* toBind = eval(getTail(getTail(getFirst(listofBinds))), parent);
@@ -746,7 +748,7 @@ Value* evalLetStar(Value* args, Environment* env){
 	return NULL;
       }
       
-	
+      //eval the following expressions	
       while(listofExpressions && typeCheck(getFirst(listofExpressions))!=5){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
 	if(toReturn == NULL){
@@ -799,7 +801,7 @@ Value* evalLetrec(Value* args, Environment* env){
   if (count < 2){
     return NULL;
   }
- 
+  //check the situation when nothing to bind 
   if (getFirst(args)->type== nullType){
     Value * toReturn;
     while (getTail(getTail(getTail(args)))){
@@ -852,7 +854,7 @@ Value* evalLetrec(Value* args, Environment* env){
      
       // first round of forming bindings. Ignore symbols first.
       
-   
+      //bind the bindings to the new environment 
       while (listofBinds){
         toBind = getFirst(getTail(getTail(getFirst(listofBinds))));
 
@@ -878,20 +880,10 @@ Value* evalLetrec(Value* args, Environment* env){
 	    if (!toBind->closureValue->identifier){
 	      nameClosure(toBind->closureValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue);
 	    }
-	    //printf("printing the clousre: ");
-	    //  print(toBind->closureValue->args);
-	    //printValue(toBind->closureValue->body);
-	    //printf("\n");
 	  }
-	  //printf("in let2: %s => ",getFirst(getTail(getFirst(listofBinds)))->symbolValue);
-	  //printValue(toBind);
-	  //printf("\n");
           insertItem(newEnv->bindings->tableValue, getFirst(getTail(getFirst(listofBinds)))->symbolValue, toBind);
         }
 	listofBinds = getTail(listofBinds);
-	//printf("in let3: The following is  ");
-	//printValue(listofBinds);
-	//printf("\n");	
       }
  
       listofBinds = toCheck;
@@ -915,11 +907,7 @@ Value* evalLetrec(Value* args, Environment* env){
           if (toBind && toBind->type == symbolType){
             if(envLookup(toBind->symbolValue, newEnv) != NULL){
 	      Value *curValue = eval(toBind,newEnv);
-              insertItem(newEnv->bindings->tableValue,getFirst(getTail(getFirst(listofBinds)))->symbolValue, curValue);
-	      
-	      //printf("in let4: %s=> ",getFirst(getTail(getFirst(listofBinds)))->symbolValue);
-	      //printValue(curValue);
-	      //printf("\n");
+              insertItem(newEnv->bindings->tableValue,getFirst(getTail(getFirst(listofBinds)))->symbolValue, curValue);	      
             }else{
               printf("syntax error: unknown identifier\n");
 	      destroyEnvironment(newEnv); 
@@ -928,22 +916,15 @@ Value* evalLetrec(Value* args, Environment* env){
           }
 	}
 	listofBinds = getTail(listofBinds);
-	//printf("in let5: The following is  ");
-	//printValue(listofBinds);
-	//printf("\n");	
-
       }
      
-
       Value* listofExpressions = getTail(args);
- 
-     
       if (!listofExpressions){
 	printf("syntax error in letrec: bad syntax.\n ");  // if no return value is found, print out syntax error.
 	destroyEnvironment(newEnv); 
 	return NULL;
       }
-     
+      //eval the following expressions
       while(listofExpressions && typeCheck(getFirst(listofExpressions))!=5){
 	Value* toReturn = eval(getFirst(listofExpressions), newEnv);
 	
@@ -965,15 +946,11 @@ Value* evalLetrec(Value* args, Environment* env){
 	     freeValue(toReturn);
 	  }else{
 	    if (toReturn && toReturn->type==closureType){
-	      //printf("returning here\n");
 	      toReturn->closureValue->parent = insertEnv(newEnv, env);
 	      return toReturn;
 	    }else if (toReturn && getFirst(listofExpressions)->type == symbolType && lookup(newEnv->bindings->tableValue, getFirst(listofExpressions)->symbolValue)){
 	      toReturn = deepCopy(toReturn); // if the symbol is in the new environment, need to copy it before destroying the new environment.
-	      //printf("copying the things: ");
-	      //printValue(toReturn);
-	      //printf("type of toReturn: %d",toReturn->type);
-	      //printf("\n");
+	      
 	    }
 	    
 	      // if the last item is lambda, we need to return it and leave let environment there.
@@ -1203,6 +1180,7 @@ Value *add(Value *args, Environment *env){
 	  return NULL;
 	}
       }else if (getFirst(args)->type == integerType){
+	//check the type here
 	if (!isFloat){
 	  intSum += getFirst(args)->intValue;
 	}else{
@@ -1226,7 +1204,7 @@ Value *add(Value *args, Environment *env){
    
   }
   Value *value = (Value*) malloc(sizeof(Value));
-  
+  //return the double and int value here  
   if (isFloat){
     value->type = floatType;
       value->dblValue = dblSum; 
@@ -1868,7 +1846,7 @@ Value *evalOr(Value *args, Environment *env){
 
 
 
-
+//check the environment of the bindings
 Environment* checkEnv(char* id, Environment* env){
   Environment* returnEnv = env;
   Value* returnValue = NULL;
@@ -1892,7 +1870,7 @@ Environment* checkEnv(char* id, Environment* env){
 
 
 Value *evalSetBang(Value *args, Environment *env){
- //we should modify let functions in order to handle those cases like(let ((y 4)) (set! y 3))
+  //check valid input
  int count = listLength(args);
  if (count < 1||count > 2){
    printf("set!: has %d parts after key word in ", count);
@@ -1916,6 +1894,7 @@ Value *evalSetBang(Value *args, Environment *env){
 	  printf("\n");
 	  return NULL;
 	}else{
+       //bind the new value to the binding
 	Environment* newEnv= checkEnv(getFirst(args)->symbolValue, env);
 	Value* toBind = eval(getFirst(getTail(args)), env);
 	  if(toBind && newEnv){
@@ -1932,6 +1911,7 @@ Value *evalSetBang(Value *args, Environment *env){
 
 Value *smallerOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
+  //check if input is valid
   int count = listLength(args);
   if (count < 1){
     printf("in <=: expect at least two arguments, given %d /n", count);
@@ -1954,6 +1934,7 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value -> type = booleanType;
     value -> boolValue = 1;
+    //compare each args here
     for (i = 0; i < count - 1; i++) {
       if(getFirst(args)->type == integerType){
  
@@ -1999,6 +1980,7 @@ Value *smallerOrEqualTo(Value *args, Environment *env){
 
 Value *greaterOrEqualTo(Value *args, Environment *env){
   assert(args->type == cellType);
+  //check the valid input
   int count = listLength(args);
   if (count < 1){
     printf("in >=: expect at least two arguments, given %d /n", count);
@@ -2021,6 +2003,7 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value -> type = booleanType;
     value -> boolValue = 1;
+    //compare each args here
     for (i = 0; i < count - 1; i++) {
       if(getFirst(args)->type == integerType){
  
@@ -2057,6 +2040,7 @@ Value *greaterOrEqualTo(Value *args, Environment *env){
 }
 
 Value *greaterThan(Value *args, Environment *env){
+  //check valid input
   assert(args->type == cellType);
   int count = listLength(args);
   if (count < 1){
@@ -2080,6 +2064,7 @@ Value *greaterThan(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value -> type = booleanType;
     value -> boolValue = 1;
+    //compare each args here
     for (i = 0; i < count - 1; i++) {
       if(getFirst(args)->type == integerType){
 	if(getFirst(getTail(args))->type == integerType){
@@ -2117,6 +2102,7 @@ Value *greaterThan(Value *args, Environment *env){
 
 
 Value *smallerThan(Value *args, Environment *env){
+  //check if input is valid 
   assert(args->type == cellType);
   int count = listLength(args);
   if (count < 1){
@@ -2140,6 +2126,7 @@ Value *smallerThan(Value *args, Environment *env){
     Value* value = (Value *)malloc(sizeof(Value));
     value -> type = booleanType;
     value -> boolValue = 1;
+    //compare each args here
     for (i = 0; i < count - 1; i++) {
       if(getFirst(args)->type == integerType){
  
