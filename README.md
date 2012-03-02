@@ -3,6 +3,7 @@ README
 By Daniel Alabi, Yichen Shen, and Jie Lin.
 
 There are three parts of our scheme intepreter implementation written in C:
+
 * Tokenizer.
 * Parser.
 * Interpreter.
@@ -22,11 +23,11 @@ What works:
 * logical operators like and, or.
 * lambda 
   
-Our interpreter can handle 
-+ recursion
-+ currying
-+ functions
-+ Improper lists
+Our interpreter can handle :
+* recursion
+* currying
+* functions
+* Improper lists
 
 
 We have some complicated test cases that use primitives as a
