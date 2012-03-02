@@ -3,9 +3,9 @@ README
 By Daniel Alabi, Yichen Shen, and Jie Lin.
 
 There are three parts of our scheme intepreter implementation written in C:
-1. Tokenizer.
-2. Parser.
-3. Interpreter.
+* Tokenizer.
+* Parser.
+* Interpreter.
 
 We closely followed the Scheme standard (which strongly correlates with
 the DrRacket implementation). 
@@ -23,10 +23,10 @@ What works:
 * lambda 
   
 Our interpreter can handle 
-i) recursion
-ii) currying
-iii) functions
-iv) Improper lists
++ recursion
++ currying
++ functions
++ Improper lists
 
 
 We have some complicated test cases that use primitives as a
