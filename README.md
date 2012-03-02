@@ -23,7 +23,7 @@ What works:
 * logical operators like and, or.
 * lambda 
   
-Our interpreter can handle :
+Our interpreter can handle:
 
 * recursion
 * currying
