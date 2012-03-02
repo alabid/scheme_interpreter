@@ -24,6 +24,7 @@ What works:
 * lambda 
   
 Our interpreter can handle :
+
 * recursion
 * currying
 * functions
